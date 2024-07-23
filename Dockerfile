@@ -12,20 +12,23 @@ WORKDIR /app
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install app dependencies
-RUN npm install
+# Install app dependencies and update expo-cli
+RUN npm install && npm install -g expo-cli@latest
 
 # Copy app files
 COPY . .
 
+# Update expo SDK
+RUN npx expo install --fix
+
+# Expose port 8081 for Metro bundler
+EXPOSE 8081
+
 # Expose port 19000 for Expo
 EXPOSE 19000
-
-# Expose port 19001 for Metro bundler
-EXPOSE 19001
 
 # Expose port 19002 for Expo DevTools
 EXPOSE 19002
 
 # Start the app
-CMD ["npm", "start"]
+CMD ["npx", "expo", "start", "--web"]
