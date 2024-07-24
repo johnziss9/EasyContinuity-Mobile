@@ -1,10 +1,10 @@
 # Use Node 20.15.0 as the base image
 FROM node:20.15.0
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    android-tools-adb \
-    android-tools-fastboot
+# # Install dependencies
+# RUN apt-get update && apt-get install -y \
+#     android-tools-adb \
+#     android-tools-fastboot
 
 # Set up working directory
 WORKDIR /app
