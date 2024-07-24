@@ -18,7 +18,7 @@ const Home = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#87789a',
+        backgroundColor: '#8fbeae',
         alignItems: 'center',
         justifyContent: 'center'
     },
@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 5,
         borderWidth: 2,
-        borderColor: '#626d9e',
+        borderColor: '#f4c1c6',
         margin: 10,
         width: 250,
         height: 60,
@@ -34,16 +34,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
     loginButton: {
-        backgroundColor: '#626d9e'
+        backgroundColor: '#f4c1c6'
     },
     createButton: {
-        backgroundColor: '#87789a'
+        backgroundColor: '#8fbeae'
     },
     buttonText: {
         textAlign: 'center'
     },
     loginButtonText: {
-        color: '#fff'
+        color: '#353e39'
     },
     createButtonText: {
         color: '#fff'
