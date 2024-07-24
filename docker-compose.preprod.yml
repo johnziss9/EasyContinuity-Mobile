@@ -1,0 +1,12 @@
+version: '3'
+services:
+  easy-continuity-preprod:
+    build: 
+      context: .
+      dockerfile: Dockerfile.preprod
+    ports:
+      - "8082:8081"
+      - "19001:19000"
+      - "19003:19002"
+    environment: 
+      - NODE_ENV=preprod
