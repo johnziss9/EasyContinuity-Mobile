@@ -1,15 +1,48 @@
-import { StyleSheet, Text, Pressable } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, Pressable, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Home = () => {
+    const [showLoginForm, setShowLoginForm] = useState(false);
+    const [username, setUsername] = React.useState('');
+    const [password, setPassword] = React.useState('');
+
     return (
         <SafeAreaView style={styles.container}>
-            <Pressable style={[styles.button, styles.loginButton]}>
-                <Text style={[styles.buttonText, styles.loginButtonText]}>Sign In</Text>
-            </Pressable>
-            <Pressable style={[styles.button]}>
-                <Text style={[styles.buttonText, styles.createButtonText]}>Create an Account</Text>
-            </Pressable>
+            {showLoginForm ?
+                <>
+                    <TextInput
+                        style={styles.textbox}
+                        onChangeText={setUsername}
+                        value={username}
+                        placeholder='Username'
+                        cursorColor={'#3F4F5F'}
+                    />
+                    <TextInput
+                        style={styles.textbox}
+                        onChangeText={setPassword}
+                        value={password}
+                        placeholder='Password'
+                        cursorColor={'#3F4F5F'}
+                        secureTextEntry
+                    />
+                    <Pressable style={[styles.button, styles.loginButton]}>
+                        <Text style={[styles.buttonText, styles.loginButtonText]}>Sign In</Text>
+                    </Pressable>
+                    <Pressable onPress={() => setShowLoginForm(!showLoginForm)} style={[styles.button]}>
+                        <Text style={[styles.buttonText, styles.createButtonText]}>Cancel</Text>
+                    </Pressable>
+                </> :
+                <>
+                    <Pressable onPress={() => setShowLoginForm(!showLoginForm)} style={[styles.button, styles.loginButton]}>
+                        <Text style={[styles.buttonText, styles.loginButtonText]}>Sign In</Text>
+                    </Pressable>
+                    <Pressable style={[styles.button]}>
+                        <Text style={[styles.buttonText, styles.createButtonText]}>Create an Account</Text>
+                    </Pressable>
+                </>
+            }
+
         </SafeAreaView>
     );
 }
@@ -28,7 +61,7 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: '#3F4F5F',
         margin: 10,
-        width: 250,
+        width: 300,
         height: 60,
         display: 'flex',
         justifyContent: 'center'
@@ -44,6 +77,17 @@ const styles = StyleSheet.create({
     },
     createButtonText: {
         color: '#3F4F5F'
+    },
+    textbox: {
+        width: 300,
+        height: 60,
+        borderWidth: 2,
+        borderColor: '#3F4F5F',
+        borderRadius: 5,
+        paddingLeft: 7,
+        margin: 10,
+        backgroundColor: 'rgba(205, 167, 175, 0.4)',
+        outlineStyle: 'none'
     }
 });
 
