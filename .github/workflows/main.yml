@@ -1,0 +1,22 @@
+name: PR to Main
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check_pr:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '20.15.0'
+
+    - name: Install dependencies
+      run: npm ci  # This uses the package-lock.json for a clean install
+
+    - name: Check for dependency vulnerabilities
+      run: npm audit

@@ -1,0 +1,36 @@
+name: Manual Merge to Preprod
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "yes" to confirm merge to preprod'
+        required: true
+
+jobs:
+  merge_to_preprod:
+    if: github.event.inputs.confirm == 'yes'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 # Fetches the entire history of the repository. Without it only fetch-depth:1 happens
+    - name: Merge dev to preprod
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git checkout preprod
+        git merge --no-ff origin/dev
+        git push origin preprod
+    - name: Deploy to Linode
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.LINODE_HOST }}
+        username: ${{ secrets.LINODE_USER }}
+        key: ${{ secrets.LINODE_SSH_PRIVATE_KEY }}
+        port: ${{ secrets.SSH_PORT }}
+        script: |
+          cd EasyContinuity-Mobile
+          git pull origin preprod
+          docker compose -f docker-compose.dev.yml down
+          docker compose -f docker-compose.preprod.yml up -d --build
