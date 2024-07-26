@@ -32,5 +32,5 @@ jobs:
         script: |
           cd EasyContinuity-Mobile
           git pull origin preprod
-          docker-compose -f docker-compose.dev.yml down
-          docker-compose -f docker-compose.preprod.yml up -d --build
+          docker compose -f docker-compose.dev.yml down
+          docker compose -f docker-compose.preprod.yml up -d --build
