@@ -1,0 +1,35 @@
+name: Merge and Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  merge_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 # Fetches the entire history of the repository. Without it only fetch-depth:1 happens
+
+    - name: Merge main to dev
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git checkout dev
+        git merge --no-ff origin/main
+        git push origin dev
+
+    - name: Deploy to Linode
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.LINODE_HOST }}
+        username: ${{ secrets.LINODE_USER }}
+        key: ${{ secrets.LINODE_SSH_PRIVATE_KEY }}
+        port: ${{ secrets.SSH_PORT }}
+        script: |
+          cd EasyContinuity-Mobile
+          git pull origin dev
+          docker-compose -f docker-compose.preprod.yml down
+          docker-compose -f docker-compose.dev.yml up -d --build
