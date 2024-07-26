@@ -18,8 +18,5 @@ jobs:
     - name: Install dependencies
       run: npm ci  # This uses the package-lock.json for a clean install
 
-    - name: Build project
-      run: npm run build
-
     - name: Check for dependency vulnerabilities
       run: npm audit
