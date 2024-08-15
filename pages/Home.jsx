@@ -11,6 +11,24 @@ const Home = () => {
     const [lastName, setLastName] = React.useState('');
     const [passwordConfirmation, setPasswordConfirmation] = React.useState('');
 
+    const handleLoginCancel = () => {
+        setShowLoginForm(!showLoginForm);
+        handleClearTextboxes();
+    }
+
+    const handleCreateAccountCancel = () => {
+        setShowCreateForm(!showCreateForm);
+        handleClearTextboxes();
+    }
+
+    const handleClearTextboxes = () => {
+        setFirstName('');
+        setLastName('');
+        setEmail('');
+        setPassword('');
+        setPasswordConfirmation('');
+    }
+
     return (
         <SafeAreaView style={styles.container}>
             {showLoginForm ?
@@ -30,11 +48,11 @@ const Home = () => {
                         cursorColor={'#3F4F5F'}
                         secureTextEntry
                     />
-                    <View style={{ height: 20 }} />
+                    <View style={{ height: 12 }} />
                     <Pressable style={[styles.button, styles.loginButton]}>
                         <Text style={[styles.buttonText, styles.loginButtonText]}>Sign In</Text>
                     </Pressable>
-                    <Pressable onPress={() => setShowLoginForm(!showLoginForm)} style={[styles.button]}>
+                    <Pressable onPress={() => handleLoginCancel() } style={[styles.button]}>
                         <Text style={[styles.buttonText, styles.createButtonText]}>Cancel</Text>
                     </Pressable>
                 </> : showCreateForm ? 
@@ -76,11 +94,11 @@ const Home = () => {
                             cursorColor={'#3F4F5F'}
                             secureTextEntry
                         />
-                        <View style={{ height: 20 }} />
+                        <View style={{ height: 12 }} />
                         <Pressable style={[styles.button, styles.loginButton]}>
                             <Text style={[styles.buttonText, styles.loginButtonText]}>Create Account</Text>
                         </Pressable>
-                        <Pressable onPress={() => setShowCreateForm(!showCreateForm)} style={[styles.button]}>
+                        <Pressable onPress={() => handleCreateAccountCancel()} style={[styles.button]}>
                             <Text style={[styles.buttonText, styles.createButtonText]}>Cancel</Text>
                         </Pressable>
                     </> :
