@@ -66,6 +66,7 @@ const Home = () => {
                             value={password}
                             placeholder='Password'
                             cursorColor={'#3F4F5F'}
+                            secureTextEntry
                         />
                         <TextInput 
                             style={styles.textbox}
@@ -73,6 +74,7 @@ const Home = () => {
                             value={passwordConfirmation}
                             placeholder='Confirm Password'
                             cursorColor={'#3F4F5F'}
+                            secureTextEntry
                         />
                         <View style={{ height: 20 }} />
                         <Pressable style={[styles.button, styles.loginButton]}>
