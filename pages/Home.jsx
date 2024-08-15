@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, Pressable, TextInput } from 'react-native';
+import { StyleSheet, Text, Pressable, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Home = () => {
     const [showLoginForm, setShowLoginForm] = useState(false);
-    const [username, setUsername] = React.useState('');
+    const [showCreateForm, setShowCreateForm] = useState(false);
+    const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
+    const [firstName, setFirstName] = React.useState('');
+    const [lastName, setLastName] = React.useState('');
+    const [passwordConfirmation, setPasswordConfirmation] = React.useState('');
 
     return (
         <SafeAreaView style={styles.container}>
@@ -13,9 +17,9 @@ const Home = () => {
                 <>
                     <TextInput
                         style={styles.textbox}
-                        onChangeText={setUsername}
-                        value={username}
-                        placeholder='Username'
+                        onChangeText={setEmail}
+                        value={email}
+                        placeholder='Email Address'
                         cursorColor={'#3F4F5F'}
                     />
                     <TextInput
@@ -26,23 +30,69 @@ const Home = () => {
                         cursorColor={'#3F4F5F'}
                         secureTextEntry
                     />
+                    <View style={{ height: 20 }} />
                     <Pressable style={[styles.button, styles.loginButton]}>
                         <Text style={[styles.buttonText, styles.loginButtonText]}>Sign In</Text>
                     </Pressable>
                     <Pressable onPress={() => setShowLoginForm(!showLoginForm)} style={[styles.button]}>
                         <Text style={[styles.buttonText, styles.createButtonText]}>Cancel</Text>
                     </Pressable>
-                </> :
-                <>
+                </> : showCreateForm ? 
+                    <>
+                        <TextInput 
+                            style={styles.textbox}
+                            onChangeText={setFirstName}
+                            value={firstName}
+                            placeholder='First Name'
+                            cursorColor={'#3F4F5F'}
+                        />
+                        <TextInput 
+                            style={styles.textbox}
+                            onChangeText={setLastName}
+                            value={lastName}
+                            placeholder='Last Name'
+                            cursorColor={'#3F4F5F'}
+                        />
+                        <TextInput 
+                            style={styles.textbox}
+                            onChangeText={setEmail}
+                            value={email}
+                            placeholder='Email Address'
+                            cursorColor={'#3F4F5F'}
+                        />
+                        <TextInput 
+                            style={styles.textbox}
+                            onChangeText={setPassword}
+                            value={password}
+                            placeholder='Password'
+                            cursorColor={'#3F4F5F'}
+                            secureTextEntry
+                        />
+                        <TextInput 
+                            style={styles.textbox}
+                            onChangeText={setPasswordConfirmation}
+                            value={passwordConfirmation}
+                            placeholder='Confirm Password'
+                            cursorColor={'#3F4F5F'}
+                            secureTextEntry
+                        />
+                        <View style={{ height: 20 }} />
+                        <Pressable style={[styles.button, styles.loginButton]}>
+                            <Text style={[styles.buttonText, styles.loginButtonText]}>Create Account</Text>
+                        </Pressable>
+                        <Pressable onPress={() => setShowCreateForm(!showCreateForm)} style={[styles.button]}>
+                            <Text style={[styles.buttonText, styles.createButtonText]}>Cancel</Text>
+                        </Pressable>
+                    </> :
+                <> 
                     <Pressable onPress={() => setShowLoginForm(!showLoginForm)} style={[styles.button, styles.loginButton]}>
                         <Text style={[styles.buttonText, styles.loginButtonText]}>Sign In</Text>
                     </Pressable>
-                    <Pressable style={[styles.button]}>
+                    <Pressable onPress={() => setShowCreateForm(!showCreateForm)} style={[styles.button]}>
                         <Text style={[styles.buttonText, styles.createButtonText]}>Create an Account</Text>
                     </Pressable>
                 </>
             }
-
         </SafeAreaView>
     );
 }
