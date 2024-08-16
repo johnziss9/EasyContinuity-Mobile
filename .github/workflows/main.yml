@@ -20,3 +20,7 @@ jobs:
 
     - name: Check for dependency vulnerabilities
       run: npm audit
+
+    - name: Run tests
+      run: npm test
+      continue-on-error: false
