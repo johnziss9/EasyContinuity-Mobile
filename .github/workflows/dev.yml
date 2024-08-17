@@ -9,9 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0 # Fetches the entire history of the repository. Without it only fetch-depth:1 happens
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.15.0'
 
     - name: Merge main to dev
       run: |

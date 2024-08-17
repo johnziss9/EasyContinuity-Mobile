@@ -12,9 +12,15 @@ jobs:
     if: github.event.inputs.confirm == 'yes'
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0 # Fetches the entire history of the repository. Without it only fetch-depth:1 happens
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.15.0'
+
     - name: Merge dev to preprod
       run: |
         git config user.name github-actions
@@ -22,6 +28,7 @@ jobs:
         git checkout preprod
         git merge --no-ff origin/dev
         git push origin preprod
+
     - name: Deploy to Linode
       uses: appleboy/ssh-action@master
       with:
