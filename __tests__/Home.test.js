@@ -1,23 +1,33 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import Home from '../pages/Home';
+import { NavigationContainer } from '@react-navigation/native';
 
 describe('Home Component', () => {
     it('renders initial buttons', () => {
-        const { getByText } = render(<Home />);
+        const { getByText } = render(
+            <NavigationContainer>
+                <Home />
+            </NavigationContainer>);
         expect(getByText('Sign In')).toBeTruthy();
         expect(getByText('Create an Account')).toBeTruthy();
     });
 
     it('shows login form when Sign In is pressed', () => {
-        const { getByText, getByPlaceholderText } = render(<Home />);
+        const { getByText, getByPlaceholderText } = render(
+            <NavigationContainer>
+                <Home />
+            </NavigationContainer>);
         fireEvent.press(getByText('Sign In'));
         expect(getByPlaceholderText('Email Address')).toBeTruthy();
         expect(getByPlaceholderText('Password')).toBeTruthy();
     });
 
     it('shows create account form when Create an Account is pressed', () => {
-        const { getByText, getByPlaceholderText } = render(<Home />);
+        const { getByText, getByPlaceholderText } = render(
+            <NavigationContainer>
+                <Home />
+            </NavigationContainer>);
         fireEvent.press(getByText('Create an Account'));
         expect(getByPlaceholderText('First Name')).toBeTruthy();
         expect(getByPlaceholderText('Last Name')).toBeTruthy();
@@ -27,7 +37,10 @@ describe('Home Component', () => {
     });
 
     it('hides login form when Cancel is pressed', () => {
-        const { getByText, queryByPlaceholderText } = render(<Home />);
+        const { getByText, queryByPlaceholderText } = render(
+            <NavigationContainer>
+                <Home />
+            </NavigationContainer>);
         fireEvent.press(getByText('Sign In'));
         fireEvent.press(getByText('Cancel'));
         expect(queryByPlaceholderText('Email Address')).toBeNull();
@@ -35,7 +48,10 @@ describe('Home Component', () => {
     });
 
     it('hides create account form when Cancel is pressed', () => {
-        const { getByText, queryByPlaceholderText } = render(<Home />);
+        const { getByText, queryByPlaceholderText } = render(
+            <NavigationContainer>
+                <Home />
+            </NavigationContainer>);
         fireEvent.press(getByText('Create an Account'));
         fireEvent.press(getByText('Cancel'));
         expect(queryByPlaceholderText('First Name')).toBeNull();
