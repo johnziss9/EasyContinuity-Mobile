@@ -25,8 +25,10 @@ jobs:
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
+        git checkout dev
+        git pull origin dev
         git checkout preprod
-        git merge --no-ff origin/dev
+        git merge --no-ff dev
         git push origin preprod
 
     - name: Deploy to Linode
@@ -38,6 +40,9 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         script: |
           cd EasyContinuity-Mobile
-          git pull origin preprod
+          git checkout dev
+          git pull origin dev
+          git checkout preprod
+          git merge dev
           docker compose -f docker-compose.dev.yml down
           docker compose -f docker-compose.preprod.yml up -d --build

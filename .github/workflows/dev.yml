@@ -18,15 +18,14 @@ jobs:
       with:
         node-version: '20.15.0'
 
-    - name: Fetch latest changes
-      run: git fetch --prune
-
     - name: Merge main to dev
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
+        git checkout main
+        git pull origin main
         git checkout dev
-        git merge --no-ff origin/main
+        git merge --no-ff main
         git push origin dev
 
     - name: Deploy to Linode
@@ -38,6 +37,9 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         script: |
           cd EasyContinuity-Mobile
-          git pull origin dev
+          git checkout main
+          git pull origin main
+          git checkout dev
+          git merge main
           docker compose -f docker-compose.preprod.yml down
           docker compose -f docker-compose.dev.yml up -d --build
