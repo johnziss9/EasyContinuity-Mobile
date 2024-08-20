@@ -23,7 +23,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         height: 110,
         marginTop: 10,
-        marginBottom: 10
+        marginBottom: 10,
+        borderRadius: 10
     },
     text: {
         color: '#E2CFC8',
