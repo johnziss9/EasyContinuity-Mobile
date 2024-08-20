@@ -2,21 +2,28 @@ import React from 'react';
 import { StyleSheet, View, Text, Pressable } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const Space = (props) => {
+const Space = ({ spaceName, onPress }) => {
     return (
-        <View style={styles.container}>
-            <Text style={styles.text}>{props.spaceName}</Text>
-            <Pressable style={styles.editSpace}>
-                <Ionicons name="create-outline" size={30} color="#CDA7AF" />
-            </Pressable>
-            <Pressable style={styles.deleteSpace}>
-                <Ionicons name="trash-outline" size={30} color="#CDA7AF" />
-            </Pressable>
-        </View>
+        <Pressable style={styles.pressable} onPress={onPress}>
+            <View style={styles.container}>
+                <Text style={styles.text}>{spaceName}</Text>
+                <Pressable style={styles.editSpace}>
+                    <Ionicons name="create-outline" size={30} color="#CDA7AF" />
+                </Pressable>
+                <Pressable style={styles.deleteSpace}>
+                    <Ionicons name="trash-outline" size={30} color="#CDA7AF" />
+                </Pressable>
+            </View>
+        </Pressable>
+        
     );
 }
 
 const styles = StyleSheet.create({
+    pressable: {
+        width: '100%',  // Ensure Pressable takes full width
+        alignItems: 'center',  // Align content to center
+    },
     container: {
         backgroundColor: '#3F4F5F',
         width: '90%',
