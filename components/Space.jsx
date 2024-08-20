@@ -21,8 +21,8 @@ const Space = ({ spaceName, onPress }) => {
 
 const styles = StyleSheet.create({
     pressable: {
-        width: '100%',  // Ensure Pressable takes full width
-        alignItems: 'center',  // Align content to center
+        width: '100%',
+        alignItems: 'center',
     },
     container: {
         backgroundColor: '#3F4F5F',
