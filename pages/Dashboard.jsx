@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import Space from '../components/Space';
+import SpaceCard from '../components/Space';
 import { useNavigation } from '@react-navigation/native';
 
 const Dashboard = () => {
@@ -12,7 +12,7 @@ const Dashboard = () => {
     const [spaceName, setSpaceName] = React.useState('');
 
     const hendleSpacePress = () => {
-        navigation.navigate('Home');
+        navigation.navigate('Space');
     };
 
     return (
@@ -45,8 +45,8 @@ const Dashboard = () => {
                     </View>
                 </View>
             </Modal>
-            <Space spaceName={"House of the Dragons"} onPress={hendleSpacePress} />
-            <Space spaceName={"Fast & Furious"} onPress={hendleSpacePress} />
+            <SpaceCard spaceName={"House of the Dragons"} onPress={hendleSpacePress} />
+            <SpaceCard spaceName={"Fast & Furious"} onPress={hendleSpacePress} />
             <Pressable style={styles.addNewButton} testID='add-space-button' onPress={() => setShowAddNewSpaceModal(true)}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
             </Pressable>
