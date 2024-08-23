@@ -76,6 +76,6 @@ describe('Dashboard Component', () => {
 
         fireEvent.press(getByText('House of the Dragons'));
 
-        expect(mockNavigate).toHaveBeenCalledWith('Home');
+        expect(mockNavigate).toHaveBeenCalledWith('Space');
     });
 })
