@@ -25,20 +25,21 @@ const Dashboard = () => {
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalText}>Enter Space Name:</Text>
+                        <Text style={styles.modalText} accessibilityLabel="Enter Space Name:">Enter Space Name:</Text>
                         <TextInput
                             style={styles.modalTextbox}
                             onChangeText={setSpaceName}
                             value={spaceName}
                             placeholder='Space Name'
                             cursorColor={'#3F4F5F'}
+                            testID='space-name-text-input'
                         />
                         <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} onPress={() => setShowAddNewSpaceModal(false)}>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} testID='add-space-cancel-button' onPress={() => setShowAddNewSpaceModal(false)}>
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonSave]} onPress={() => setShowAddNewSpaceModal(false)}>
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>Save</Text>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonSave]} testID='add-space-submit-button' onPress={() => setShowAddNewSpaceModal(false)}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>Submit</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -46,8 +47,8 @@ const Dashboard = () => {
             </Modal>
             <Space spaceName={"House of the Dragons"} onPress={hendleSpacePress} />
             <Space spaceName={"Fast & Furious"} onPress={hendleSpacePress} />
-            <Pressable style={styles.addNewButton}>
-                <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" onPress={() => setShowAddNewSpaceModal(true)} />
+            <Pressable style={styles.addNewButton} testID='add-space-button' onPress={() => setShowAddNewSpaceModal(true)}>
+                <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
             </Pressable>
         </SafeAreaView>
     );

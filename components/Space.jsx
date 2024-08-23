@@ -4,7 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const Space = ({ spaceName, onPress }) => {
     return (
-        <Pressable style={styles.pressable} onPress={onPress}>
+        <Pressable style={styles.pressable} onPress={onPress} testID='space-component'>
             <View style={styles.container}>
                 <Text style={styles.text}>{spaceName}</Text>
                 <Pressable style={styles.editSpace}>
