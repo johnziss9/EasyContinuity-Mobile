@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Text, Pressable } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const Space = ({ spaceName, onPress }) => {
+const SpaceCard = ({ spaceName, onPress }) => {
     return (
         <Pressable style={styles.pressable} onPress={onPress} testID='space-component'>
             <View style={styles.container}>
@@ -50,4 +50,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default Space;
+export default SpaceCard;
