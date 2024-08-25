@@ -1,10 +1,19 @@
 import React, { useState } from 'react';
-import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import useFileBrowser from '../hooks/useFileBrowser';
 
 const Space = () => {
+    const { filesInfo, browseFiles } = useFileBrowser();
+
     const [showAddNewItemModal, setShowAddNewItemModal] = useState(false);
+
+    const renderFileItem = ({ item }) => (
+        <Text>
+            {item.name || item.uri} ({item.size} bytes)
+        </Text>
+    );
 
     return (
         <SafeAreaView style={styles.container}>
@@ -21,10 +30,16 @@ const Space = () => {
                             <TouchableOpacity style={[styles.modalButton, styles.modalButtonFolder]} testID='add-new-folder-button' onPress={() => setShowAddNewItemModal(false)}>
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextFolder]}>Folder</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonAttachment]} testID='add-new-attachment-button' onPress={() => setShowAddNewItemModal(false)}>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonAttachment]} testID='add-new-attachment-button' onPress={browseFiles}>
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextAttachment]}>Attachment</Text>
                             </TouchableOpacity>
                         </View>
+                        <FlatList
+                            data={filesInfo}
+                            renderItem={renderFileItem}
+                            keyExtractor={(item, index) => index.toString()}
+                            ListEmptyComponent={<Text>No files selected</Text>}
+                        />
                     </View>
                 </View>
             </Modal>
