@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import SpaceCard from '../components/Space';
+import SpaceCard from '../components/SpaceCard';
 import { useNavigation } from '@react-navigation/native';
 
 const Dashboard = () => {
