@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, FlatList } from 'react-native';
+import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, FlatList, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useFileBrowser from '../hooks/useFileBrowser';
+import AttachmentCard from '../components/AttachmentCard';
+import someImage from '../assets/dummy-image.jpg';
 
 const Space = () => {
     const { filesInfo, browseFiles } = useFileBrowser();
 
     const [showAddNewItemModal, setShowAddNewItemModal] = useState(false);
+    const [showViewAttachmentModal, setShowViewAttachmentModal] = useState(false);
 
     const renderFileItem = ({ item }) => (
         <Text>
@@ -43,6 +46,24 @@ const Space = () => {
                     </View>
                 </View>
             </Modal>
+            <Modal
+                transparent={true}
+                animationType="fade"
+                visible={showViewAttachmentModal}
+                onRequestClose={() => setShowViewAttachmentModal(false)} // Android back button handling
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalImageContainer}>
+                            <Image source={someImage} style={styles.modalImage} />
+                        </View>
+                        <Text style={styles.modalText} accessibilityLabel="Information:">Information:</Text>
+                        <Text style={styles.modalText} accessibilityLabel="Makeup:">Makeup:</Text>
+                        <Text style={styles.modalText} accessibilityLabel="Hair:">Hair:</Text>
+                    </View>
+                </View>
+            </Modal>
+            <AttachmentCard attachmentName={'Rhaenyra'} onPress={() => setShowViewAttachmentModal(true)}/>
             <Pressable style={styles.addNewButton} testID='add-item-button' onPress={() => setShowAddNewItemModal(true)}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
             </Pressable>
@@ -74,7 +95,7 @@ const styles = StyleSheet.create({
         borderRadius: 10
     },
     modalText: {
-        fontSize: 20,
+        fontSize: 22,
         marginBottom: 10,
         color: '#3F4F5F'
     },
@@ -104,6 +125,20 @@ const styles = StyleSheet.create({
     },
     modalButtonTextFolder: {
         color: '#3F4F5F'
+    },
+    modalImageContainer: {
+        width: '100%',
+        height: 'auto',
+        aspectRatio: 1,
+        borderWidth: 2,
+        borderColor: '#CDA7AF',
+        backgroundColor: '#000',
+        marginBottom: 20
+    },
+    modalImage: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'contain', 
     }
 });
 
