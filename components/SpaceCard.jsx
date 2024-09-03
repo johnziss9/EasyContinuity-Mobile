@@ -29,14 +29,14 @@ const styles = StyleSheet.create({
         width: '90%',
         paddingHorizontal: 20,
         height: 110,
-        marginTop: 10,
-        marginBottom: 10,
+        marginBottom: 20,
         borderRadius: 10
     },
     text: {
         color: '#E2CFC8',
         fontSize: 20,
-        paddingTop: 10
+        paddingTop: 10,
+        maxWidth: 280
     },
     editSpace: {
         position: 'absolute',
