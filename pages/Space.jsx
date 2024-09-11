@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, FlatList, Image } from 'react-native';
+import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, FlatList, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useFileBrowser from '../hooks/useFileBrowser';
-import AttachmentCard from '../components/AttachmentCard';
+import SnapshotCard from '../components/SnapshotCard';
 import someImage from '../assets/dummy-image.jpg';
 
 const Space = () => {
     const { filesInfo, browseFiles } = useFileBrowser();
 
     const [showAddNewItemModal, setShowAddNewItemModal] = useState(false);
-    const [showViewAttachmentModal, setShowViewAttachmentModal] = useState(false);
+    const [showViewSnapshotModal, setShowViewSnapshotModal] = useState(false);
 
     const renderFileItem = ({ item }) => (
         <Text>
@@ -20,6 +20,8 @@ const Space = () => {
 
     return (
         <SafeAreaView style={styles.container}>
+
+            {/* Add New Item Modal */}
             <Modal
                 transparent={true}
                 animationType="fade"
@@ -33,8 +35,8 @@ const Space = () => {
                             <TouchableOpacity style={[styles.modalButton, styles.modalButtonFolder]} testID='add-new-folder-button' onPress={() => setShowAddNewItemModal(false)}>
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextFolder]}>Folder</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonAttachment]} testID='add-new-attachment-button' onPress={browseFiles}>
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextAttachment]}>Attachment</Text>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonSnapshot]} testID='add-new-snapshot-button' onPress={browseFiles}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextSnapshot]}>Snapshot</Text>
                             </TouchableOpacity>
                         </View>
                         <FlatList
@@ -46,24 +48,100 @@ const Space = () => {
                     </View>
                 </View>
             </Modal>
+
+            {/* Atachment Modal */}
             <Modal
                 transparent={true}
                 animationType="fade"
-                visible={showViewAttachmentModal}
-                onRequestClose={() => setShowViewAttachmentModal(false)} // Android back button handling
+                visible={showViewSnapshotModal}
+                onRequestClose={() => setShowViewSnapshotModal(false)} // Android back button handling
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <View style={styles.modalImageContainer}>
-                            <Image source={someImage} style={styles.modalImage} />
-                        </View>
-                        <Text style={styles.modalText} accessibilityLabel="Information:">Information:</Text>
-                        <Text style={styles.modalText} accessibilityLabel="Makeup:">Makeup:</Text>
-                        <Text style={styles.modalText} accessibilityLabel="Hair:">Hair:</Text>
+                        <ScrollView>
+                            <Text style={styles.modalTextTitle}>Snapshot Name</Text>
+                            <View style={styles.modalImagesContainer}>
+                                <Image source={someImage} style={styles.modalImage} />
+                                <Image source={someImage} style={styles.modalImage} />
+                                <Image source={someImage} style={styles.modalImage} />
+                                <Image source={someImage} style={styles.modalImage} />
+                            </View>
+                            <Text style={styles.modalTextSubtitle} accessibilityLabel="Information:">Information:</Text>
+                            <View style={styles.modalTextContainer}>
+                                <Text style={styles.modalTextLabel} accessibilityLabel="Episode Number:">Episode Number:</Text>
+                                <Text style={styles.modalText}>Something</Text>
+                            </View>
+                            <View style={styles.modalTextContainer}>
+                                <Text style={styles.modalTextLabel} accessibilityLabel="Scene Number:">Scene Number:</Text>
+                                <Text style={styles.modalText}>Something</Text>
+                            </View>
+                            <View style={styles.modalTextContainer}>
+                                <Text style={styles.modalTextLabel} accessibilityLabel="Story Day:">Story Day:</Text>
+                                <Text style={styles.modalText}>Something</Text>
+                            </View>
+                            <View style={styles.modalTextContainer}>
+                                <Text style={styles.modalTextLabel} accessibilityLabel="Actor Name:">Actor Name:</Text>
+                                <Text style={styles.modalText}>Something</Text>
+                            </View>
+                            <View style={styles.modalTextContainer}>
+                                <Text style={styles.modalTextLabel} accessibilityLabel="Actor Number:">Actor Number:</Text>
+                                <Text style={styles.modalText}>Something</Text>
+                            </View>
+                            <View style={styles.modalTextContainer}>
+                                <Text style={styles.modalTextLabel} accessibilityLabel="Character:">Character:</Text>
+                                <Text style={styles.modalText}>Something</Text>
+                            </View>
+                            <View style={styles.modalTextContainer}>
+                                <Text style={styles.modalTextLabel} accessibilityLabel="Notes:">Notes:</Text>
+                                <Text style={styles.modalText}>Something</Text>
+                            </View>
+                            <Text style={styles.modalTextSubtitle} accessibilityLabel="Makeup:">Makeup:</Text>
+                            <View style={styles.modalTextContainer}>
+                                <Text style={styles.modalTextLabel} accessibilityLabel="Skin:">Skin:</Text>
+                                <Text style={styles.modalText}>Something</Text>
+                            </View>
+                            <View style={styles.modalTextContainer}>
+                                <Text style={styles.modalTextLabel} accessibilityLabel="Brows:">Brows:</Text>
+                                <Text style={styles.modalText}>Something</Text>
+                            </View>
+                            <View style={styles.modalTextContainer}>
+                                <Text style={styles.modalTextLabel} accessibilityLabel="Eyes:">Eyes:</Text>
+                                <Text style={styles.modalText}>Something</Text>
+                            </View>
+                            <View style={styles.modalTextContainer}>
+                                <Text style={styles.modalTextLabel} accessibilityLabel="Lips:">Lips:</Text>
+                                <Text style={styles.modalText}>Something</Text>
+                            </View>
+                            <View style={styles.modalTextContainer}>
+                                <Text style={styles.modalTextLabel} accessibilityLabel="Makeup Notes:">Makesup Notes:</Text>
+                                <Text style={styles.modalText}>Something</Text>
+                            </View>
+                            <Text style={styles.modalTextSubtitle} accessibilityLabel="Hair:">Hair:</Text>
+                            <View style={styles.modalTextContainer}>
+                                <Text style={styles.modalTextLabel} accessibilityLabel="Prep:">Prep:</Text>
+                                <Text style={styles.modalText}>Something</Text>
+                            </View>
+                            <View style={styles.modalTextContainer}>
+                                <Text style={styles.modalTextLabel} accessibilityLabel="Method:">Method:</Text>
+                                <Text style={styles.modalText}>Something</Text>
+                            </View>
+                            <View style={styles.modalTextContainer}>
+                                <Text style={styles.modalTextLabel} accessibilityLabel="Styling Tools:">Styling Tools:</Text>
+                                <Text style={styles.modalText}>Something</Text>
+                            </View>
+                            <View style={styles.modalTextContainer}>
+                                <Text style={styles.modalTextLabel} accessibilityLabel="Products:">Products:</Text>
+                                <Text style={styles.modalText}>Something</Text>
+                            </View>
+                            <View style={styles.modalTextContainer}>
+                                <Text style={styles.modalTextLabel} accessibilityLabel="Hair Notes:">Hair Notes:</Text>
+                                <Text style={styles.modalText}>Something</Text>
+                            </View>
+                        </ScrollView>
                     </View>
                 </View>
             </Modal>
-            <AttachmentCard attachmentName={'Rhaenyra'} onPress={() => setShowViewAttachmentModal(true)}/>
+            <SnapshotCard snapshotName={'Rhaenyra'} onPress={() => setShowViewSnapshotModal(true)}/>
             <Pressable style={styles.addNewButton} testID='add-item-button' onPress={() => setShowAddNewItemModal(true)}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
             </Pressable>
@@ -94,10 +172,33 @@ const styles = StyleSheet.create({
         backgroundColor: '#E2CFC8',
         borderRadius: 10
     },
-    modalText: {
+    modalTextTitle: {
+        fontSize: 25,
+        marginBottom: 15,
+        color: '#3F4F5F'
+    },
+    modalTextSubtitle: {
         fontSize: 22,
+        marginTop: 10,
         marginBottom: 10,
         color: '#3F4F5F'
+    },
+    modalTextContainer: {
+        marginLeft: 5,
+        flexDirection: "row"
+    },
+    modalTextLabel: {
+        fontSize: 18,
+        fontWeight: "bold",
+        marginBottom: 5,
+        color: '#3F4F5F'
+    },
+    modalText: {
+        fontSize: 18,
+        marginBottom: 5,
+        marginLeft: 5,
+        color: '#3F4F5F',
+        maxWidth: "70%"
     },
     modalButtonsContainer: {
         alignItems: 'center'
@@ -109,7 +210,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         margin: 10
     },
-    modalButtonAttachment: {
+    modalButtonSnapshot: {
         backgroundColor: '#3F4F5F',
     },
     modalButtonFolder: {
@@ -120,25 +221,31 @@ const styles = StyleSheet.create({
         fontSize: 18,
         textAlign: 'center'
     },
-    modalButtonTextAttachment: {
+    modalButtonTextSnapshot: {
         color: '#E2CFC8'
     },
     modalButtonTextFolder: {
         color: '#3F4F5F'
     },
-    modalImageContainer: {
+    modalImagesContainer: {
         width: '100%',
         height: 'auto',
         aspectRatio: 1,
         borderWidth: 2,
         borderColor: '#CDA7AF',
-        backgroundColor: '#000',
-        marginBottom: 20
+        backgroundColor: '#3F4F5F',
+        marginBottom: 20,
+        display: 'flex',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     modalImage: {
-        width: '100%',
-        height: '100%',
-        resizeMode: 'contain', 
+        width: '50%',
+        height: '50%',
+        // resizeMode: 'contain',
+        borderColor: '#CDA7AF',
+        borderWidth: 1
     }
 });
 
