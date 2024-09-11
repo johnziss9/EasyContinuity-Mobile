@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { StyleSheet, View, Text, Pressable, Image, Modal } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import someImage from '../assets/dummy-image.jpg';
 
-const AttachmentCard = ({ attachmentName, onPress }) => {
+const SnapshotCard = ({ snapshotName, onPress }) => {
     return (
-        <Pressable style={styles.pressable} onPress={onPress} testID='attachment-component'>
+        <Pressable style={styles.pressable} onPress={onPress} testID='snapshot-component'>
             <View style={styles.container}>
                 <Image source={someImage} style={styles.image} />
-                <Text style={styles.text}>{attachmentName}</Text>
+                <Text style={styles.text}>{snapshotName}</Text>
                 <Pressable style={styles.editSpace}>
                     <Ionicons name="create-outline" size={30} color="#CDA7AF" />
                 </Pressable>
@@ -60,4 +60,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default AttachmentCard;
+export default SnapshotCard;
