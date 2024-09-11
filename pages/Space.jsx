@@ -11,13 +11,14 @@ const Space = () => {
 
     const [showAddNewItemModal, setShowAddNewItemModal] = useState(false);
     const [showViewSnapshotModal, setShowViewSnapshotModal] = useState(false);
+    const [showImageModal, setShowImageModal] = useState(false);
 
     const renderFileItem = ({ item }) => (
         <Text>
             {item.name || item.uri} ({item.size} bytes)
         </Text>
     );
-
+    
     return (
         <SafeAreaView style={styles.container}>
 
@@ -61,10 +62,18 @@ const Space = () => {
                         <ScrollView>
                             <Text style={styles.modalTextTitle}>Snapshot Name</Text>
                             <View style={styles.modalImagesContainer}>
-                                <Image source={someImage} style={styles.modalImage} />
-                                <Image source={someImage} style={styles.modalImage} />
-                                <Image source={someImage} style={styles.modalImage} />
-                                <Image source={someImage} style={styles.modalImage} />
+                                <TouchableOpacity style={styles.modalImageWrapper} onPress={() => setShowImageModal(true)}>
+                                    <Image source={someImage} style={styles.modalImage} />
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.modalImageWrapper} onPress={() => setShowImageModal(true)}>
+                                    <Image source={someImage} style={styles.modalImage} />
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.modalImageWrapper} onPress={() => setShowImageModal(true)}>
+                                    <Image source={someImage} style={styles.modalImage} />
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.modalImageWrapper} onPress={() => setShowImageModal(true)}>
+                                    <Image source={someImage} style={styles.modalImage} />
+                                </TouchableOpacity>
                             </View>
                             <Text style={styles.modalTextSubtitle} accessibilityLabel="Information:">Information:</Text>
                             <View style={styles.modalTextContainer}>
@@ -141,7 +150,24 @@ const Space = () => {
                     </View>
                 </View>
             </Modal>
-            <SnapshotCard snapshotName={'Rhaenyra'} onPress={() => setShowViewSnapshotModal(true)}/>
+
+            {/* View Image Modal */}
+            <Modal
+                transparent={true}
+                animationType="fade"
+                visible={showImageModal}
+                onRequestClose={() => setShowImageModal(false)} // Android back button handling
+            >
+                <View style={styles.modalContainer}>
+                    <Image
+                        source={someImage}
+                        style={styles.modalViewImage}
+                        resizeMode="contain"
+                    />
+                </View>
+            </Modal>
+
+            <SnapshotCard snapshotName={'Rhaenyra'} onPress={() => setShowViewSnapshotModal(true)} />
             <Pressable style={styles.addNewButton} testID='add-item-button' onPress={() => setShowAddNewItemModal(true)}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
             </Pressable>
@@ -240,12 +266,20 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center'
     },
-    modalImage: {
+    modalImageWrapper: {
         width: '50%',
         height: '50%',
+    },
+    modalImage: {
+        width: '100%',
+        height: '100%',
         // resizeMode: 'contain',
         borderColor: '#CDA7AF',
         borderWidth: 1
+    },
+    modalViewImage: {
+        width: '95%',
+        height: '95%',
     }
 });
 
