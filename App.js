@@ -7,6 +7,7 @@ import { Platform } from 'react-native';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Space from './pages/Space';
+import Snapshot from './pages/Spanshot';
 
 enableScreens();
 
@@ -41,6 +42,20 @@ const App = () => {
             component={Space}
             options={{
               title: 'Title of Space',
+              headerBackVisible: Platform.OS === 'ios',
+              headerStyle: {
+                backgroundColor: '#3F4F5F'
+              },
+              headerTintColor: '#E2CFC8',
+              headerTitleStyle: {
+                color: '#E2CFC8'
+              }
+            }} />
+          <Stack.Screen
+            name="Snapshot"
+            component={Snapshot}
+            options={{
+              title: 'Title of Snapshot',
               headerBackVisible: Platform.OS === 'ios',
               headerStyle: {
                 backgroundColor: '#3F4F5F'

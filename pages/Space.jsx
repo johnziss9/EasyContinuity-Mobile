@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, FlatList, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useFileBrowser from '../hooks/useFileBrowser';
 import SnapshotCard from '../components/SnapshotCard';
-import someImage from '../assets/dummy-image.jpg';
-import ImageGrid from '../components/ImageGrid';
 
 const Space = () => {
+    const navigation = useNavigation();
+
     const { filesInfo, browseFiles } = useFileBrowser();
 
     const [showAddNewItemModal, setShowAddNewItemModal] = useState(false);
-    const [showViewSnapshotModal, setShowViewSnapshotModal] = useState(false);
-    const [showImageModal, setShowImageModal] = useState(false);
 
     const renderFileItem = ({ item }) => (
         <Text>
@@ -20,13 +19,10 @@ const Space = () => {
         </Text>
     );
 
-    const dummyImages = [
-        { id: 1, source: someImage },
-        { id: 2, source: someImage },
-        { id: 3, source: someImage },
-        { id: 4, source: someImage }
-      ];
-    
+    const handleSnapshotPress = () => {
+        navigation.navigate('Snapshot');
+    };
+
     return (
         <SafeAreaView style={styles.container}>
 
@@ -58,111 +54,7 @@ const Space = () => {
                 </View>
             </Modal>
 
-            {/* Atachment Modal */}
-            <Modal
-                transparent={true}
-                animationType="fade"
-                visible={showViewSnapshotModal}
-                onRequestClose={() => setShowViewSnapshotModal(false)} // Android back button handling
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <ScrollView>
-                            <Text style={styles.modalTextTitle}>Snapshot Name</Text>
-                            <ImageGrid images={dummyImages} onImagePress={() => setShowImageModal(true)} />
-                            <Text style={styles.modalTextSubtitle} accessibilityLabel="Information:">Information:</Text>
-                            <View style={styles.modalTextContainer}>
-                                <Text style={styles.modalTextLabel} accessibilityLabel="Episode Number:">Episode Number:</Text>
-                                <Text style={styles.modalText}>Something</Text>
-                            </View>
-                            <View style={styles.modalTextContainer}>
-                                <Text style={styles.modalTextLabel} accessibilityLabel="Scene Number:">Scene Number:</Text>
-                                <Text style={styles.modalText}>Something</Text>
-                            </View>
-                            <View style={styles.modalTextContainer}>
-                                <Text style={styles.modalTextLabel} accessibilityLabel="Story Day:">Story Day:</Text>
-                                <Text style={styles.modalText}>Something</Text>
-                            </View>
-                            <View style={styles.modalTextContainer}>
-                                <Text style={styles.modalTextLabel} accessibilityLabel="Actor Name:">Actor Name:</Text>
-                                <Text style={styles.modalText}>Something</Text>
-                            </View>
-                            <View style={styles.modalTextContainer}>
-                                <Text style={styles.modalTextLabel} accessibilityLabel="Actor Number:">Actor Number:</Text>
-                                <Text style={styles.modalText}>Something</Text>
-                            </View>
-                            <View style={styles.modalTextContainer}>
-                                <Text style={styles.modalTextLabel} accessibilityLabel="Character:">Character:</Text>
-                                <Text style={styles.modalText}>Something</Text>
-                            </View>
-                            <View style={styles.modalTextContainer}>
-                                <Text style={styles.modalTextLabel} accessibilityLabel="Notes:">Notes:</Text>
-                                <Text style={styles.modalText}>Something</Text>
-                            </View>
-                            <Text style={styles.modalTextSubtitle} accessibilityLabel="Makeup:">Makeup:</Text>
-                            <View style={styles.modalTextContainer}>
-                                <Text style={styles.modalTextLabel} accessibilityLabel="Skin:">Skin:</Text>
-                                <Text style={styles.modalText}>Something</Text>
-                            </View>
-                            <View style={styles.modalTextContainer}>
-                                <Text style={styles.modalTextLabel} accessibilityLabel="Brows:">Brows:</Text>
-                                <Text style={styles.modalText}>Something</Text>
-                            </View>
-                            <View style={styles.modalTextContainer}>
-                                <Text style={styles.modalTextLabel} accessibilityLabel="Eyes:">Eyes:</Text>
-                                <Text style={styles.modalText}>Something</Text>
-                            </View>
-                            <View style={styles.modalTextContainer}>
-                                <Text style={styles.modalTextLabel} accessibilityLabel="Lips:">Lips:</Text>
-                                <Text style={styles.modalText}>Something</Text>
-                            </View>
-                            <View style={styles.modalTextContainer}>
-                                <Text style={styles.modalTextLabel} accessibilityLabel="Makeup Notes:">Makesup Notes:</Text>
-                                <Text style={styles.modalText}>Something</Text>
-                            </View>
-                            <Text style={styles.modalTextSubtitle} accessibilityLabel="Hair:">Hair:</Text>
-                            <View style={styles.modalTextContainer}>
-                                <Text style={styles.modalTextLabel} accessibilityLabel="Prep:">Prep:</Text>
-                                <Text style={styles.modalText}>Something</Text>
-                            </View>
-                            <View style={styles.modalTextContainer}>
-                                <Text style={styles.modalTextLabel} accessibilityLabel="Method:">Method:</Text>
-                                <Text style={styles.modalText}>Something</Text>
-                            </View>
-                            <View style={styles.modalTextContainer}>
-                                <Text style={styles.modalTextLabel} accessibilityLabel="Styling Tools:">Styling Tools:</Text>
-                                <Text style={styles.modalText}>Something</Text>
-                            </View>
-                            <View style={styles.modalTextContainer}>
-                                <Text style={styles.modalTextLabel} accessibilityLabel="Products:">Products:</Text>
-                                <Text style={styles.modalText}>Something</Text>
-                            </View>
-                            <View style={styles.modalTextContainer}>
-                                <Text style={styles.modalTextLabel} accessibilityLabel="Hair Notes:">Hair Notes:</Text>
-                                <Text style={styles.modalText}>Something</Text>
-                            </View>
-                        </ScrollView>
-                    </View>
-                </View>
-            </Modal>
-
-            {/* View Image Modal */}
-            <Modal
-                transparent={true}
-                animationType="fade"
-                visible={showImageModal}
-                onRequestClose={() => setShowImageModal(false)} // Android back button handling
-            >
-                <View style={styles.modalContainer}>
-                    <Image
-                        source={someImage}
-                        style={styles.modalViewImage}
-                        resizeMode="contain"
-                    />
-                </View>
-            </Modal>
-
-            <SnapshotCard snapshotName={'Rhaenyra'} onPress={() => setShowViewSnapshotModal(true)} />
+            <SnapshotCard snapshotName={'Rhaenyra'} onPress={handleSnapshotPress} />
             <Pressable style={styles.addNewButton} testID='add-item-button' onPress={() => setShowAddNewItemModal(true)}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
             </Pressable>
@@ -192,27 +84,6 @@ const styles = StyleSheet.create({
         padding: 20,
         backgroundColor: '#E2CFC8',
         borderRadius: 10
-    },
-    modalTextTitle: {
-        fontSize: 25,
-        marginBottom: 15,
-        color: '#3F4F5F'
-    },
-    modalTextSubtitle: {
-        fontSize: 22,
-        marginTop: 10,
-        marginBottom: 10,
-        color: '#3F4F5F'
-    },
-    modalTextContainer: {
-        marginLeft: 5,
-        flexDirection: "row"
-    },
-    modalTextLabel: {
-        fontSize: 18,
-        fontWeight: "bold",
-        marginBottom: 5,
-        color: '#3F4F5F'
     },
     modalText: {
         fontSize: 18,
@@ -247,10 +118,6 @@ const styles = StyleSheet.create({
     },
     modalButtonTextFolder: {
         color: '#3F4F5F'
-    },
-    modalViewImage: {
-        width: '95%',
-        height: '95%',
     }
 });
 

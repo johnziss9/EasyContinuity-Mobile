@@ -11,7 +11,7 @@ const Dashboard = () => {
     const [showAddNewSpaceModal, setShowAddNewSpaceModal] = useState(false);
     const [spaceName, setSpaceName] = React.useState('');
 
-    const hendleSpacePress = () => {
+    const handleSpacePress = () => {
         navigation.navigate('Space');
     };
 
@@ -45,8 +45,8 @@ const Dashboard = () => {
                     </View>
                 </View>
             </Modal>
-            <SpaceCard spaceName={"House of the Dragons"} onPress={hendleSpacePress} />
-            <SpaceCard spaceName={"Fast & Furious"} onPress={hendleSpacePress} />
+            <SpaceCard spaceName={"House of the Dragons"} onPress={handleSpacePress} />
+            <SpaceCard spaceName={"Fast & Furious"} onPress={handleSpacePress} />
             <Pressable style={styles.addNewButton} testID='add-space-button' onPress={() => setShowAddNewSpaceModal(true)}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
             </Pressable>

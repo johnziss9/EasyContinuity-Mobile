@@ -35,11 +35,13 @@ const ImageGrid = ({ images, onImagePress }) => {
         </View>
     );
 };
+
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        aspectRatio: 1
+        width: 350,
+        height: 350
     },
     containerTwo: {
         flexDirection: 'column',
