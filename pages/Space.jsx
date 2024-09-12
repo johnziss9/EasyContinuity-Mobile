@@ -5,6 +5,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import useFileBrowser from '../hooks/useFileBrowser';
 import SnapshotCard from '../components/SnapshotCard';
 import someImage from '../assets/dummy-image.jpg';
+import ImageGrid from '../components/ImageGrid';
 
 const Space = () => {
     const { filesInfo, browseFiles } = useFileBrowser();
@@ -18,6 +19,13 @@ const Space = () => {
             {item.name || item.uri} ({item.size} bytes)
         </Text>
     );
+
+    const dummyImages = [
+        { id: 1, source: someImage },
+        { id: 2, source: someImage },
+        { id: 3, source: someImage },
+        { id: 4, source: someImage }
+      ];
     
     return (
         <SafeAreaView style={styles.container}>
@@ -61,20 +69,7 @@ const Space = () => {
                     <View style={styles.modalContent}>
                         <ScrollView>
                             <Text style={styles.modalTextTitle}>Snapshot Name</Text>
-                            <View style={styles.modalImagesContainer}>
-                                <TouchableOpacity style={styles.modalImageWrapper} onPress={() => setShowImageModal(true)}>
-                                    <Image source={someImage} style={styles.modalImage} />
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.modalImageWrapper} onPress={() => setShowImageModal(true)}>
-                                    <Image source={someImage} style={styles.modalImage} />
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.modalImageWrapper} onPress={() => setShowImageModal(true)}>
-                                    <Image source={someImage} style={styles.modalImage} />
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.modalImageWrapper} onPress={() => setShowImageModal(true)}>
-                                    <Image source={someImage} style={styles.modalImage} />
-                                </TouchableOpacity>
-                            </View>
+                            <ImageGrid images={dummyImages} onImagePress={() => setShowImageModal(true)} />
                             <Text style={styles.modalTextSubtitle} accessibilityLabel="Information:">Information:</Text>
                             <View style={styles.modalTextContainer}>
                                 <Text style={styles.modalTextLabel} accessibilityLabel="Episode Number:">Episode Number:</Text>
@@ -252,30 +247,6 @@ const styles = StyleSheet.create({
     },
     modalButtonTextFolder: {
         color: '#3F4F5F'
-    },
-    modalImagesContainer: {
-        width: '100%',
-        height: 'auto',
-        aspectRatio: 1,
-        borderWidth: 2,
-        borderColor: '#CDA7AF',
-        backgroundColor: '#3F4F5F',
-        marginBottom: 20,
-        display: 'flex',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    modalImageWrapper: {
-        width: '50%',
-        height: '50%',
-    },
-    modalImage: {
-        width: '100%',
-        height: '100%',
-        // resizeMode: 'contain',
-        borderColor: '#CDA7AF',
-        borderWidth: 1
     },
     modalViewImage: {
         width: '95%',
