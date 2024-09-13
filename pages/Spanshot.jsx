@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, Modal, Image } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, Modal, Image, Pressable } from 'react-native';
 import someImage from '../assets/dummy-image.jpg';
 import ImageGrid from '../components/ImageGrid';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Snapshot = () => {
@@ -15,17 +16,22 @@ const Snapshot = () => {
         { id: 4, source: someImage }
     ];
 
-    const renderField = (label, value) => (
-        <View style={styles.fieldContainer}>
+    const renderField = (label, value, index) => (
+        <View key={`field-${index}`} style={styles.fieldContainer}>
             <Text style={styles.fieldLabel}>{label}</Text>
             <Text style={styles.fieldText}>{value}</Text>
         </View>
     );
 
     const renderSection = (title, fields) => (
-        <View style={styles.section}>
-            <Text style={styles.sectionHeader}>{title}</Text>
-            {fields.map(([label, value]) => renderField(label, value))}
+        <View key={`section-${title.toLowerCase().replace(/\s+/g, '-')}`} style={styles.section}>
+            <View style={styles.sectionTitleAndIcon}>
+                <Text style={styles.sectionHeader}>{title}</Text>
+                <Pressable style={styles.editSection}>
+                    <Ionicons name="create-outline" size={30} color="#3F4F5F" />
+                </Pressable>
+            </View>
+            {fields.map(([label, value], index) => renderField(label, value, index))}
         </View>
     );
 
@@ -52,10 +58,10 @@ const Snapshot = () => {
                 <View style={styles.imageSliderContainer}>
                     <ImageGrid images={dummyImages} onImagePress={() => setShowImageModal(true)} />
                 </View>
-                
+
                 {renderSection("General", [
                     ["Episode Number:", "Something"],
-                    ["Scene Number:", "Something Something Something SomethingSomething Something Something Something Something Something Something SomethingSomethingSomething Something Something"],
+                    ["Scene Number:", "Something"],
                     ["Story Day:", "Something"],
                     ["Actor Name:", "Something"],
                     ["Actor Number:", "Something"],
@@ -100,6 +106,10 @@ const styles = StyleSheet.create({
         padding: 16,
         marginLeft: 10,
         marginRight: 10
+    },
+    sectionTitleAndIcon: {
+        flexDirection: 'row',
+        justifyContent: 'space-between'
     },
     sectionHeader: {
         fontSize: 25,
