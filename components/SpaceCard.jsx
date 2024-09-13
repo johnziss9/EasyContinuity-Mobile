@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, Pressable } from 'react-native';
+import { StyleSheet, View, Text, Pressable, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const SpaceCard = ({ spaceName, onPress }) => {
@@ -7,12 +7,12 @@ const SpaceCard = ({ spaceName, onPress }) => {
         <Pressable style={styles.pressable} onPress={onPress} testID='space-component'>
             <View style={styles.container}>
                 <Text style={styles.text}>{spaceName}</Text>
-                <Pressable style={styles.editSpace}>
+                <TouchableOpacity style={styles.editSpace}>
                     <Ionicons name="create-outline" size={30} color="#CDA7AF" />
-                </Pressable>
-                <Pressable style={styles.deleteSpace}>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.deleteSpace}>
                     <Ionicons name="trash-outline" size={30} color="#CDA7AF" />
-                </Pressable>
+                </TouchableOpacity>
             </View>
         </Pressable>
         
