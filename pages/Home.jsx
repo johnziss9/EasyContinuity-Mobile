@@ -156,12 +156,12 @@ const styles = StyleSheet.create({
     textbox: {
         width: 300,
         height: 60,
-        borderWidth: 2,
+        borderWidth: 1,
         borderColor: '#3F4F5F',
         borderRadius: 5,
         paddingLeft: 7,
         margin: 10,
-        backgroundColor: 'rgba(205, 167, 175, 0.4)',
+        backgroundColor: 'rgba(205, 167, 175, 0.2)',
         outlineStyle: 'none'
     }
 });
