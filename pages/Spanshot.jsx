@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, Modal, Image, Pressable } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, Modal, Image, Pressable, TouchableOpacity } from 'react-native';
 import someImage from '../assets/dummy-image.jpg';
 import ImageGrid from '../components/ImageGrid';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -27,9 +27,9 @@ const Snapshot = () => {
         <View key={`section-${title.toLowerCase().replace(/\s+/g, '-')}`} style={styles.section}>
             <View style={styles.sectionTitleAndIcon}>
                 <Text style={styles.sectionHeader}>{title}</Text>
-                <Pressable style={styles.editSection}>
+                <TouchableOpacity style={styles.editSection}>
                     <Ionicons name="create-outline" size={30} color="#3F4F5F" />
-                </Pressable>
+                </TouchableOpacity>
             </View>
             {fields.map(([label, value], index) => renderField(label, value, index))}
         </View>
@@ -55,8 +55,16 @@ const Snapshot = () => {
             </Modal>
 
             <ScrollView>
-                <View style={styles.imageSliderContainer}>
-                    <ImageGrid images={dummyImages} onImagePress={() => setShowImageModal(true)} />
+                <View style={styles.imageSection}>
+                    <View style={styles.imageSectionHeader}>
+                        <Text style={styles.sectionHeader}>Images</Text>
+                        <TouchableOpacity>
+                            <Ionicons name="create-outline" size={30} color="#3F4F5F" style={styles.imagesEditButton} />
+                        </TouchableOpacity>
+                    </View>
+                    <View style={styles.imageSliderContainer}>
+                        <ImageGrid images={dummyImages} onImagePress={() => setShowImageModal(true)} />
+                    </View>
                 </View>
 
                 {renderSection("General", [
@@ -109,12 +117,12 @@ const styles = StyleSheet.create({
     },
     sectionTitleAndIcon: {
         flexDirection: 'row',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        marginBottom: 15
     },
     sectionHeader: {
         fontSize: 25,
         fontWeight: 'bold',
-        marginBottom: 16,
         color: '#3F4F5F',
     },
     fieldContainer: {
@@ -139,6 +147,15 @@ const styles = StyleSheet.create({
     modalViewImage: {
         width: '95%',
         height: '95%',
+    },
+    imageSection: {
+        marginBottom: 10,
+    },
+    imageSectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 10,
+        paddingHorizontal: 15
     }
 });
 
