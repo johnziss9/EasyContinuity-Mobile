@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, Modal, Image, Pressable, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, Modal, Image, TouchableOpacity } from 'react-native';
 import someImage from '../assets/dummy-image.jpg';
 import ImageGrid from '../components/ImageGrid';
 import Ionicons from 'react-native-vector-icons/Ionicons';
