@@ -59,7 +59,7 @@ const Snapshot = () => {
                     <View style={styles.imageSectionHeader}>
                         <Text style={styles.sectionHeader}>Images</Text>
                         <TouchableOpacity>
-                            <Ionicons name="create-outline" size={30} color="#3F4F5F" style={styles.imagesEditButton} />
+                            <Ionicons name="create-outline" size={30} color="#3F4F5F" />
                         </TouchableOpacity>
                     </View>
                     <View style={styles.imageSliderContainer}>
