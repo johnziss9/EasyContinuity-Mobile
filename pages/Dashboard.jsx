@@ -81,7 +81,8 @@ const styles = StyleSheet.create({
     modalText: {
         fontSize: 20,
         marginBottom: 15,
-        paddingLeft: 1,
+        marginLeft: 2,
+        fontWeight: 'bold',
         color: '#3F4F5F'
     },
     modalTextbox: {
@@ -91,7 +92,7 @@ const styles = StyleSheet.create({
         borderColor: '#3F4F5F',
         borderRadius: 5,
         paddingLeft: 7,
-        backgroundColor: 'rgba(205, 167, 175, 0.4)',
+        backgroundColor: 'rgba(205, 167, 175, 0.2)',
         fontSize: 18,
         marginBottom: 10
     },

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, Pressable, Image, Modal } from 'react-native';
+import { StyleSheet, View, Text, Pressable, Image, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import someImage from '../assets/dummy-image.jpg';
 
@@ -9,12 +9,12 @@ const SnapshotCard = ({ snapshotName, onPress }) => {
             <View style={styles.container}>
                 <Image source={someImage} style={styles.image} />
                 <Text style={styles.text}>{snapshotName}</Text>
-                <Pressable style={styles.editSpace}>
+                <TouchableOpacity style={styles.editSpace}>
                     <Ionicons name="create-outline" size={30} color="#CDA7AF" />
-                </Pressable>
-                <Pressable style={styles.deleteSpace}>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.deleteSpace}>
                     <Ionicons name="trash-outline" size={30} color="#CDA7AF" />
-                </Pressable>
+                </TouchableOpacity>
             </View>
         </Pressable>
     );
