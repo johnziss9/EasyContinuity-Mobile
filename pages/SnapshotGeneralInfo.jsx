@@ -14,12 +14,11 @@ const SnapshotGeneralInfo = ({ route }) => {
     const [notes, setNotes] = useState("");
     const [selectedActor, setSelectedActor] = useState("");
     const [selectedCharacter, setSelectedCharacter] = useState("");
+    const [showAddActorModal, setShowAddActorModal] = useState(false);
+    const [showAddCharacterModal, setShowAddCharacterModal] = useState(false);
     const [actorName, setActorName] = useState("");
     const [actorNumber, setActorNumber] = useState("");
     const [characterName, setCharacterName] = useState("");
-
-    const [showAddActorModal, setShowAddActorModal] = useState(false);
-    const [showAddCharacterModal, setShowAddCharacterModal] = useState(false);
 
     const actors = [
         { key: '1', value: 'Add New Actor' },
@@ -85,10 +84,10 @@ const SnapshotGeneralInfo = ({ route }) => {
                             testID='actor-number-text-input'
                         />
                         <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity style={[styles.modalButton, styles.buttonCancel]} testID='add-new-actor-cancel-button'>
+                            <TouchableOpacity style={[styles.modalButton, styles.buttonCancel]} testID='add-new-actor-cancel-button' onPress={() => setShowAddActorModal(false)}>
                                 <Text style={[styles.buttonText, styles.buttonTextCancel]}>Cancel</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalButton, styles.buttonSave]} testID='add-new-actor-submit-button'>
+                            <TouchableOpacity style={[styles.modalButton, styles.buttonSave]} testID='add-new-actor-submit-button' onPress={() => setShowAddActorModal(false)}>
                                 <Text style={[styles.buttonText, styles.buttonTextSave]}>Submit</Text>
                             </TouchableOpacity>
                         </View>
@@ -204,10 +203,10 @@ const SnapshotGeneralInfo = ({ route }) => {
                     testID='snapshot-notes-text-input'
                 />
                 <View style={styles.formButtonsContainer}>
-                    <TouchableOpacity style={[styles.formButton, styles.buttonCancel]} testID='add-new-actor-cancel-button' onPress={() => setShowAddActorModal(false)}>
+                    <TouchableOpacity style={[styles.formButton, styles.buttonCancel]} testID='add-new-actor-cancel-button'>
                         <Text style={[styles.buttonText, styles.buttonTextCancel]}>Cancel</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.formButton, styles.buttonSave]} testID='add-new-actor-submit-button' onPress={() => setShowAddActorModal(false)}>
+                    <TouchableOpacity style={[styles.formButton, styles.buttonSave]} testID='add-new-actor-submit-button'>
                         <Text style={[styles.buttonText, styles.buttonTextSave]}>Submit</Text>
                     </TouchableOpacity>
                 </View>
