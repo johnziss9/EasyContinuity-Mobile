@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     },
     modalText: {
         fontSize: 20,
-        marginBottom: 15,
+        marginBottom: 13,
         marginLeft: 2,
         fontWeight: 'bold',
         color: '#3F4F5F'
@@ -94,7 +94,8 @@ const styles = StyleSheet.create({
         paddingLeft: 7,
         backgroundColor: 'rgba(205, 167, 175, 0.2)',
         fontSize: 18,
-        marginBottom: 10
+        marginBottom: 10,
+        color: '#3F4F5F'
     },
     modalButtonsContainer: {
         flexDirection: 'row'
@@ -124,7 +125,6 @@ const styles = StyleSheet.create({
     modalButtonTextCancel: {
         color: '#3F4F5F'
     }
-
 });
 
 export default Dashboard;

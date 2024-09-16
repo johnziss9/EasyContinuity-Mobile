@@ -23,6 +23,11 @@ const Space = () => {
         navigation.navigate('Snapshot');
     };
 
+    const handleAddSnapshotPress = () => {
+        setShowAddNewItemModal(false);
+        navigation.navigate('SnapshotGeneralInfo', { isNewSnapshot: true });
+    };
+
     return (
         <SafeAreaView style={styles.container}>
 
@@ -40,7 +45,8 @@ const Space = () => {
                             <TouchableOpacity style={[styles.modalButton, styles.modalButtonFolder]} testID='add-new-folder-button' onPress={() => setShowAddNewItemModal(false)}>
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextFolder]}>Folder</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonSnapshot]} testID='add-new-snapshot-button' onPress={browseFiles}>
+                            {/* onPress={browseFiles} *** this should be going on where the file browsing button will be *** */}
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonSnapshot]} testID='add-new-snapshot-button' onPress={handleAddSnapshotPress}>
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextSnapshot]}>Snapshot</Text>
                             </TouchableOpacity>
                         </View>
