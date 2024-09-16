@@ -355,14 +355,6 @@ const styles = StyleSheet.create({
         width: '30%',
         height: 50
     },
-    buttonSave: {
-        backgroundColor: '#3F4F5F',
-    },
-    buttonCancel: {
-        borderWidth: 2,
-        borderColor: '#3F4F5F',
-        marginRight: 10
-    },
     buttonText: {
         fontSize: 18,
         textAlign: 'center'
