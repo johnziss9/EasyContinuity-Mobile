@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, ScrollView, Modal, Image, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import someImage from '../assets/dummy-image.jpg';
 import ImageGrid from '../components/ImageGrid';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Snapshot = () => {
+
+    const navigation = useNavigation();
 
     const [showImageModal, setShowImageModal] = useState(false);
 
@@ -23,17 +26,29 @@ const Snapshot = () => {
         </View>
     );
 
-    const renderSection = (title, fields) => (
+    const renderSection = (title, fields, onPress) => (
         <View key={`section-${title.toLowerCase().replace(/\s+/g, '-')}`} style={styles.section}>
             <View style={styles.sectionTitleAndIcon}>
                 <Text style={styles.sectionHeader}>{title}</Text>
-                <TouchableOpacity style={styles.editSection}>
+                <TouchableOpacity style={styles.editSection} onPress={onPress}>
                     <Ionicons name="create-outline" size={30} color="#3F4F5F" />
                 </TouchableOpacity>
             </View>
             {fields.map(([label, value], index) => renderField(label, value, index))}
         </View>
     );
+
+    const handleEditGeneralPress = () => {
+        navigation.navigate('SnapshotGeneralInfo', { isNewSnapshot: false });
+    };
+
+    const handleEditMakeupPress = () => {
+        console.log("Makeup section pressed");
+    };
+
+    const handleEditHairPress = () => {
+        console.log("Hair section pressed");
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -75,7 +90,7 @@ const Snapshot = () => {
                     ["Actor Number:", "Something"],
                     ["Character:", "Something"],
                     ["Notes:", "Something"]
-                ])}
+                ], handleEditGeneralPress)}
 
                 {renderSection("Makeup", [
                     ["Skin:", "Something"],
@@ -83,7 +98,7 @@ const Snapshot = () => {
                     ["Eyes:", "Something"],
                     ["Lips:", "Something"],
                     ["Makeup Notes:", "Something"]
-                ])}
+                ], handleEditMakeupPress)}
 
                 {renderSection("Hair", [
                     ["Prep:", "Something"],
@@ -91,7 +106,7 @@ const Snapshot = () => {
                     ["Styling Tools:", "Something"],
                     ["Products:", "Something"],
                     ["Hair Notes:", "Something"]
-                ])}
+                ], handleEditHairPress)}
             </ScrollView>
         </SafeAreaView>
     );

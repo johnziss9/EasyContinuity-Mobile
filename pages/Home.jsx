@@ -162,7 +162,8 @@ const styles = StyleSheet.create({
         paddingLeft: 7,
         margin: 10,
         backgroundColor: 'rgba(205, 167, 175, 0.2)',
-        outlineStyle: 'none'
+        outlineStyle: 'none',
+        color: '#3F4F5F'
     }
 });
 
