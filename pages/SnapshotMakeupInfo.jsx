@@ -16,7 +16,6 @@ const SnapshotMakeupInfo = ({ route }) => {
 
     return (
         <SafeAreaView style={styles.container}>
-
             <ScrollView>
                 <Text style={styles.header}>{isNewSnapshot ? "Add Makeup Details" : "Edit Makeup Details"}</Text>
                 <Text style={styles.label} accessibilityLabel="Skin:">Skin:</Text>
@@ -56,7 +55,7 @@ const SnapshotMakeupInfo = ({ route }) => {
                 <TextInput
                     style={styles.multilineTextbox}
                     onChangeText={setLips}
-                    value={notes}
+                    value={lips}
                     placeholder='Lips'
                     multiline
                     numberOfLines={4}
