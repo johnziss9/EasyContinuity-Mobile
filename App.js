@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import Space from './pages/Space';
 import Snapshot from './pages/Spanshot';
 import SnapshotGeneralInfo from './pages/SnapshotGeneralInfo';
+import SnapshotMakeupInfo from './pages/SnapshotMakeupInfo';
 
 enableScreens();
 
@@ -71,6 +72,20 @@ const App = () => {
             component={SnapshotGeneralInfo}
             options={{
               title: 'General Information',
+              headerBackVisible: Platform.OS === 'ios',
+              headerStyle: {
+                backgroundColor: '#3F4F5F'
+              },
+              headerTintColor: '#E2CFC8',
+              headerTitleStyle: {
+                color: '#E2CFC8'
+              }
+            }} />
+          <Stack.Screen
+            name="SnapshotMakeupInfo"
+            component={SnapshotMakeupInfo}
+            options={{
+              title: 'Makeup Information',
               headerBackVisible: Platform.OS === 'ios',
               headerStyle: {
                 backgroundColor: '#3F4F5F'

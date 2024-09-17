@@ -196,7 +196,7 @@ const SnapshotGeneralInfo = ({ route }) => {
                     style={styles.multilineTextbox}
                     onChangeText={setNotes}
                     value={notes}
-                    placeholder='Notes'
+                    placeholder='Snapshot Notes'
                     multiline
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}
