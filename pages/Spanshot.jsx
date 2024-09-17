@@ -43,7 +43,7 @@ const Snapshot = () => {
     };
 
     const handleEditMakeupPress = () => {
-        console.log("Makeup section pressed");
+        navigation.navigate('SnapshotMakeupInfo', { isNewSnapshot: false });
     };
 
     const handleEditHairPress = () => {
