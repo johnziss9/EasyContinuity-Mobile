@@ -304,7 +304,8 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 5,
         width: 140,
-        height: 50
+        height: 50,
+        justifyContent: 'center'
     },
     buttonSave: {
         backgroundColor: '#3F4F5F',
@@ -353,7 +354,8 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 5,
         width: '30%',
-        height: 50
+        height: 50,
+        justifyContent: 'center'
     },
     buttonText: {
         fontSize: 18,

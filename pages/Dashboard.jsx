@@ -106,7 +106,8 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         width: '30%',
         height: 50,
-        marginRight: 10
+        marginRight: 10,
+        justifyContent: 'center'
     },
     modalButtonSave: {
         backgroundColor: '#3F4F5F',
