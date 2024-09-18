@@ -203,10 +203,10 @@ const SnapshotGeneralInfo = ({ route }) => {
                     testID='snapshot-notes-text-input'
                 />
                 <View style={styles.formButtonsContainer}>
-                    <TouchableOpacity style={[styles.formButton, styles.buttonCancel]} testID='add-new-actor-cancel-button'>
+                    <TouchableOpacity style={[styles.formButton, styles.buttonCancel]} testID='general-cancel-button'>
                         <Text style={[styles.buttonText, styles.buttonTextCancel]}>Cancel</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.formButton, styles.buttonSave]} testID='add-new-actor-submit-button'>
+                    <TouchableOpacity style={[styles.formButton, styles.buttonSave]} testID='general-submit-button'>
                         <Text style={[styles.buttonText, styles.buttonTextSave]}>Submit</Text>
                     </TouchableOpacity>
                 </View>

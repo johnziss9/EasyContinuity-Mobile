@@ -47,7 +47,7 @@ const Snapshot = () => {
     };
 
     const handleEditHairPress = () => {
-        console.log("Hair section pressed");
+        navigation.navigate('SnapshotHairInfo', { isNewSnapshot: false });
     };
 
     return (
@@ -97,6 +97,7 @@ const Snapshot = () => {
                     ["Brows:", "Something"],
                     ["Eyes:", "Something"],
                     ["Lips:", "Something"],
+                    ["Effects:", "Something"],
                     ["Makeup Notes:", "Something"]
                 ], handleEditMakeupPress)}
 
