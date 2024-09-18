@@ -2,92 +2,80 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, ScrollView, TextInput, Modal, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const SnapshotMakeupInfo = ({ route }) => {
+const SnapshotHairInfo = ({ route }) => {
     // const navigation = useNavigation();
-    const { isNewSnapshot } = route.params; // Passing this to SnapshotMakeupInfo to show the right title
+    const { isNewSnapshot } = route.params; // Passing this to SnapshotHairInfo to show the right title
 
-    const [skin, setSkin] = useState("");
-    const [brows, setBrows] = useState("");
-    const [eyes, setEyes] = useState("");
-    const [lips, setLips] = useState("");
-    const [effects, setEffects] = useState("");
+    const [prep, setPrep] = useState("");
+    const [method, setMethod] = useState("");
+    const [stylingTools, setStylingTools] = useState("");
+    const [products, setProducts] = useState("");
     const [notes, setNotes] = useState("");
 
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView>
-                <Text style={styles.header}>{isNewSnapshot ? "Add Makeup Details" : "Edit Makeup Details"}</Text>
-                <Text style={styles.label} accessibilityLabel="Skin:">Skin:</Text>
+                <Text style={styles.header}>{isNewSnapshot ? "Add Hair Details" : "Edit Hair Details"}</Text>
+                <Text style={styles.label} accessibilityLabel="Prep:">Prep:</Text>
                 <TextInput
                     style={styles.multilineTextbox}
-                    onChangeText={setSkin}
-                    value={skin}
-                    placeholder='Skin'
+                    onChangeText={setPrep}
+                    value={prep}
+                    placeholder='Prep'
                     multiline
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}
-                    testID='makeup-skin-text-input'
+                    testID='hair-prep-text-input'
                 />
-                <Text style={styles.label} accessibilityLabel="Brows:">Brows:</Text>
+                <Text style={styles.label} accessibilityLabel="Method:">Method:</Text>
                 <TextInput
                     style={styles.multilineTextbox}
-                    onChangeText={setBrows}
-                    value={brows}
-                    placeholder='Brows'
+                    onChangeText={setMethod}
+                    value={method}
+                    placeholder='Method'
                     multiline
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}
-                    testID='makeup-brows-text-input'
+                    testID='hair-method-text-input'
                 />
-                <Text style={styles.label} accessibilityLabel="Eyes:">Eyes:</Text>
+                <Text style={styles.label} accessibilityLabel="Styling Tools:">Styling Tools:</Text>
                 <TextInput
                     style={styles.multilineTextbox}
-                    onChangeText={setEyes}
-                    value={eyes}
-                    placeholder='Eyes'
+                    onChangeText={setStylingTools}
+                    value={stylingTools}
+                    placeholder='Styling Tools'
                     multiline
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}
-                    testID='makeup-eyes-text-input'
+                    testID='hair-styling-tools-text-input'
                 />
-                <Text style={styles.label} accessibilityLabel="Lips:">Lips:</Text>
+                <Text style={styles.label} accessibilityLabel="Products:">Products:</Text>
                 <TextInput
                     style={styles.multilineTextbox}
-                    onChangeText={setLips}
-                    value={lips}
-                    placeholder='Lips'
+                    onChangeText={setProducts}
+                    value={products}
+                    placeholder='Products'
                     multiline
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}
-                    testID='makeup-lips-text-input'
-                />
-                <Text style={styles.label} accessibilityLabel="Effects:">Effects:</Text>
-                <TextInput
-                    style={styles.multilineTextbox}
-                    onChangeText={setEffects}
-                    value={effects}
-                    placeholder='Effects'
-                    multiline
-                    numberOfLines={4}
-                    cursorColor={'#3F4F5F'}
-                    testID='makeup-effects-text-input'
+                    testID='hair-products-text-input'
                 />
                 <Text style={styles.label} accessibilityLabel="Notes:">Notes:</Text>
                 <TextInput
                     style={styles.multilineTextbox}
                     onChangeText={setNotes}
                     value={notes}
-                    placeholder='Makeup Notes'
+                    placeholder='Hair Notes'
                     multiline
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}
-                    testID='makeup-notes-text-input'
+                    testID='hair-notes-text-input'
                 />
                 <View style={styles.formButtonsContainer}>
-                    <TouchableOpacity style={[styles.formButton, styles.buttonCancel]} testID='makeup-cancel-button'>
+                    <TouchableOpacity style={[styles.formButton, styles.buttonCancel]} testID='hair-cancel-button'>
                         <Text style={[styles.buttonText, styles.buttonTextCancel]}>Cancel</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.formButton, styles.buttonSave]} testID='makeup-submit-button'>
+                    <TouchableOpacity style={[styles.formButton, styles.buttonSave]} testID='hair-submit-button'>
                         <Text style={[styles.buttonText, styles.buttonTextSave]}>Submit</Text>
                     </TouchableOpacity>
                 </View>
@@ -165,4 +153,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default SnapshotMakeupInfo;
+export default SnapshotHairInfo;
