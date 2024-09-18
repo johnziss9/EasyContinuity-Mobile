@@ -97,6 +97,7 @@ const Snapshot = () => {
                     ["Brows:", "Something"],
                     ["Eyes:", "Something"],
                     ["Lips:", "Something"],
+                    ["Effects:", "Something"],
                     ["Makeup Notes:", "Something"]
                 ], handleEditMakeupPress)}
 

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, ScrollView, TextInput, Modal, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { SelectList } from 'react-native-dropdown-select-list'
 
 const SnapshotMakeupInfo = ({ route }) => {
     // const navigation = useNavigation();
@@ -12,6 +11,7 @@ const SnapshotMakeupInfo = ({ route }) => {
     const [brows, setBrows] = useState("");
     const [eyes, setEyes] = useState("");
     const [lips, setLips] = useState("");
+    const [effects, setEffects] = useState("");
     const [notes, setNotes] = useState("");
 
     return (
@@ -61,6 +61,17 @@ const SnapshotMakeupInfo = ({ route }) => {
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}
                     testID='makeup-lips-text-input'
+                />
+                <Text style={styles.label} accessibilityLabel="Effects:">Effects:</Text>
+                <TextInput
+                    style={styles.multilineTextbox}
+                    onChangeText={setEffects}
+                    value={effects}
+                    placeholder='Effects'
+                    multiline
+                    numberOfLines={4}
+                    cursorColor={'#3F4F5F'}
+                    testID='makeup-effects-text-input'
                 />
                 <Text style={styles.label} accessibilityLabel="Notes:">Notes:</Text>
                 <TextInput
@@ -125,7 +136,8 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         width: 300,
         marginLeft: 20,
-        marginBottom: 30
+        marginBottom: 30,
+        marginTop: 5
     },
     formButton: {
         padding: 10,
