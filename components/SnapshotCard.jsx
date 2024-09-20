@@ -73,12 +73,6 @@ const styles = StyleSheet.create({
         height: 70,
         borderRadius: 30,
     },
-    placeholderImage: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: '#E0E0E0',
-    },
     rightSideContainer: {
         justifyContent: 'space-between'
     },
@@ -102,11 +96,6 @@ const styles = StyleSheet.create({
     smallImage: {
         width: 32,
         height: 32,
-    },
-    placeholderSmallImage: {
-        width: 32,
-        height: 32,
-        backgroundColor: '#E0E0E0',
     },
     moreImagesIndicator: {
         width: 34,
