@@ -6,6 +6,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import useFileBrowser from '../hooks/useFileBrowser';
 import SnapshotCard from '../components/SnapshotCard';
 import FolderCard from '../components/FolderCard';
+import someImage from '../assets/dummy-image.jpg';
 
 const Space = () => {
     const navigation = useNavigation();
@@ -61,7 +62,7 @@ const Space = () => {
                 </View>
             </Modal>
 
-            <SnapshotCard snapshotName={'Rhaenyra'} onPress={handleSnapshotPress} />
+            <SnapshotCard snapshotName={'Rhaenyra'} images={[someImage, someImage, someImage, someImage, someImage, someImage]} onPress={handleSnapshotPress} />
             <FolderCard folderName={'A Folder'} />
             <Pressable style={styles.addNewButton} testID='add-item-button' onPress={() => setShowAddNewItemModal(true)}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
