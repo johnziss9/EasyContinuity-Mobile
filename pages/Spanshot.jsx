@@ -5,10 +5,13 @@ import someImage from '../assets/dummy-image.jpg';
 import ImageGrid from '../components/ImageGrid';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import useFileBrowser from '../hooks/useFileBrowser';
 
 const Snapshot = () => {
 
     const navigation = useNavigation();
+
+    const { filesInfo, browseFiles } = useFileBrowser();
 
     const [showImageModal, setShowImageModal] = useState(false);
 
@@ -73,9 +76,14 @@ const Snapshot = () => {
                 <View style={styles.imageSection}>
                     <View style={styles.imageSectionHeader}>
                         <Text style={styles.sectionHeader}>Images</Text>
-                        <TouchableOpacity>
-                            <Ionicons name="create-outline" size={30} color="#3F4F5F" />
-                        </TouchableOpacity>
+                        {dummyImages.length > 0 ?
+                            <TouchableOpacity>
+                                <Ionicons name="create-outline" size={30} color="#3F4F5F" />
+                            </TouchableOpacity> :
+                            <TouchableOpacity onPress={browseFiles}>
+                                <Ionicons name="add-outline" size={30} color="#3F4F5F" />
+                            </TouchableOpacity> 
+                        }
                     </View>
                     <View style={styles.imageSliderContainer}>
                         <ImageGrid images={dummyImages} onImagePress={() => setShowImageModal(true)} />
