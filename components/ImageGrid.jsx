@@ -1,19 +1,22 @@
 import React from 'react';
-import { StyleSheet, View, TouchableOpacity, Image } from 'react-native';
-import NoImages from '../assets/no-photo.png';
+import { StyleSheet, View, TouchableOpacity, Image, Text } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const ImageGrid = ({ images, onImagePress }) => {
+
     const imageCount = images.length;
 
     return (
         <View style={[
-            styles.container,
+            imageCount === 0 ? styles.containerNoImages : styles.container,
             imageCount === 2 && styles.containerTwo,
-            imageCount === 3 && styles.containerThree
+            imageCount === 3 && styles.containerThree,
+            (imageCount === 5 || imageCount === 6) && styles.containerFiveOrSix
         ]}>
             {imageCount === 0 ? (
                 <View style={styles.noPhotoWrapper}>
-                    <Image source={NoImages} style={styles.noPhotoImage} />
+                    <Ionicons name="camera" size={70} color="#CDA7AF" />
+                    <Text style={styles.noImagesText}>No Images. Tap + to add.</Text>
                 </View>
             ) : (
             images.map((image, index) => (
@@ -25,6 +28,8 @@ const ImageGrid = ({ images, onImagePress }) => {
                         imageCount === 2 && styles.imageWrapperTwo,
                         imageCount === 3 && (index < 2 ? styles.imageWrapperThreeSmall : styles.imageWrapperThreeLarge),
                         imageCount === 4 && styles.imageWrapperFour,
+                        imageCount === 5 && (index === 4 ? styles.imageWrapperFiveLarge : styles.imageWrapperFiveSmall),
+                        imageCount === 6 && styles.imageWrapperSix,
                     ]}
                     onPress={() => onImagePress(index)}
                 >
@@ -43,11 +48,21 @@ const styles = StyleSheet.create({
         width: 350,
         height: 350
     },
+    containerNoImages: {
+        width: 350,
+        height: 100        
+    },
+    noImagesText: {
+        color: '#3F4F5F',
+    },
     containerTwo: {
         flexDirection: 'column',
     },
     containerThree: {
         flexDirection: 'row',
+    },
+    containerFiveOrSix: {
+        flexDirection: 'column',
     },
     noPhotoWrapper: {
         width: '100%',
@@ -83,6 +98,18 @@ const styles = StyleSheet.create({
     imageWrapperFour: {
         width: '50%',
         height: '50%',
+    },
+    imageWrapperFiveSmall: {
+        width: '50%',
+        height: '33.33%',
+    },
+    imageWrapperFiveLarge: {
+        width: '100%',
+        height: '66.66%',
+    },
+    imageWrapperSix: {
+        width: '50%',
+        height: '33.33%',
     },
     image: {
         width: '100%',
