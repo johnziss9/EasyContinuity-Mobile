@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, FlatList, Image, ScrollView } from 'react-native';
+import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
