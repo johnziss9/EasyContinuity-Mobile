@@ -21,10 +21,10 @@ const Snapshot = () => {
     const [selectedImages, setSelectedImages] = useState([]);
 
     const dummyImages = [
-        // { id: 1, source: someImage },
-        // { id: 2, source: someImage },
-        // { id: 3, source: someImage },
-        // { id: 4, source: someImage }
+        { id: 1, source: someImage },
+        { id: 2, source: someImage },
+        { id: 3, source: someImage },
+        { id: 4, source: someImage }
     ];
 
     const renderField = (label, value, index) => (
