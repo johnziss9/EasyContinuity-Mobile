@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, Modal, Image, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, ScrollView, Modal, Image, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import someImage from '../assets/dummy-image.jpg';
 import ImageGrid from '../components/ImageGrid';
@@ -11,9 +11,14 @@ const Snapshot = () => {
 
     const navigation = useNavigation();
 
-    const { filesInfo, browseFiles } = useFileBrowser();
+    const MAX_IMAGES = 6;
+
+    const { filesInfo, browseFiles, clearFiles } = useFileBrowser({
+        fileTypes: ['image/jpeg', 'image/jpg', 'image/png']
+    });
 
     const [showImageModal, setShowImageModal] = useState(false);
+    const [selectedImages, setSelectedImages] = useState([]);
 
     const dummyImages = [
         { id: 1, source: someImage },
@@ -53,6 +58,52 @@ const Snapshot = () => {
         navigation.navigate('SnapshotHairInfo', { isNewSnapshot: false });
     };
 
+    // TODO Remove this once images are working correctly when uploading
+    useEffect(() => {
+        console.log('Current filesInfo:', filesInfo);
+    }, [filesInfo]);
+
+    const handleBrowseFiles = async () => {
+        console.log('Attempting to browse files...');
+        const availableSlots = MAX_IMAGES - selectedImages.length;
+        
+        if (availableSlots <= 0) {
+            Alert.alert(
+                "Maximum Images Reached",
+                `You've already selected the maximum of ${MAX_IMAGES} images. Please remove some images before adding more.`,
+                [{ text: "OK" }]
+            );
+            return;
+        }
+        
+        try {
+            const result = await browseFiles();
+            console.log('Browse files result:', result);
+            
+            if (result === null || result.length === 0) {
+                console.log('No valid files selected or unsupported file type.');
+            } else {
+                const newImages = result.slice(0, availableSlots);
+                setSelectedImages(prevImages => [...prevImages, ...newImages]);
+
+                console.log(`Selected ${newImages.length} file(s)`);
+                newImages.forEach((file, index) => {
+                    console.log(`File ${index + 1}: ${file.name} (${file.size} bytes)`);
+                });
+
+                if (result.length > availableSlots) {
+                    Alert.alert(
+                        "Maximum Images Reached",
+                        `Only ${availableSlots} image(s) were added to reach the maximum of ${MAX_IMAGES} images.`,
+                        [{ text: "OK" }]
+                    );
+                }
+            }
+        } catch (error) {
+            console.error('Error browsing files:', error);
+        }
+    };
+
     return (
         <SafeAreaView style={styles.container}>
 
@@ -80,9 +131,9 @@ const Snapshot = () => {
                             <TouchableOpacity>
                                 <Ionicons name="create-outline" size={30} color="#3F4F5F" />
                             </TouchableOpacity> :
-                            <TouchableOpacity onPress={browseFiles}>
+                            <TouchableOpacity onPress={handleBrowseFiles}>
                                 <Ionicons name="add-outline" size={30} color="#3F4F5F" />
-                            </TouchableOpacity> 
+                            </TouchableOpacity>
                         }
                     </View>
                     <View style={styles.imageSliderContainer}>

@@ -1,28 +1,41 @@
 import { useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
 
-const useFileBrowser = () => {
+const useFileBrowser = (options = {}) => {
     const [filesInfo, setFilesInfo] = useState([]);
 
     const browseFiles = async () => {
         try {
             const result = await DocumentPicker.getDocumentAsync({
-                type: '*/*',
+                type: options.fileTypes || '*/*',
                 multiple: true
             });
             console.log('Document Picker Result:', result);
 
             if (!result.canceled && result.assets && result.assets.length > 0) {
-                const files = Array.isArray(result.assets) ? result.assets : [result];
-                setFilesInfo(files);
-                console.log(`Selected ${files.length} file(s)`);
-                files.forEach((file, index) => {
-                    console.log(`File ${index + 1}: ${file.name} (${file.size} bytes)`);
-                });
+                let files = result.assets;
+                
+                // Apply file type filter if specified
+                if (options.fileTypes) {
+                    files = files.filter(file => 
+                        options.fileTypes.some(type => file.mimeType.startsWith(type))
+                    );
+                }
 
-                // TODO: Add code to upload documents
+                if (files.length > 0) {
+                    setFilesInfo(prevFiles => [...prevFiles, ...files]);
+                    console.log(`Selected ${files.length} file(s)`);
+                    files.forEach((file, index) => {
+                        console.log(`File ${index + 1}: ${file.name} (${file.size} bytes)`);
+                    });
 
-                return files;
+                    // TODO: Add code to upload documents
+
+                    return files;
+                } else {
+                    console.log('No valid files selected');
+                    return null;
+                }
             } else {
                 console.log('Document picking cancelled or failed');
                 return null;
@@ -33,9 +46,14 @@ const useFileBrowser = () => {
         }
     };
 
+    const clearFiles = () => {
+        setFilesInfo([]);
+    };
+
     return {
         filesInfo,
         browseFiles,
+        clearFiles,
     };
 };
 
