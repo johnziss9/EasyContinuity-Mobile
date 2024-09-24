@@ -46,6 +46,10 @@ const Snapshot = () => {
         </View>
     );
 
+    const handleEditImagesPress = () => {
+        navigation.navigate('SnapshotImagesAddEdit', { isNewSnapshot: false });
+    };
+
     const handleEditGeneralPress = () => {
         navigation.navigate('SnapshotGeneralInfo', { isNewSnapshot: false });
     };
@@ -128,7 +132,7 @@ const Snapshot = () => {
                     <View style={styles.imageSectionHeader}>
                         <Text style={styles.sectionHeader}>Images</Text>
                         {dummyImages.length > 0 ?
-                            <TouchableOpacity>
+                            <TouchableOpacity onPress={handleEditImagesPress}>
                                 <Ionicons name="create-outline" size={30} color="#3F4F5F" />
                             </TouchableOpacity> :
                             <TouchableOpacity onPress={handleBrowseFiles}>
