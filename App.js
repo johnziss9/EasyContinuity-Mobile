@@ -11,6 +11,7 @@ import Snapshot from './pages/Spanshot';
 import SnapshotGeneralInfo from './pages/SnapshotGeneralInfo';
 import SnapshotMakeupInfo from './pages/SnapshotMakeupInfo';
 import SnapshotHairInfo from './pages/SnapshotHairInfo';
+import SnapshotImagesAddEdit from './pages/SnapshotImagesAddEdit';
 
 enableScreens();
 
@@ -101,6 +102,20 @@ const App = () => {
             component={SnapshotHairInfo}
             options={{
               title: 'Hair Information',
+              headerBackVisible: Platform.OS === 'ios',
+              headerStyle: {
+                backgroundColor: '#3F4F5F'
+              },
+              headerTintColor: '#E2CFC8',
+              headerTitleStyle: {
+                color: '#E2CFC8'
+              }
+            }} />
+          <Stack.Screen
+            name="SnapshotImagesAddEdit"
+            component={SnapshotImagesAddEdit}
+            options={{
+              title: 'Snapshot Images',
               headerBackVisible: Platform.OS === 'ios',
               headerStyle: {
                 backgroundColor: '#3F4F5F'
