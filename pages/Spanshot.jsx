@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, ScrollView, Modal, Image, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import someImage from '../assets/dummy-image.jpg';
+import someImage2 from '../assets/dummy-image2.jpg';
+import someImage3 from '../assets/dummy-image3.jpeg';
+import someImage4 from '../assets/dummy-image4.jpeg';
 import ImageGrid from '../components/ImageGrid';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,12 +22,13 @@ const Snapshot = () => {
 
     const [showImageModal, setShowImageModal] = useState(false);
     const [selectedImages, setSelectedImages] = useState([]);
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
     const dummyImages = [
         { id: 1, source: someImage },
-        { id: 2, source: someImage },
-        { id: 3, source: someImage },
-        { id: 4, source: someImage }
+        { id: 2, source: someImage2 },
+        { id: 3, source: someImage3 },
+        { id: 4, source: someImage4 }
     ];
 
     const renderField = (label, value, index) => (
@@ -60,6 +64,19 @@ const Snapshot = () => {
 
     const handleEditHairPress = () => {
         navigation.navigate('SnapshotHairInfo', { isNewSnapshot: false });
+    };
+
+    const handleImagePress = (index) => {
+        setSelectedImageIndex(index);
+        setShowImageModal(true);
+    };
+
+    const handleNextImage = () => {
+        setSelectedImageIndex((prevIndex) => (prevIndex + 1) % dummyImages.length);
+    };
+
+    const handlePreviousImage = () => {
+        setSelectedImageIndex((prevIndex) => (prevIndex - 1 + dummyImages.length) % dummyImages.length);
     };
 
     // TODO Remove this once images are working correctly when uploading
@@ -119,11 +136,20 @@ const Snapshot = () => {
                 onRequestClose={() => setShowImageModal(false)} // Android back button handling
             >
                 <View style={styles.modalContainer}>
+                    <TouchableOpacity style={styles.modalCloseButton} onPress={() => setShowImageModal(false)}>
+                        <Ionicons name="close" size={30} color="#FFF" />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.modalPrevButton} onPress={handlePreviousImage}>
+                        <Ionicons name="chevron-back" size={30} color="#FFF" />
+                    </TouchableOpacity>
                     <Image
-                        source={someImage}
+                        source={dummyImages[selectedImageIndex].source}
                         style={styles.modalViewImage}
                         resizeMode="contain"
                     />
+                    <TouchableOpacity style={styles.modalNextButton} onPress={handleNextImage}>
+                        <Ionicons name="chevron-forward" size={30} color="#FFF" />
+                    </TouchableOpacity>
                 </View>
             </Modal>
 
@@ -141,7 +167,7 @@ const Snapshot = () => {
                         }
                     </View>
                     <View style={styles.imageSliderContainer}>
-                        <ImageGrid images={dummyImages} onImagePress={() => setShowImageModal(true)} />
+                        <ImageGrid images={dummyImages} onImagePress={handleImagePress} />
                     </View>
                 </View>
 
@@ -226,6 +252,24 @@ const styles = StyleSheet.create({
     modalViewImage: {
         width: '95%',
         height: '95%',
+    },
+    modalCloseButton: {
+        position: 'absolute',
+        top: 40,
+        right: 20,
+        zIndex: 1,
+    },
+    modalPrevButton: {
+        position: 'absolute',
+        left: 20,
+        top: '50%',
+        zIndex: 1,
+    },
+    modalNextButton: {
+        position: 'absolute',
+        right: 20,
+        top: '50%',
+        zIndex: 1,
     },
     imageSection: {
         marginBottom: 10,
