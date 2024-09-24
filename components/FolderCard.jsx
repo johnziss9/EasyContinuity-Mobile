@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Text, Pressable, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const FolderCard = ({ folderName, onPress }) => {
+const FolderCard = ({ folderName, onPress, onEditPress, onDeletePress }) => {
     return (
         <Pressable style={styles.pressable} onPress={onPress} testID='folder-component'>
             <View style={styles.container}>
@@ -10,10 +10,10 @@ const FolderCard = ({ folderName, onPress }) => {
                     <Ionicons name="folder" size={80} color="#CDA7AF" style={styles.folderIcon} />
                 </View>
                 <Text style={styles.text}>{folderName}</Text>
-                <TouchableOpacity style={styles.editSpace}>
+                <TouchableOpacity style={styles.editSpace} onPress={onEditPress}>
                     <Ionicons name="create-outline" size={30} color="#CDA7AF" />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.deleteSpace}>
+                <TouchableOpacity style={styles.deleteSpace} onPress={onDeletePress}>
                     <Ionicons name="trash-outline" size={30} color="#CDA7AF" />
                 </TouchableOpacity>
             </View>
