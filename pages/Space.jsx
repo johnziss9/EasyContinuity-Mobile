@@ -27,12 +27,6 @@ const Space = () => {
         { id: '2', name: 'Folder 2' },
     ]);
 
-    const renderFileItem = ({ item }) => (
-        <Text>
-            {item.name || item.uri} ({item.size} bytes)
-        </Text>
-    );
-
     const handleSnapshotPress = () => {
         navigation.navigate('Snapshot');
     };
@@ -106,12 +100,6 @@ const Space = () => {
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextSnapshot]}>Snapshot</Text>
                             </TouchableOpacity>
                         </View>
-                        <FlatList
-                            data={filesInfo}
-                            renderItem={renderFileItem}
-                            keyExtractor={(item, index) => index.toString()}
-                            ListEmptyComponent={<Text>No files selected</Text>}
-                        />
                     </View>
                 </View>
             </Modal>
