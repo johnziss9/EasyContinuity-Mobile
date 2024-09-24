@@ -7,6 +7,9 @@ import useFileBrowser from '../hooks/useFileBrowser';
 import SnapshotCard from '../components/SnapshotCard';
 import FolderCard from '../components/FolderCard';
 import someImage from '../assets/dummy-image.jpg';
+import someImage2 from '../assets/dummy-image2.jpg';
+import someImage3 from '../assets/dummy-image3.jpeg';
+import someImage4 from '../assets/dummy-image4.jpeg';
 
 const Space = () => {
     const navigation = useNavigation();
@@ -143,7 +146,7 @@ const Space = () => {
                 </View>
             </Modal>
 
-            <SnapshotCard snapshotName={'Rhaenyra'} images={[someImage, someImage, someImage, someImage, someImage, someImage]} onPress={handleSnapshotPress} />
+            <SnapshotCard snapshotName={'Rhaenyra'} images={[someImage, someImage2, someImage3, someImage4, someImage, someImage]} onPress={handleSnapshotPress} />
             {Array.isArray(folders) && folders.length > 0 ? folders.map((folder) => (
                 <FolderCard 
                     key={folder.id} 
