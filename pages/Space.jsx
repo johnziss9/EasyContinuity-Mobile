@@ -18,7 +18,7 @@ const Space = () => {
 
     const [showAddNewItemModal, setShowAddNewItemModal] = useState(false);
     const [showAddNewFolderModal, setShowAddNewFolderModal] = useState(false);
-    
+
     const [folderId, setFolderId] = useState(false);
     const [folderName, setFolderName] = useState(false);
     const [folderEditing, setFolderEditing] = useState(false);
@@ -26,6 +26,7 @@ const Space = () => {
         { id: '1', name: 'Folder 1' },
         { id: '2', name: 'Folder 2' },
     ]);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const handleSnapshotPress = () => {
         navigation.navigate('Snapshot');
@@ -58,7 +59,7 @@ const Space = () => {
                 id: newId,
                 name: name
             };
-    
+
             setFolders((prevFolders) => [...prevFolders, newFolder]);
         }
 
@@ -76,6 +77,34 @@ const Space = () => {
         setFolderName(folder.name); // Update the textbox with the current folder name
         setFolderEditing(true); // Set this to true to the app knows the user is editing
         setFolderId(folder.id) // Update the hook with the current folder id
+    };
+
+    const renderFileItem = ({ item }) => { // item here returns an object from the array
+        const { name } = item; // name is extracted from item
+        const isFolder = Array.isArray(folders) && folders.some((folder) => folder.id === item.id);
+        const isSnapshot = !isFolder && item.hasOwnProperty('name');
+
+        const shouldRender =
+            (isFolder && folders.some((folder) => folder.name.toLowerCase().includes(searchQuery.toLowerCase()))) ||
+            (isSnapshot && item.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
+        if (!shouldRender) {
+            return null;
+        }
+
+        return (
+            <View>
+                {isFolder ? (
+                    <FolderCard
+                        folderName={name}
+                        onEditPress={() => handleEditFolder({ id: item.id, name })}
+                        onDeletePress={() => handleDeleteFolder(item.id)}
+                    />
+                ) : (
+                    <SnapshotCard snapshotName={name} images={[someImage, someImage2, someImage3, someImage4, someImage, someImage]} onPress={handleSnapshotPress} />
+                )}
+            </View>
+        );
     };
 
     return (
@@ -134,15 +163,28 @@ const Space = () => {
                 </View>
             </Modal>
 
-            <SnapshotCard snapshotName={'Rhaenyra'} images={[someImage, someImage2, someImage3, someImage4, someImage, someImage]} onPress={handleSnapshotPress} />
-            {Array.isArray(folders) && folders.length > 0 ? folders.map((folder) => (
-                <FolderCard 
-                    key={folder.id} 
-                    folderName={folder.name} 
-                    onEditPress={() => handleEditFolder(folder)}
-                    onDeletePress={() => handleDeleteFolder(folder.id)}
-                /> )) : null
-            }
+            <View style={styles.searchContainer}>
+                <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search by name"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    testID="search-input"
+                />
+                <Ionicons name="search-outline" size={20} color="#3F4F5F" style={styles.searchIcon} />
+            </View>
+
+            <FlatList
+                data={[
+                    ...(Array.isArray(folders) ? folders : []),
+                    { name: 'Rhaenyra', id: 'snapshot-1' },
+                ]}
+                renderItem={renderFileItem}
+                keyExtractor={(item) => item.id}
+                ListEmptyComponent={<Text>No items found</Text>}
+                contentContainerStyle={styles.flatListContainer}
+            />
+
             <Pressable style={styles.addNewButton} testID='add-item-button' onPress={() => setShowAddNewItemModal(true)}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
             </Pressable>
@@ -248,6 +290,27 @@ const styles = StyleSheet.create({
     },
     modalButtonTextCancel: {
         color: '#3F4F5F'
+    },
+    flatListContainer: {
+        minWidth: '100%'
+    },
+    searchInput: {
+        marginBottom: 30,
+        borderBottomWidth: 1,
+        borderColor: '#3F4F5F',
+        width: 300,
+        paddingLeft: 5,
+        height: 50,
+        outlineStyle: 'none',
+        color: '#3F4F5F',
+        fontSize: 18
+    },
+    searchContainer: {
+        flexDirection: 'row'
+    },
+    searchIcon: {
+        marginTop: 18,
+        marginLeft: -30
     }
 });
 
