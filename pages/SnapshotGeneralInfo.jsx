@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, ScrollView, TextInput, Modal, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, ScrollView, TextInput, Modal, View, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SelectList } from 'react-native-dropdown-select-list'
 
 const SnapshotGeneralInfo = ({ route }) => {
+
     // const navigation = useNavigation();
+    const { width } = useWindowDimensions();
+
     const { isNewSnapshot } = route.params; // Passing this to SnapshotGeneralInfo to show the right title
 
     const [name, setName] = useState("");
@@ -54,8 +57,16 @@ const SnapshotGeneralInfo = ({ route }) => {
         // TODO Add validation if user selected first value and then cancels the snapshot shouldn't save
     };
 
+    const dynamicStyles = {
+        container: {
+            paddingLeft: width > 600 ? 15 : 0,
+            flex: 1,
+            backgroundColor: '#E2CFC8'
+        }
+    };
+
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={dynamicStyles.container}>
 
             {/* Add New Actor Modal */}
             <Modal
@@ -216,10 +227,6 @@ const SnapshotGeneralInfo = ({ route }) => {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2CFC8'
-    },
     header: {
         fontSize: 30,
         fontWeight: 'bold',
