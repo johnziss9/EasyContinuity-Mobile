@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SpaceCard from '../components/SpaceCard';
@@ -7,12 +7,28 @@ import { useNavigation } from '@react-navigation/native';
 
 const Dashboard = () => {
     const navigation = useNavigation();
+    const { width } = useWindowDimensions();
 
     const [showAddNewSpaceModal, setShowAddNewSpaceModal] = useState(false);
     const [spaceName, setSpaceName] = React.useState('');
 
     const handleSpacePress = () => {
         navigation.navigate('Space');
+    };
+
+    const dynamicStyles = {
+        modalTextbox: {
+            width: width < 600 ? '100%' : '61%',
+            height: 60,
+            borderWidth: 1,
+            borderColor: '#3F4F5F',
+            borderRadius: 5,
+            paddingLeft: 7,
+            backgroundColor: 'rgba(205, 167, 175, 0.2)',
+            fontSize: 18,
+            marginBottom: 10,
+            color: '#3F4F5F'
+        },
     };
 
     return (
@@ -27,7 +43,7 @@ const Dashboard = () => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalText} accessibilityLabel="Enter Space Name:">Enter Space Name:</Text>
                         <TextInput
-                            style={styles.modalTextbox}
+                            style={dynamicStyles.modalTextbox}
                             onChangeText={setSpaceName}
                             value={spaceName}
                             placeholder='Space Name'
@@ -79,22 +95,10 @@ const styles = StyleSheet.create({
         alignItems: 'left',
     },
     modalText: {
-        fontSize: 20,
+        fontSize: 18,
         marginBottom: 13,
         marginLeft: 2,
         fontWeight: 'bold',
-        color: '#3F4F5F'
-    },
-    modalTextbox: {
-        width: 300,
-        height: 60,
-        borderWidth: 1,
-        borderColor: '#3F4F5F',
-        borderRadius: 5,
-        paddingLeft: 7,
-        backgroundColor: 'rgba(205, 167, 175, 0.2)',
-        fontSize: 18,
-        marginBottom: 10,
         color: '#3F4F5F'
     },
     modalButtonsContainer: {

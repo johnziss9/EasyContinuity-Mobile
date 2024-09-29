@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, FlatList, TextInput } from 'react-native';
+import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, FlatList, TextInput, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -13,8 +13,8 @@ import someImage4 from '../assets/dummy-image4.jpeg';
 
 const Space = () => {
     const navigation = useNavigation();
-
     const { filesInfo, browseFiles } = useFileBrowser();
+    const { width } = useWindowDimensions();
 
     const [showAddNewItemModal, setShowAddNewItemModal] = useState(false);
     const [showAddNewFolderModal, setShowAddNewFolderModal] = useState(false);
@@ -71,6 +71,22 @@ const Space = () => {
             prevFolders.filter(folder => folder.id !== id)
         );
     }
+
+    const dynamicStyles = {
+        modalTextbox: {
+            width: width < 600 ? '100%' : '61%',
+            height: 60,
+            borderWidth: 1,
+            borderColor: '#3F4F5F',
+            borderRadius: 5,
+            paddingLeft: 7,
+            marginTop: 7,
+            backgroundColor: 'rgba(205, 167, 175, 0.2)',
+            fontSize: 18,
+            marginBottom: 10,
+            color: '#3F4F5F'
+        },
+    };
 
     const handleEditFolder = (folder) => {
         setShowAddNewFolderModal(true); // Hide Add New Modal
@@ -144,7 +160,7 @@ const Space = () => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalText} accessibilityLabel="Enter Folder Name:">Enter Folder Name:</Text>
                         <TextInput
-                            style={styles.modalTextbox}
+                            style={dynamicStyles.modalTextbox}
                             onChangeText={setFolderName}
                             value={folderName}
                             placeholder='Folder Name'
@@ -216,24 +232,11 @@ const styles = StyleSheet.create({
         borderRadius: 10
     },
     modalText: {
-        fontSize: 20,
+        fontSize: 18,
         marginBottom: 5,
         marginLeft: 5,
         color: '#3F4F5F',
         fontWeight: 'bold'
-    },
-    modalTextbox: {
-        width: 300,
-        height: 60,
-        borderWidth: 1,
-        borderColor: '#3F4F5F',
-        borderRadius: 5,
-        paddingLeft: 7,
-        marginTop: 7,
-        backgroundColor: 'rgba(205, 167, 175, 0.2)',
-        fontSize: 18,
-        marginBottom: 10,
-        color: '#3F4F5F'
     },
     modalButtonsContainer: {
         alignItems: 'center'
