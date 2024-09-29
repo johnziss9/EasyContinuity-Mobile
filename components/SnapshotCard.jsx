@@ -1,33 +1,62 @@
 import React from 'react';
-import { StyleSheet, View, Text, Pressable, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, Pressable, Image, TouchableOpacity, useWindowDimensions } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const SnapshotCard = ({ snapshotName, images = [], onPress }) => {
+
+    const { width } = useWindowDimensions();
+
     return (
         <Pressable style={styles.pressable} onPress={onPress} testID='snapshot-component'>
             <View style={styles.container}>
-                <View style={styles.mainImageWrapper}>
-                    {images[0] ? (
-                        <Image source={images[0]} style={styles.mainImage} />
-                    ) : (
-                        <Ionicons name="camera" size={70} color="#CDA7AF" />
-                    )}
-                </View>
-                <View style={styles.rightSideContainer}>
-                    <Text style={styles.text}>{snapshotName}</Text>
-                    <View style={styles.additionalImages}>
-                        {images.slice(1, 4).map((image, index) => (
-                            <View key={index} style={styles.smallImageWrapper}>
-                                <Image source={image} style={styles.smallImage} />
+                {width < 400 ?
+                    <View style={styles.leftSideContainer}>
+                        <View style={[styles.mainImageWrapper, styles.compactMainImageWrapper]}>
+                            {images[0] ? (
+                                <Image source={images[0]} style={styles.mainImage} />
+                            ) : (
+                                <Ionicons name="camera" size={70} color="#CDA7AF" />
+                            )}
+                        </View>
+                        <View style={[styles.additionalImages, styles.compactAdditionalImages]}>
+                            {images.slice(1, 4).map((image, index) => (
+                                <View key={index} style={styles.smallImageWrapper}>
+                                    <Image source={image} style={styles.smallImage} />
+                                </View>
+                            ))}
+                            {images.length > 4 && (
+                                <View style={styles.moreImagesIndicator}>
+                                    <Text style={styles.moreImagesText}>+{images.length - 4}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View> :
+                    <>
+                        <View style={styles.mainImageWrapper}>
+                            {images[0] ? (
+                                <Image source={images[0]} style={styles.mainImage} />
+                            ) : (
+                                <Ionicons name="camera" size={70} color="#CDA7AF" />
+                            )}
+                        </View>
+                        <View style={styles.rightSideContainer}>
+                            <Text style={styles.text}>{snapshotName}</Text>
+                            <View style={styles.additionalImages}>
+                                {images.slice(1, 4).map((image, index) => (
+                                    <View key={index} style={styles.smallImageWrapper}>
+                                        <Image source={image} style={styles.smallImage} />
+                                    </View>
+                                ))}
+                                {images.length > 4 && (
+                                    <View style={styles.moreImagesIndicator}>
+                                        <Text style={styles.moreImagesText}>+{images.length - 4}</Text>
+                                    </View>
+                                )}
                             </View>
-                        ))}
-                        {images.length > 4 && (
-                            <View style={styles.moreImagesIndicator}>
-                                <Text style={styles.moreImagesText}>+{images.length - 4}</Text>
-                            </View>
-                        )}
-                    </View>
-                </View>
+                        </View>
+                    </>
+                }
+                {width < 400 ? <Text style={styles.compactText}>{snapshotName}</Text> : null}
                 <TouchableOpacity style={styles.editSpace}>
                     <Ionicons name="create-outline" size={30} color="#CDA7AF" />
                 </TouchableOpacity>
@@ -63,6 +92,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center'
     },
+    compactMainImageWrapper: {
+        marginBottom: 15
+    },
     mainImage: {
         width: 86,
         height: 86,
@@ -81,8 +113,19 @@ const styles = StyleSheet.create({
         fontSize: 20,
         maxWidth: 200,
     },
+    compactText: {
+        color: '#E2CFC8',
+        fontSize: 20,
+        maxWidth: 180,
+        marginLeft: -55,
+        maxHeight: 90,
+        marginTop: 5
+    },
     additionalImages: {
         flexDirection: 'row'
+    },
+    compactAdditionalImages: {
+        marginLeft: 5
     },
     smallImageWrapper: {
         width: 34,
