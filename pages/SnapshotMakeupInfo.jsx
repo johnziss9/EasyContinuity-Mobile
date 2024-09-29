@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, ScrollView, TextInput, Modal, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, ScrollView, TextInput, View, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const SnapshotMakeupInfo = ({ route }) => {
     // const navigation = useNavigation();
+    const { width } = useWindowDimensions();
+
     const { isNewSnapshot } = route.params; // Passing this to SnapshotMakeupInfo to show the right title
 
     const [skin, setSkin] = useState("");
@@ -13,8 +15,16 @@ const SnapshotMakeupInfo = ({ route }) => {
     const [effects, setEffects] = useState("");
     const [notes, setNotes] = useState("");
 
+    const dynamicStyles = {
+        container: {
+            paddingLeft: width > 600 ? 15 : 0,
+            flex: 1,
+            backgroundColor: '#E2CFC8'
+        }
+    };
+
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={dynamicStyles.container}>
             <ScrollView>
                 <Text style={styles.header}>{isNewSnapshot ? "Add Makeup Details" : "Edit Makeup Details"}</Text>
                 <Text style={styles.label} accessibilityLabel="Skin:">Skin:</Text>
@@ -97,10 +107,6 @@ const SnapshotMakeupInfo = ({ route }) => {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2CFC8'
-    },
     header: {
         fontSize: 30,
         fontWeight: 'bold',
