@@ -191,11 +191,11 @@ const Space = () => {
                     onChangeText={setSearchQuery}
                     testID="search-input"
                 />
-                {searchQuery === '' ? 
-                    <Ionicons name="search-outline" size={20} color="#3F4F5F" style={styles.searchBarIcon} /> :
-                    <Pressable style={styles.searchBarIcon} testID='add-item-button' onPress={handleClearSearchBar}>
+                {searchQuery !== '' ? 
+                    <Pressable style={styles.searchBarIcon} testID='clear-search-button' onPress={handleClearSearchBar}>
                         <Ionicons name="close" size={20} color="#3F4F5F" />
-                    </Pressable>
+                    </Pressable> :
+                    <Ionicons name="search-outline" size={20} color="#3F4F5F" style={styles.searchBarIcon} /> 
                 }
 
             </View>
