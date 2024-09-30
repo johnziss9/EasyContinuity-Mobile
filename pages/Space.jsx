@@ -72,6 +72,10 @@ const Space = () => {
         );
     }
 
+    const handleClearSearchBar = (id) => {
+        setSearchQuery('');
+    }
+
     const dynamicStyles = {
         modalTextbox: {
             width: width < 600 ? '100%' : '61%',
@@ -187,7 +191,13 @@ const Space = () => {
                     onChangeText={setSearchQuery}
                     testID="search-input"
                 />
-                <Ionicons name="search-outline" size={20} color="#3F4F5F" style={styles.searchIcon} />
+                {searchQuery === '' ? 
+                    <Ionicons name="search-outline" size={20} color="#3F4F5F" style={styles.searchBarIcon} /> :
+                    <Pressable style={styles.searchBarIcon} testID='add-item-button' onPress={handleClearSearchBar}>
+                        <Ionicons name="close" size={20} color="#3F4F5F" />
+                    </Pressable>
+                }
+
             </View>
 
             <FlatList
@@ -311,7 +321,7 @@ const styles = StyleSheet.create({
     searchContainer: {
         flexDirection: 'row'
     },
-    searchIcon: {
+    searchBarIcon: {
         marginTop: 18,
         marginLeft: -30
     }
