@@ -10,7 +10,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import useFileBrowser from '../hooks/useFileBrowser';
 
-const Snapshot = () => {
+// TODO Using testImages prop in order to test the empty dummyImages array in the Snapshot tests - Needs to be removed
+const Snapshot = ({ testImages = null }) => {
 
     const navigation = useNavigation();
 
@@ -24,34 +25,51 @@ const Snapshot = () => {
     const [selectedImages, setSelectedImages] = useState([]);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-    const dummyImages = [
+    // Initial code was: const dummyImages = [
+    // TODO This would need to be removed and updated when there's not images coming from the database
+    const dummyImages = testImages !== null ? testImages : [
         { id: 1, source: someImage },
         { id: 2, source: someImage2 },
         { id: 3, source: someImage3 },
         { id: 4, source: someImage4 }
     ];
 
-    const renderField = (label, value, index) => (
-        <View key={`field-${index}`} style={styles.fieldContainer}>
+    const renderField = (label, value, index, sectionId) => (
+        <View 
+            key={`field-${index}`} 
+            style={styles.fieldContainer}
+            testID={`${sectionId}-field-${index}`}
+        >
             <Text style={styles.fieldLabel}>{label}</Text>
             <Text style={styles.fieldText}>{value}</Text>
         </View>
     );
 
-    const renderSection = (title, fields, onPress) => (
-        <View key={`section-${title.toLowerCase().replace(/\s+/g, '-')}`} style={styles.section}>
-            <View style={styles.sectionTitleAndIcon}>
-                <Text style={styles.sectionHeader}>{title}</Text>
-                <TouchableOpacity style={styles.editSection} onPress={onPress}>
-                    <Ionicons name="create-outline" size={30} color="#3F4F5F" />
-                </TouchableOpacity>
+    const renderSection = (title, fields, onPress) => {
+        const sectionId = title.toLowerCase().replace(/\s+/g, '-');
+        return (
+            <View 
+                key={`section-${sectionId}`} 
+                style={styles.section}
+                testID={`section-${sectionId}`}
+            >
+                <View style={styles.sectionTitleAndIcon}>
+                    <Text style={styles.sectionHeader}>{title}</Text>
+                    <TouchableOpacity 
+                        style={styles.editSection} 
+                        onPress={onPress}
+                        testID={`edit-${sectionId}-button`}
+                    >
+                        <Ionicons name="create-outline" size={30} color="#3F4F5F" />
+                    </TouchableOpacity>
+                </View>
+                {fields.map(([label, value], index) => renderField(label, value, index, sectionId))}
             </View>
-            {fields.map(([label, value], index) => renderField(label, value, index))}
-        </View>
-    );
+        );
+    };
 
     const handleEditImagesPress = () => {
-        navigation.navigate('SnapshotImagesAddEdit', { isNewSnapshot: false });
+        navigation.navigate('SnapshotImagesManage', { isNewSnapshot: false });
     };
 
     const handleEditGeneralPress = () => {
@@ -101,7 +119,7 @@ const Snapshot = () => {
             const result = await browseFiles();
             console.log('Browse files result:', result);
             
-            if (result === null || result.length === 0) {
+            if (result === null || result === undefined || result.length === 0) {
                 console.log('No valid files selected or unsupported file type.');
             } else {
                 const newImages = result.slice(0, availableSlots);
@@ -113,9 +131,10 @@ const Snapshot = () => {
                 });
 
                 if (result.length > availableSlots) {
+                    const addedImages = newImages.length;
                     Alert.alert(
                         "Maximum Images Reached",
-                        `Only ${availableSlots} image(s) were added to reach the maximum of ${MAX_IMAGES} images.`,
+                        `Only ${addedImages} image(s) were added to reach the maximum of ${MAX_IMAGES} images.`,
                         [{ text: "OK" }]
                     );
                 }
@@ -134,6 +153,7 @@ const Snapshot = () => {
                 animationType="fade"
                 visible={showImageModal}
                 onRequestClose={() => setShowImageModal(false)} // Android back button handling
+                testID="image-modal"
             >
                 <View style={styles.modalContainer}>
                     <TouchableOpacity style={styles.modalCloseButton} onPress={() => setShowImageModal(false)}>
@@ -143,7 +163,7 @@ const Snapshot = () => {
                         <Ionicons name="chevron-back" size={30} color="#FFF" />
                     </TouchableOpacity>
                     <Image
-                        source={dummyImages[selectedImageIndex].source}
+                        source={dummyImages > 0 ? dummyImages[selectedImageIndex].source : null}
                         style={styles.modalViewImage}
                         resizeMode="contain"
                     />
@@ -158,10 +178,10 @@ const Snapshot = () => {
                     <View style={styles.imageSectionHeader}>
                         <Text style={styles.sectionHeader}>Images</Text>
                         {dummyImages.length > 0 ?
-                            <TouchableOpacity onPress={handleEditImagesPress}>
+                            <TouchableOpacity onPress={handleEditImagesPress} testID='edit-images-button'>
                                 <Ionicons name="create-outline" size={30} color="#3F4F5F" />
                             </TouchableOpacity> :
-                            <TouchableOpacity onPress={handleBrowseFiles}>
+                            <TouchableOpacity onPress={handleBrowseFiles} testID="add-images-button">
                                 <Ionicons name="add-outline" size={30} color="#3F4F5F" />
                             </TouchableOpacity>
                         }
@@ -179,7 +199,7 @@ const Snapshot = () => {
                     ["Actor Number:", "Something"],
                     ["Character:", "Something"],
                     ["Notes:", "Something"]
-                ], handleEditGeneralPress)}
+                ], handleEditGeneralPress, 'edit-general-button')}
 
                 {renderSection("Makeup", [
                     ["Skin:", "Something"],
@@ -188,7 +208,7 @@ const Snapshot = () => {
                     ["Lips:", "Something"],
                     ["Effects:", "Something"],
                     ["Makeup Notes:", "Something"]
-                ], handleEditMakeupPress)}
+                ], handleEditMakeupPress, 'edit-general-button')}
 
                 {renderSection("Hair", [
                     ["Prep:", "Something"],
