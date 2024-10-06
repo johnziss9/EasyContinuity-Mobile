@@ -14,7 +14,7 @@ const ImageGrid = ({ images, onImagePress }) => {
             (imageCount === 5 || imageCount === 6) && styles.containerFiveOrSix
         ]}>
             {imageCount === 0 ? (
-                <View style={styles.noPhotoWrapper}>
+                <View style={styles.noPhotoWrapper} testID="no-photo-wrapper">
                     <Ionicons name="camera" size={70} color="#CDA7AF" />
                     <Text style={styles.noImagesText}>No Images. Tap + to add.</Text>
                 </View>
@@ -22,6 +22,7 @@ const ImageGrid = ({ images, onImagePress }) => {
             images.map((image, index) => (
                 <TouchableOpacity
                     key={image.id}
+                    testID={`image-wrapper-${index}`}
                     style={[
                         styles.imageWrapper,
                         imageCount === 1 && styles.imageWrapperOne,
@@ -33,7 +34,7 @@ const ImageGrid = ({ images, onImagePress }) => {
                     ]}
                     onPress={() => onImagePress(index)}
                 >
-                    <Image source={image.source} style={styles.image} />
+                    <Image source={image.source} style={styles.image} testID={`image-${index}`} />
                 </TouchableOpacity>
             ))
         )}

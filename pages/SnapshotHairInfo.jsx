@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, ScrollView, TextInput, Modal, View, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 
 const SnapshotHairInfo = ({ route }) => {
-    // const navigation = useNavigation();
+    const navigation = useNavigation();
     const { width } = useWindowDimensions();
 
     const { isNewSnapshot } = route.params; // Passing this to SnapshotHairInfo to show the right title
@@ -13,6 +14,10 @@ const SnapshotHairInfo = ({ route }) => {
     const [stylingTools, setStylingTools] = useState("");
     const [products, setProducts] = useState("");
     const [notes, setNotes] = useState("");
+
+    const handleCancelPress = () => {
+        navigation.navigate('Space');
+    };
 
     const dynamicStyles = {
         container: {
@@ -82,7 +87,7 @@ const SnapshotHairInfo = ({ route }) => {
                     testID='hair-notes-text-input'
                 />
                 <View style={styles.formButtonsContainer}>
-                    <TouchableOpacity style={[styles.formButton, styles.buttonCancel]} testID='hair-cancel-button'>
+                    <TouchableOpacity style={[styles.formButton, styles.buttonCancel]} onPress={handleCancelPress} testID='hair-cancel-button'>
                         <Text style={[styles.buttonText, styles.buttonTextCancel]}>Cancel</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.formButton, styles.buttonSave]} testID='hair-submit-button'>
