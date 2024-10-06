@@ -102,11 +102,8 @@ const Space = () => {
     const renderFileItem = ({ item }) => { // item here returns an object from the array
         const { name } = item; // name is extracted from item
         const isFolder = Array.isArray(folders) && folders.some((folder) => folder.id === item.id);
-        const isSnapshot = !isFolder && item.hasOwnProperty('name');
 
-        const shouldRender =
-            (isFolder && folders.some((folder) => folder.name.toLowerCase().includes(searchQuery.toLowerCase()))) ||
-            (isSnapshot && item.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        const shouldRender = searchQuery.trim() === '' || name.toLowerCase().includes(searchQuery.toLowerCase());
 
         if (!shouldRender) {
             return null;

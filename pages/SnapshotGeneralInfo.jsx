@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, ScrollView, TextInput, Modal, View, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SelectList } from 'react-native-dropdown-select-list'
+import { useNavigation } from '@react-navigation/native';
 
 const SnapshotGeneralInfo = ({ route }) => {
 
-    // const navigation = useNavigation();
+    const navigation = useNavigation();
     const { width } = useWindowDimensions();
 
     const { isNewSnapshot } = route.params; // Passing this to SnapshotGeneralInfo to show the right title
@@ -55,6 +56,10 @@ const SnapshotGeneralInfo = ({ route }) => {
         }
 
         // TODO Add validation if user selected first value and then cancels the snapshot shouldn't save
+    };
+
+    const handleCancelPress = () => {
+        navigation.navigate('Space');
     };
 
     const dynamicStyles = {
@@ -187,6 +192,7 @@ const SnapshotGeneralInfo = ({ route }) => {
                     dropdownItemStyles={styles.dropdownListItem}
                     dropdownTextStyles={styles.dropdownListText}
                     maxHeight={150}
+                    testID="actor-select"
                 />
                 <Text style={styles.label} accessibilityLabel="Character:">Character:</Text>
                 <SelectList
@@ -201,6 +207,7 @@ const SnapshotGeneralInfo = ({ route }) => {
                     dropdownItemStyles={styles.dropdownListItem}
                     dropdownTextStyles={styles.dropdownListText}
                     maxHeight={150}
+                    testID="character-select"
                 />
                 <Text style={styles.label} accessibilityLabel="Notes:">Notes:</Text>
                 <TextInput
@@ -214,7 +221,7 @@ const SnapshotGeneralInfo = ({ route }) => {
                     testID='snapshot-notes-text-input'
                 />
                 <View style={styles.formButtonsContainer}>
-                    <TouchableOpacity style={[styles.formButton, styles.buttonCancel]} testID='general-cancel-button'>
+                    <TouchableOpacity style={[styles.formButton, styles.buttonCancel]} onPress={handleCancelPress} testID='general-cancel-button'>
                         <Text style={[styles.buttonText, styles.buttonTextCancel]}>Cancel</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.formButton, styles.buttonSave]} testID='general-submit-button'>

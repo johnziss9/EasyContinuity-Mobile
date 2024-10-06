@@ -12,7 +12,7 @@ afterEach(() => {
     jest.clearAllMocks();
 });
 
-describe('Dashboard Component', () => {
+describe('Dashboard', () => {
 
     // TODO Add tests for the actual space cards that will come from the database or just mock some for testing
     // TODO Add test for what the Submit button does on the modal
@@ -33,7 +33,7 @@ describe('Dashboard Component', () => {
                 <Dashboard />
             </NavigationContainer>);
         
-        expect(getAllByTestId('space-component')).toHaveLength(2);
+        expect(getAllByTestId('space-card-component')).toHaveLength(2);
     });
 
     it('should open the add new space modal when the "Add New" button is pressed', async () => {
@@ -64,7 +64,7 @@ describe('Dashboard Component', () => {
         expect(queryByText('Enter Space Name:')).toBeNull();
     });
 
-    it('should navigate to the "Home" screen when a Space component is pressed', () => {
+    it('should navigate to the "Space" screen when a Space component is pressed', () => {
         const mockNavigate = jest.fn();
 
         useNavigation.mockReturnValue({ navigate: mockNavigate });

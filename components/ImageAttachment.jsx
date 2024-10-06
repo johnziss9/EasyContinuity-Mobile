@@ -74,14 +74,14 @@ const ImageAttachment = () => {
             </View>
             {!item.isEdit ?
                 <>
-                    <TouchableOpacity style={styles.editButton} onPress={() => handleEditImageName(item.id)}>
+                    <TouchableOpacity style={styles.editButton} onPress={() => handleEditImageName(item.id)} testID="edit-image-button">
                         <Ionicons name="create-outline" size={30} color="#CDA7AF" />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteImage(item.id)}>
+                    <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteImage(item.id)} testID="delete-image-button">
                         <Ionicons name="trash-outline" size={30} color="#CDA7AF" />
                     </TouchableOpacity>
                 </> :
-                <TouchableOpacity style={styles.saveButton} onPress={() => handleSaveImageName(item.id)}>
+                <TouchableOpacity style={styles.saveButton} onPress={() => handleSaveImageName(item.id)} testID="save-image-button">
                     <Ionicons name="save-outline" size={30} color="#CDA7AF" />
                 </TouchableOpacity>
             }
@@ -96,7 +96,7 @@ const ImageAttachment = () => {
                 keyExtractor={(item) => item.id}
                 ListEmptyComponent={<Text>No attachments</Text>}
             />
-            <Pressable style={styles.addNewButton} testID='add-item-button' onPress={handleAddAttachment}>
+            <Pressable style={styles.addNewButton} testID='add-image-button' onPress={handleAddAttachment}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
             </Pressable>
         </View>

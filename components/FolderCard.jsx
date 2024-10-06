@@ -10,10 +10,10 @@ const FolderCard = ({ folderName, onPress, onEditPress, onDeletePress }) => {
                     <Ionicons name="folder" size={80} color="#CDA7AF" style={styles.folderIcon} />
                 </View>
                 <Text style={styles.text}>{folderName}</Text>
-                <TouchableOpacity style={styles.editSpace} onPress={onEditPress}>
+                <TouchableOpacity style={styles.editSpace} onPress={onEditPress} testID="edit-folder-button">
                     <Ionicons name="create-outline" size={30} color="#CDA7AF" />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.deleteSpace} onPress={onDeletePress}>
+                <TouchableOpacity style={styles.deleteSpace} onPress={onDeletePress} testID="delete-folder-button">
                     <Ionicons name="trash-outline" size={30} color="#CDA7AF" />
                 </TouchableOpacity>
             </View>
