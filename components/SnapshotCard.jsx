@@ -11,14 +11,14 @@ const SnapshotCard = ({ snapshotName, images = [], onPress }) => {
             <View style={styles.container}>
                 {width < 400 ?
                     <View style={styles.leftSideContainer}>
-                        <View style={[styles.mainImageWrapper, styles.compactMainImageWrapper]}>
+                        <View style={[styles.mainImageWrapper, styles.compactMainImageWrapper]} testID='compact-main-image-container'>
                             {images[0] ? (
                                 <Image source={images[0]} style={styles.mainImage} />
                             ) : (
                                 <Ionicons name="camera" size={70} color="#CDA7AF" />
                             )}
                         </View>
-                        <View style={[styles.additionalImages, styles.compactAdditionalImages]}>
+                        <View style={[styles.additionalImages, styles.compactAdditionalImages]} testID='compact-additional-images-icontaner'>
                             {images.slice(1, 4).map((image, index) => (
                                 <View key={index} style={styles.smallImageWrapper}>
                                     <Image source={image} style={styles.smallImage} />
@@ -32,19 +32,19 @@ const SnapshotCard = ({ snapshotName, images = [], onPress }) => {
                         </View>
                     </View> :
                     <>
-                        <View style={styles.mainImageWrapper}>
+                        <View style={styles.mainImageWrapper} testID='main-image-contaner'>
                             {images[0] ? (
-                                <Image source={images[0]} style={styles.mainImage} />
+                                <Image source={images[0]} style={styles.mainImage} testID="snapshot-image" />
                             ) : (
                                 <Ionicons name="camera" size={70} color="#CDA7AF" />
                             )}
                         </View>
-                        <View style={styles.rightSideContainer}>
+                        <View style={styles.rightSideContainer} testID='right-side-content-contaner'>
                             <Text style={styles.text}>{snapshotName}</Text>
                             <View style={styles.additionalImages}>
                                 {images.slice(1, 4).map((image, index) => (
                                     <View key={index} style={styles.smallImageWrapper}>
-                                        <Image source={image} style={styles.smallImage} />
+                                        <Image source={image} style={styles.smallImage} testID="snapshot-image" />
                                     </View>
                                 ))}
                                 {images.length > 4 && (
@@ -56,7 +56,7 @@ const SnapshotCard = ({ snapshotName, images = [], onPress }) => {
                         </View>
                     </>
                 }
-                {width < 400 ? <Text style={styles.compactText}>{snapshotName}</Text> : null}
+                {width < 400 ? <Text style={styles.compactText} testID='compact-text'>{snapshotName}</Text> : null}
                 <TouchableOpacity style={styles.editSpace}>
                     <Ionicons name="create-outline" size={30} color="#CDA7AF" />
                 </TouchableOpacity>

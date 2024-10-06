@@ -7,11 +7,11 @@ import { Platform } from 'react-native';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Space from './pages/Space';
-import Snapshot from './pages/Spanshot';
+import Snapshot from './pages/Snapshot';
 import SnapshotGeneralInfo from './pages/SnapshotGeneralInfo';
 import SnapshotMakeupInfo from './pages/SnapshotMakeupInfo';
 import SnapshotHairInfo from './pages/SnapshotHairInfo';
-import SnapshotImagesAddEdit from './pages/SnapshotImagesAddEdit';
+import SnapshotImagesManage from './pages/SnapshotImagesManage';
 
 enableScreens();
 
@@ -112,8 +112,8 @@ const App = () => {
               }
             }} />
           <Stack.Screen
-            name="SnapshotImagesAddEdit"
-            component={SnapshotImagesAddEdit}
+            name="SnapshotImagesManage"
+            component={SnapshotImagesManage}
             options={{
               title: 'Snapshot Images',
               headerBackVisible: Platform.OS === 'ios',

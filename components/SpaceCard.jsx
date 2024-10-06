@@ -2,20 +2,19 @@ import React from 'react';
 import { StyleSheet, View, Text, Pressable, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const SpaceCard = ({ spaceName, onPress }) => {
+const SpaceCard = ({ spaceName, onPress, onEditPress, onDeletePress }) => {
     return (
-        <Pressable style={styles.pressable} onPress={onPress} testID='space-component'>
+        <Pressable style={styles.pressable} onPress={onPress} testID='space-card-component'>
             <View style={styles.container}>
                 <Text style={styles.text}>{spaceName}</Text>
-                <TouchableOpacity style={styles.editSpace}>
+                <TouchableOpacity style={styles.editSpace} onPress={onEditPress} testID="edit-space-button">
                     <Ionicons name="create-outline" size={30} color="#CDA7AF" />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.deleteSpace}>
+                <TouchableOpacity style={styles.deleteSpace} onPress={onDeletePress} testID="delete-space-button">
                     <Ionicons name="trash-outline" size={30} color="#CDA7AF" />
                 </TouchableOpacity>
             </View>
         </Pressable>
-        
     );
 }
 

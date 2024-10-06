@@ -3,12 +3,12 @@ import { StyleSheet, View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ImageAttachment from '../components/ImageAttachment';
 
-const SnapshotImagesAddEdit = () => {
+const SnapshotImagesManage = () => {
 
     return (
-        <SafeAreaView style={styles.container}>
-                <View style={styles.headerContainer}>
-                    <Text style={styles.header}>Add or Edit Images</Text>
+        <SafeAreaView style={styles.container} testID="safe-area-view">
+                <View style={styles.headerContainer} testID="header-container">
+                    <Text testID="header-text" style={styles.header}>Manage Images</Text>
                 </View>
                 <ImageAttachment />
         </SafeAreaView>
@@ -33,4 +33,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default SnapshotImagesAddEdit;
+export default SnapshotImagesManage;
