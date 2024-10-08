@@ -10,3 +10,6 @@ services:
       - "19003:19002"
     environment: 
       - NODE_ENV=preprod
+      - REACT_NATIVE_PACKAGER_HOSTNAME=${LINODE_IP}
+    command: npx expo start --web --lan --port 19001
+    network_mode: "host"
