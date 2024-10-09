@@ -50,7 +50,7 @@ describe('ImageAttachment', () => {
         });
     });
 
-    it('should show "No attachments" message when all images are deleted', async () => {
+    it('should show "No Images" message when all images are deleted', async () => {
         const { getAllByTestId, getByText, queryByText } = render(<ImageAttachment />);
         
         // Delete all images
@@ -59,7 +59,7 @@ describe('ImageAttachment', () => {
         }
 
         await waitFor(() => {
-            expect(getByText('No attachments')).toBeTruthy();
+            expect(getByText('No Images. Tap + to add.')).toBeTruthy();
             expect(queryByText(/Image \d/)).toBeNull();
         });
     });
