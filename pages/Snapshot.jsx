@@ -35,8 +35,8 @@ const Snapshot = ({ testImages = null }) => {
     ];
 
     const renderField = (label, value, index, sectionId) => (
-        <View 
-            key={`field-${index}`} 
+        <View
+            key={`field-${index}`}
             style={styles.fieldContainer}
             testID={`${sectionId}-field-${index}`}
         >
@@ -48,15 +48,15 @@ const Snapshot = ({ testImages = null }) => {
     const renderSection = (title, fields, onPress) => {
         const sectionId = title.toLowerCase().replace(/\s+/g, '-');
         return (
-            <View 
-                key={`section-${sectionId}`} 
+            <View
+                key={`section-${sectionId}`}
                 style={styles.section}
                 testID={`section-${sectionId}`}
             >
                 <View style={styles.sectionTitleAndIcon}>
                     <Text style={styles.sectionHeader}>{title}</Text>
-                    <TouchableOpacity 
-                        style={styles.editSection} 
+                    <TouchableOpacity
+                        style={styles.editSection}
                         onPress={onPress}
                         testID={`edit-${sectionId}-button`}
                     >
@@ -105,7 +105,7 @@ const Snapshot = ({ testImages = null }) => {
     const handleBrowseFiles = async () => {
         console.log('Attempting to browse files...');
         const availableSlots = MAX_IMAGES - selectedImages.length;
-        
+
         if (availableSlots <= 0) {
             Alert.alert(
                 "Maximum Images Reached",
@@ -114,11 +114,11 @@ const Snapshot = ({ testImages = null }) => {
             );
             return;
         }
-        
+
         try {
             const result = await browseFiles();
             console.log('Browse files result:', result);
-            
+
             if (result === null || result === undefined || result.length === 0) {
                 console.log('No valid files selected or unsupported file type.');
             } else {
@@ -162,11 +162,13 @@ const Snapshot = ({ testImages = null }) => {
                     <TouchableOpacity style={styles.modalPrevButton} onPress={handlePreviousImage}>
                         <Ionicons name="chevron-back" size={30} color="#FFF" />
                     </TouchableOpacity>
-                    <Image
-                        source={dummyImages > 0 ? dummyImages[selectedImageIndex].source : null}
-                        style={styles.modalViewImage}
-                        resizeMode="contain"
-                    />
+                    {dummyImages.length > 0 && (
+                        <Image
+                            source={dummyImages[selectedImageIndex].source}
+                            style={styles.modalViewImage}
+                            resizeMode="contain"
+                        />
+                    )}
                     <TouchableOpacity style={styles.modalNextButton} onPress={handleNextImage}>
                         <Ionicons name="chevron-forward" size={30} color="#FFF" />
                     </TouchableOpacity>
