@@ -94,7 +94,7 @@ const ImageAttachment = () => {
                 data={attachments}
                 renderItem={renderItem}
                 keyExtractor={(item) => item.id}
-                ListEmptyComponent={<Text>No attachments</Text>}
+                ListEmptyComponent={<Text style={styles.noImagesText}>No Images. Tap + to add.</Text>}
             />
             <Pressable style={styles.addNewButton} testID='add-image-button' onPress={handleAddAttachment}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
@@ -107,6 +107,10 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         width: '90%',
+    },
+    noImagesText: {
+        color: '#3F4F5F',
+        fontSize: 18
     },
     attachmentContainer: {
         flexDirection: 'row',
