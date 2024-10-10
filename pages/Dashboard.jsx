@@ -3,6 +3,7 @@ import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SpaceCard from '../components/SpaceCard';
+import { SelectList } from 'react-native-dropdown-select-list'
 import { useNavigation } from '@react-navigation/native';
 
 const Dashboard = () => {
@@ -11,9 +12,20 @@ const Dashboard = () => {
 
     const [showAddNewSpaceModal, setShowAddNewSpaceModal] = useState(false);
     const [spaceName, setSpaceName] = React.useState('');
+    const [spaceType, setSpaceType] = useState("");
+
+    const spaceTypes = [
+        { key: '1', value: 'Movie' },
+        { key: '2', value: 'Series' }
+    ];
 
     const handleSpacePress = () => {
         navigation.navigate('Space');
+    };
+
+    const handleModalCancelPress = () => {
+        setSpaceName('');
+        setShowAddNewSpaceModal(false);
     };
 
     const dynamicStyles = {
@@ -28,6 +40,23 @@ const Dashboard = () => {
             fontSize: 18,
             marginBottom: 10,
             color: '#3F4F5F'
+        },
+        dropdownBox: {
+            width: width < 600 ? '100%' : '61%',
+            height: 60,
+            borderColor: '#3F4F5F',
+            borderRadius: 5,
+            backgroundColor: 'rgba(205, 167, 175, 0.2)',
+            marginBottom: 5,
+            alignItems: 'center',
+            paddingHorizontal: 7
+        },
+        dropdownList: {
+            borderColor: '#3F4F5F',
+            borderRadius: 5,
+            width: width < 600 ? '100%' : '61%',
+            marginTop: 0,
+            marginBottom: 25
         },
     };
 
@@ -50,8 +79,22 @@ const Dashboard = () => {
                             cursorColor={'#3F4F5F'}
                             testID='space-name-text-input'
                         />
+                        <SelectList
+                            setSelected={setSpaceType}
+                            data={spaceTypes}
+                            placeholder="Type"
+                            searchPlaceholder="Search..."
+                            style={styles.selectList}
+                            boxStyles={dynamicStyles.dropdownBox}
+                            inputStyles={styles.dropdownInput}
+                            dropdownStyles={dynamicStyles.dropdownList}
+                            dropdownItemStyles={styles.dropdownListItem}
+                            dropdownTextStyles={styles.dropdownListText}
+                            maxHeight={150}
+                            testID="space-type-select"
+                        />
                         <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} testID='add-space-cancel-button' onPress={() => setShowAddNewSpaceModal(false)}>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} testID='add-space-cancel-button' onPress={handleModalCancelPress}>
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={[styles.modalButton, styles.modalButtonSave]} testID='add-space-submit-button' onPress={() => setShowAddNewSpaceModal(false)}>
@@ -129,7 +172,19 @@ const styles = StyleSheet.create({
     },
     modalButtonTextCancel: {
         color: '#3F4F5F'
-    }
+    },
+    dropdownInput: {
+        fontSize: 18,
+        color: '#3F4F5F'
+    },
+    
+    dropdownListItem: {
+        marginBottom: 5
+    },
+    dropdownListText: {
+        color: '#3F4F5F',
+        fontSize: 18,
+    },
 });
 
 export default Dashboard;
