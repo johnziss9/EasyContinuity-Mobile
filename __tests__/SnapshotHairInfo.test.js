@@ -58,7 +58,7 @@ describe('SnapshotHairInfo', () => {
         expect(getByTestId('hair-notes-text-input').props.value).toBe('Line 1\nLine 2\nLine 3');
     });
 
-    it('should navigate to the "Space" screen when a Cancel button is pressed', () => {
+    it('should navigate to the "Space" screen when a Cancel button is pressed from a new Snapshot', () => {
         const mockNavigate = jest.fn();
 
         useNavigation.mockReturnValue({ navigate: mockNavigate });
@@ -68,6 +68,18 @@ describe('SnapshotHairInfo', () => {
         fireEvent.press(getByTestId('hair-cancel-button'));
 
         expect(mockNavigate).toHaveBeenCalledWith('Space');
+    });
+
+    it('should navigate to the "Space" screen when a Cancel button is pressed from an edited Snapshot', () => {
+        const mockNavigate = jest.fn();
+
+        useNavigation.mockReturnValue({ navigate: mockNavigate });
+
+        const { getByTestId } = render(<SnapshotHairInfo route={{ params: { isNewSnapshot: false } }} />);
+
+        fireEvent.press(getByTestId('hair-cancel-button'));
+
+        expect(mockNavigate).toHaveBeenCalledWith('Snapshot');
     });
 
     // TODO Write a test for when pressing the submit button in the form

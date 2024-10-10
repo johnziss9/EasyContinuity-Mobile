@@ -59,7 +59,7 @@ const SnapshotGeneralInfo = ({ route }) => {
     };
 
     const handleCancelPress = () => {
-        navigation.navigate('Space');
+        navigation.navigate(isNewSnapshot ? 'Space' : 'Snapshot');
     };
 
     const dynamicStyles = {
