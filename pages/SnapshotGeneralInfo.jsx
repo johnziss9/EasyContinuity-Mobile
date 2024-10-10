@@ -185,7 +185,6 @@ const SnapshotGeneralInfo = ({ route }) => {
                     data={actors}
                     placeholder="Actor Name"
                     searchPlaceholder="Search..."
-                    style={styles.selectList}
                     boxStyles={styles.dropdownBox}
                     inputStyles={styles.dropdownInput}
                     dropdownStyles={styles.dropdownList}
@@ -200,7 +199,6 @@ const SnapshotGeneralInfo = ({ route }) => {
                     data={characters}
                     placeholder="Character"
                     searchPlaceholder="Search..."
-                    style={styles.selectList}
                     boxStyles={styles.dropdownBox}
                     inputStyles={styles.dropdownInput}
                     dropdownStyles={styles.dropdownList}
@@ -267,7 +265,7 @@ const styles = StyleSheet.create({
         borderColor: '#3F4F5F',
         borderRadius: 5,
         backgroundColor: 'rgba(205, 167, 175, 0.2)',
-        marginBottom: 25,
+        marginBottom: 5,
         marginLeft: 20,
         alignItems: 'center',
         paddingHorizontal: 7
