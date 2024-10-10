@@ -17,7 +17,7 @@ const SnapshotMakeupInfo = ({ route }) => {
     const [notes, setNotes] = useState("");
 
     const handleCancelPress = () => {
-        navigation.navigate('Space');
+        navigation.navigate(isNewSnapshot ? 'Space' : 'Snapshot');
     };
 
     const dynamicStyles = {
