@@ -187,6 +187,7 @@ const Space = () => {
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                     testID="search-input"
+                    selectionColor="#3F4F5F"
                 />
                 {searchQuery !== '' ? 
                     <Pressable style={styles.searchBarIcon} testID='clear-search-button' onPress={handleClearSearchBar}>
