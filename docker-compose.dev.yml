@@ -1,4 +1,4 @@
-version: '3'
+version: '3.9'
 services:
   easy-continuity-dev:
     build:
@@ -13,3 +13,37 @@ services:
       - REACT_NATIVE_PACKAGER_HOSTNAME=${LINODE_IP}
     command: npx expo start --web --lan --port 19000
     network_mode: "host"
+
+#   postgres:
+#     image: postgres
+#     environment:
+#       POSTGRES_DB: ecdb
+#       POSTGRES_USER: johnz
+#       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - db-dev-data:/var/lib/postgresql/data
+#     secrets:
+#       - postgres_password
+
+#   pgadmin:
+#     image: dpage/pgadmin4
+#     environment:
+#       PGADMIN_DEFAULT_EMAIL: jz@ec.com
+#       PGADMIN_DEFAULT_PASSWORD_FILE: /run/secrets/pgadmin_password
+#     ports:
+#       - "8080:80"
+#     depends_on:
+#       - postgres
+#     secrets:
+#       - pgadmin_password
+
+# volumes:
+#   db-dev-data:
+
+# secrets:
+#   postgres_password:
+#     file: ./postgres_password.txt
+#   pgadmin_password:
+#     file: ./pgadmin_password.txt
