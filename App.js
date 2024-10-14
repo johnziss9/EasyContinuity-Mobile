@@ -33,6 +33,7 @@ const App = () => {
             options={{
               title: 'My Spaces',
               headerBackVisible: Platform.OS === 'ios',
+              headerBackTitleVisible: false,
               headerStyle: {
                 backgroundColor: '#3F4F5F'
               },
@@ -47,6 +48,7 @@ const App = () => {
             options={{
               title: 'Title of Space',
               headerBackVisible: Platform.OS === 'ios',
+              headerBackTitleVisible: false,
               headerStyle: {
                 backgroundColor: '#3F4F5F'
               },
@@ -61,6 +63,7 @@ const App = () => {
             options={{
               title: 'Title of Snapshot',
               headerBackVisible: Platform.OS === 'ios',
+              headerBackTitleVisible: false,
               headerStyle: {
                 backgroundColor: '#3F4F5F'
               },
@@ -75,6 +78,7 @@ const App = () => {
             options={{
               title: 'General Information',
               headerBackVisible: Platform.OS === 'ios',
+              headerBackTitleVisible: false,
               headerStyle: {
                 backgroundColor: '#3F4F5F'
               },
@@ -89,6 +93,7 @@ const App = () => {
             options={{
               title: 'Makeup Information',
               headerBackVisible: Platform.OS === 'ios',
+              headerBackTitleVisible: false,
               headerStyle: {
                 backgroundColor: '#3F4F5F'
               },
@@ -103,6 +108,7 @@ const App = () => {
             options={{
               title: 'Hair Information',
               headerBackVisible: Platform.OS === 'ios',
+              headerBackTitleVisible: false,
               headerStyle: {
                 backgroundColor: '#3F4F5F'
               },
@@ -117,6 +123,7 @@ const App = () => {
             options={{
               title: 'Snapshot Images',
               headerBackVisible: Platform.OS === 'ios',
+              headerBackTitleVisible: false,
               headerStyle: {
                 backgroundColor: '#3F4F5F'
               },
