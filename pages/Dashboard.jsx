@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, useWindowDimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SpaceCard from '../components/SpaceCard';
 import { SelectList } from 'react-native-dropdown-select-list'
@@ -61,7 +60,7 @@ const Dashboard = () => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             <Modal
                 transparent={true}
                 animationType="fade"
@@ -109,7 +108,7 @@ const Dashboard = () => {
             <Pressable style={styles.addNewButton} testID='add-space-button' onPress={() => setShowAddNewSpaceModal(true)}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
             </Pressable>
-        </SafeAreaView>
+        </View>
     );
 }
 
@@ -117,7 +116,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#E2CFC8',
-        alignItems: 'center'
+        alignItems: 'center',
+        paddingTop: 30
     },
     addNewButton: {
         position: 'absolute',

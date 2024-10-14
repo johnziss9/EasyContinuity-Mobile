@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, FlatList, TextInput, useWindowDimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useFileBrowser from '../hooks/useFileBrowser';
@@ -125,7 +124,7 @@ const Space = () => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
 
             {/* Add New Item Modal */}
             <Modal
@@ -212,7 +211,7 @@ const Space = () => {
             <Pressable style={styles.addNewButton} testID='add-item-button' onPress={() => setShowAddNewItemModal(true)}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
             </Pressable>
-        </SafeAreaView>
+        </View>
     );
 }
 
@@ -220,7 +219,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#E2CFC8',
-        alignItems: 'center'
+        alignItems: 'center',
+        paddingTop: 30
     },
     addNewButton: {
         position: 'absolute',
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
         marginBottom: 30,
         borderBottomWidth: 1,
         borderColor: '#3F4F5F',
-        width: 300,
+        width: 350,
         paddingLeft: 5,
         height: 50,
         outlineStyle: 'none',

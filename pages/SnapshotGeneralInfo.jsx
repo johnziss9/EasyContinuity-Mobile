@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, ScrollView, TextInput, Modal, View, TouchableOpacity, useWindowDimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { SelectList } from 'react-native-dropdown-select-list'
 import { useNavigation } from '@react-navigation/native';
 
@@ -64,14 +63,15 @@ const SnapshotGeneralInfo = ({ route }) => {
 
     const dynamicStyles = {
         container: {
-            paddingLeft: width > 600 ? 15 : 0,
+            paddingLeft: width > 600 ? 15 : 5,
             flex: 1,
-            backgroundColor: '#E2CFC8'
+            backgroundColor: '#E2CFC8',
+            paddingTop: 30
         }
     };
 
     return (
-        <SafeAreaView style={dynamicStyles.container}>
+        <View style={dynamicStyles.container}>
 
             {/* Add New Actor Modal */}
             <Modal
@@ -141,7 +141,7 @@ const SnapshotGeneralInfo = ({ route }) => {
                 </View>
             </Modal>
 
-            <ScrollView>
+            <ScrollView showsVerticalScrollIndicator={false}>
                 <Text style={styles.header}>{isNewSnapshot ? "Add New Snapshot" : "Edit Snapshot"}</Text>
                 <Text style={styles.label} accessibilityLabel="Name:">Name:</Text>
                 <TextInput
@@ -227,7 +227,7 @@ const SnapshotGeneralInfo = ({ route }) => {
                     </TouchableOpacity>
                 </View>
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 }
 
