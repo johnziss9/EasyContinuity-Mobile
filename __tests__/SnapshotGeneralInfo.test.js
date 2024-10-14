@@ -116,32 +116,13 @@ describe('SnapshotGeneralInfo', () => {
     });
 
     // TODO Write a test for when pressing the submit button in the form
-    // TODO Write a test for when pressing the submit button in the new actor modal
     // TODO Write a test for when pressing the submit button in the new character modal
 
     // Dropdown Tests
-    it('should render the Actor SelectList with correct placeholder', () => {
-        const { getByTestId } = render(<SnapshotGeneralInfo route={mockRoute} />);
-        const actorSelectDropdown = getByTestId('actor-select-dropdown');
-        expect(actorSelectDropdown.props['data-placeholder']).toBe('Actor Name');
-    });
-
     it('should render the Character SelectList with correct placeholder', () => {
         const { getByTestId } = render(<SnapshotGeneralInfo route={mockRoute} />);
         const characterSelectDropdown = getByTestId('character-select-dropdown');
         expect(characterSelectDropdown.props['data-placeholder']).toBe('Character');
-    });
-
-    it('should open the Add New Actor modal when "Add New Actor" is selected', async () => {
-        const { getByTestId, getByText } = render(<SnapshotGeneralInfo route={mockRoute} />);
-
-        fireEvent.press(getByTestId('actor-select-dropdown'));
-
-        await waitFor(() => {
-            fireEvent.press(getByTestId('actor-select-item-1'));
-        });
-
-        expect(getByText('Add New Actor:')).toBeTruthy();
     });
 
     it('should open the Add New Character modal when "Add New Character" is selected', async () => {
@@ -154,22 +135,6 @@ describe('SnapshotGeneralInfo', () => {
         });
 
         expect(getByText('Add New Character:')).toBeTruthy();
-    });
-
-    it('should open the Add New Actor modal when "Add New Actor" is selected and close it when "Cancel is pressed', async () => {
-        const { getByTestId, getByText, queryByText } = render(<SnapshotGeneralInfo route={mockRoute} />);
-
-        fireEvent.press(getByTestId('actor-select-dropdown'));
-
-        await waitFor(() => {
-            fireEvent.press(getByTestId('actor-select-item-1'));
-        });
-
-        expect(getByText('Add New Actor:')).toBeTruthy();
-
-        fireEvent.press(getByTestId('add-new-actor-cancel-button'));
-
-        expect(queryByText('Add New Actor:')).toBeNull();
     });
 
     it('should open the Add New Character modal when "Add New Character" is selected and close it when "Cancel is pressed', async () => {
@@ -188,6 +153,5 @@ describe('SnapshotGeneralInfo', () => {
         expect(queryByText('Add New Character:')).toBeNull();
     });
 
-    // TODO Add test for when actor is selected?
     // TODO Add test for when character is selected?
 });
