@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, Pressable, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 const Home = () => {
@@ -37,7 +36,7 @@ const Home = () => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             {showLoginForm ?
                 <>
                     <TextInput
@@ -118,7 +117,7 @@ const Home = () => {
                         </Pressable>
                     </>
             }
-        </SafeAreaView>
+        </View>
     );
 }
 
