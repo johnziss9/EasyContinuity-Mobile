@@ -116,7 +116,6 @@ describe('SnapshotGeneralInfo', () => {
     });
 
     // TODO Write a test for when pressing the submit button in the form
-    // TODO Write a test for when pressing the submit button in the new actor modal
     // TODO Write a test for when pressing the submit button in the new character modal
 
     // Dropdown Tests
