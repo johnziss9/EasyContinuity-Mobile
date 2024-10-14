@@ -89,6 +89,17 @@ const Space = () => {
             marginBottom: 10,
             color: '#3F4F5F'
         },
+        searchInput: {
+            marginBottom: 30,
+            borderBottomWidth: 1,
+            borderColor: '#3F4F5F',
+            width: width < 420 ? 300 : width > 600 ? 500 : 350,
+            paddingLeft: 5,
+            height: 50,
+            outlineStyle: 'none',
+            color: '#3F4F5F',
+            fontSize: 18
+        },
     };
 
     const handleEditFolder = (folder) => {
@@ -181,7 +192,7 @@ const Space = () => {
 
             <View style={styles.searchContainer}>
                 <TextInput
-                    style={styles.searchInput}
+                    style={dynamicStyles.searchInput}
                     placeholder="Search by name"
                     value={searchQuery}
                     onChangeText={setSearchQuery}
@@ -304,17 +315,6 @@ const styles = StyleSheet.create({
     },
     flatListContainer: {
         minWidth: '100%'
-    },
-    searchInput: {
-        marginBottom: 30,
-        borderBottomWidth: 1,
-        borderColor: '#3F4F5F',
-        width: 350,
-        paddingLeft: 5,
-        height: 50,
-        outlineStyle: 'none',
-        color: '#3F4F5F',
-        fontSize: 18
     },
     searchContainer: {
         flexDirection: 'row'
