@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, ScrollView, TextInput, Modal, View, TouchableOpacity, useWindowDimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 const SnapshotHairInfo = ({ route }) => {
@@ -21,15 +20,16 @@ const SnapshotHairInfo = ({ route }) => {
 
     const dynamicStyles = {
         container: {
-            paddingLeft: width > 600 ? 15 : 0,
+            paddingLeft: width > 600 ? 15 : 5,
             flex: 1,
-            backgroundColor: '#E2CFC8'
+            backgroundColor: '#E2CFC8',
+            paddingTop: 30
         }
     };
 
     return (
-        <SafeAreaView style={dynamicStyles.container}>
-            <ScrollView>
+        <View style={dynamicStyles.container}>
+            <ScrollView showsVerticalScrollIndicator={false}>
                 <Text style={styles.header}>{isNewSnapshot ? "Add Hair Details" : "Edit Hair Details"}</Text>
                 <Text style={styles.label} accessibilityLabel="Prep:">Prep:</Text>
                 <TextInput
@@ -95,7 +95,7 @@ const SnapshotHairInfo = ({ route }) => {
                     </TouchableOpacity>
                 </View>
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 }
 

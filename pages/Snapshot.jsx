@@ -7,7 +7,6 @@ import someImage3 from '../assets/dummy-image3.jpeg';
 import someImage4 from '../assets/dummy-image4.jpeg';
 import ImageGrid from '../components/ImageGrid';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import useFileBrowser from '../hooks/useFileBrowser';
 
 // TODO Using testImages prop in order to test the empty dummyImages array in the Snapshot tests - Needs to be removed
@@ -145,7 +144,7 @@ const Snapshot = ({ testImages = null }) => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
 
             {/* View Image Modal */}
             <Modal
@@ -175,7 +174,7 @@ const Snapshot = ({ testImages = null }) => {
                 </View>
             </Modal>
 
-            <ScrollView>
+            <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={styles.imageSection}>
                     <View style={styles.imageSectionHeader}>
                         <Text style={styles.sectionHeader}>Images</Text>
@@ -220,7 +219,7 @@ const Snapshot = ({ testImages = null }) => {
                     ["Hair Notes:", "Something"]
                 ], handleEditHairPress)}
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 };
 
@@ -228,7 +227,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#E2CFC8',
-        alignItems: 'center'
+        alignItems: 'center',
+        paddingTop: 30
     },
     imageSliderContainer: {
         alignItems: 'center',
