@@ -22,6 +22,7 @@
     "@expo/metro-runtime": "~3.2.3",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/native-stack": "^6.10.1",
+    "dotenv": "^16.4.5",
     "expo-document-picker": "^12.0.2",
     "expo-status-bar": "~1.12.1",
     "react": "18.3.1",

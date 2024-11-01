@@ -5,6 +5,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import useFileBrowser from '../hooks/useFileBrowser';
 import SnapshotCard from '../components/SnapshotCard';
 import FolderCard from '../components/FolderCard';
+import handleHttpRequest from '../api/api';
 import someImage from '../assets/dummy-image.jpg';
 import someImage2 from '../assets/dummy-image2.jpg';
 import someImage3 from '../assets/dummy-image3.jpeg';
@@ -73,6 +74,38 @@ const Space = () => {
 
     const handleClearSearchBar = (id) => {
         setSearchQuery('');
+    }
+
+    const handleCreateFolder = async () => {
+        try {
+            const url = '/folder/';
+            const method = 'POST';
+            const body = {
+                name: folderName
+                // TODO Include Space Id
+                // TODO Include Folder Id
+                // TODO Include AddedBy
+            };
+
+            const response = await handleHttpRequest(url, method, body);
+
+            if (response.success) {
+                setShowAddNewFolderModal(false);
+                // TODO Show success toast
+                // TODO Refresh data on screen
+            } else {
+                setShowAddNewFolderModal(false);
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+
+            setFolderName('');
+        } catch (error) {
+            console.error('Error Creating Folder:', error);
+            
+            // TODO Replace error with fail toast
+            throw error;
+        }
     }
 
     const dynamicStyles = {
@@ -182,7 +215,7 @@ const Space = () => {
                             <TouchableOpacity style={[styles.modalFolderButton, styles.modalButtonCancel]} testID='add-space-cancel-button' onPress={() => setShowAddNewFolderModal(false)}>
                                 <Text style={[styles.modalFolderButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalFolderButton, styles.modalButtonSave]} testID='add-space-submit-button' onPress={() => handleAddEditFolder(folderName)}>
+                            <TouchableOpacity style={[styles.modalFolderButton, styles.modalButtonSave]} testID='add-space-submit-button' onPress={handleCreateFolder}>
                                 <Text style={[styles.modalFolderButtonText, styles.modalButtonTextSave]}>Submit</Text>
                             </TouchableOpacity>
                         </View>
