@@ -4,6 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import SpaceCard from '../components/SpaceCard';
 import { SelectList } from 'react-native-dropdown-select-list'
 import { useNavigation } from '@react-navigation/native';
+import handleHttpRequest from '../api/api';
 
 const Dashboard = () => {
     const navigation = useNavigation();
@@ -26,6 +27,35 @@ const Dashboard = () => {
         setSpaceName('');
         setShowAddNewSpaceModal(false);
     };
+
+    const handleCreateSpace = async () => {
+        try {
+            const url = '/space/';
+            const method = 'POST';
+            const body = {
+                name: spaceName
+                // TODO Include AddedBy
+            };
+
+            const response = await handleHttpRequest(url, method, body);
+
+            if (response.success) {
+                // TODO Show success toast
+                // TODO Refresh data on screen
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+
+            setShowAddNewSpaceModal(false);
+            setSpaceName('');
+        } catch (error) {
+            console.error('Error Creating Space:', error);
+            
+            // TODO Replace error with fail toast
+            throw error;
+        }
+    }
 
     const dynamicStyles = {
         modalTextbox: {
@@ -96,7 +126,7 @@ const Dashboard = () => {
                             <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} testID='add-space-cancel-button' onPress={handleModalCancelPress}>
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonSave]} testID='add-space-submit-button' onPress={() => setShowAddNewSpaceModal(false)}>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonSave]} testID='add-space-submit-button' onPress={handleCreateSpace}>
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>Submit</Text>
                             </TouchableOpacity>
                         </View>
