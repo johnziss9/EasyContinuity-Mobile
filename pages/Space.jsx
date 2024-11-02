@@ -212,10 +212,10 @@ const Space = () => {
                             testID='folder-name-text-input'
                         />
                         <View style={styles.modalFolderButtonContainer}>
-                            <TouchableOpacity style={[styles.modalFolderButton, styles.modalButtonCancel]} testID='add-space-cancel-button' onPress={() => setShowAddNewFolderModal(false)}>
+                            <TouchableOpacity style={[styles.modalFolderButton, styles.modalButtonCancel]} testID='add-folder-cancel-button' onPress={() => setShowAddNewFolderModal(false)}>
                                 <Text style={[styles.modalFolderButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalFolderButton, styles.modalButtonSave]} testID='add-space-submit-button' onPress={handleCreateFolder}>
+                            <TouchableOpacity style={[styles.modalFolderButton, styles.modalButtonSave]} testID='add-folder-submit-button' onPress={handleCreateFolder}>
                                 <Text style={[styles.modalFolderButtonText, styles.modalButtonTextSave]}>Submit</Text>
                             </TouchableOpacity>
                         </View>
