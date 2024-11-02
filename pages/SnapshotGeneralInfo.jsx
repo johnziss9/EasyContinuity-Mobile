@@ -101,6 +101,8 @@ const SnapshotGeneralInfo = ({ route }) => {
                 const method = 'PUT';
                 const body = {
                     name: name,
+                    // TODO Include Space Id
+                    // TODO Include Folder Id
                     episode: episodeNumber,
                     scene: sceneNumber,
                     storyDay: storyDay,
