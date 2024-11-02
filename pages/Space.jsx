@@ -90,15 +90,14 @@ const Space = () => {
             const response = await handleHttpRequest(url, method, body);
 
             if (response.success) {
-                setShowAddNewFolderModal(false);
                 // TODO Show success toast
                 // TODO Refresh data on screen
             } else {
-                setShowAddNewFolderModal(false);
                 // TODO Replace error with fail toast
                 throw new Error(response.error);
             }
 
+            setShowAddNewFolderModal(false);
             setFolderName('');
         } catch (error) {
             console.error('Error Creating Folder:', error);

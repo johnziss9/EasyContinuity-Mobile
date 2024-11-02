@@ -40,15 +40,14 @@ const Dashboard = () => {
             const response = await handleHttpRequest(url, method, body);
 
             if (response.success) {
-                setShowAddNewSpaceModal(false);
                 // TODO Show success toast
                 // TODO Refresh data on screen
             } else {
-                setShowAddNewSpaceModal(false);
                 // TODO Replace error with fail toast
                 throw new Error(response.error);
             }
 
+            setShowAddNewSpaceModal(false);
             setSpaceName('');
         } catch (error) {
             console.error('Error Creating Space:', error);
