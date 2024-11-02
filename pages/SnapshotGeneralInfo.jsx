@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useParams } from 'react';
 import { StyleSheet, Text, ScrollView, TextInput, Modal, View, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { SelectList } from 'react-native-dropdown-select-list'
 import { useNavigation } from '@react-navigation/native';
+import handleHttpRequest from '../api/api';
 
 const SnapshotGeneralInfo = ({ route }) => {
+
+    const { id } = isNewSnapshot ? useParams() : { id: null };
 
     const navigation = useNavigation();
     const { width } = useWindowDimensions();
@@ -12,8 +15,8 @@ const SnapshotGeneralInfo = ({ route }) => {
 
     const [name, setName] = useState("");
     const [episodeNumber, setEpisodeNumber] = useState("");
-    const [sceneNumber, setSceneNumber] = useState("");
-    const [storyDay, setStoryDay] = useState("");
+    const [sceneNumber, setSceneNumber] = useState(null)
+    const [storyDay, setStoryDay] = useState(null);
     const [notes, setNotes] = useState("");
     const [selectedCharacter, setSelectedCharacter] = useState("");
     const [showAddCharacterModal, setShowAddCharacterModal] = useState(false);
@@ -25,6 +28,15 @@ const SnapshotGeneralInfo = ({ route }) => {
         { key: '3', value: 'Wonder Woman' },
         { key: '4', value: 'Rhaenyra' },
     ];
+
+    // useEffect(() => {
+    //     if (id) {
+    //         handleFetchCustomer();
+
+    //         setIsEdit(true);
+    //     }
+    //     // eslint-disable-next-line
+    // }, [id]);
 
     const handleSelectNewCharacter = (selectedKey, selectedValue) => {
         if (selectedKey === '1') {
@@ -48,6 +60,104 @@ const SnapshotGeneralInfo = ({ route }) => {
             paddingTop: 30
         }
     };
+
+    const handleCreateOrEditSnapshot = async () => {
+        if (isNewSnapshot)
+        {
+            try {
+                const url = '/snapshot/';
+                const method = 'POST';
+                const body = {
+                    name: name,
+                    // TODO Include Space Id
+                    // TODO Include Folder Id
+                    episode: episodeNumber,
+                    scene: sceneNumber,
+                    storyDay: storyDay,
+                    // TODO Include Character,
+                    notes: notes
+                    // TODO Include AddedBy
+                };
+    
+                const response = await handleHttpRequest(url, method, body);
+    
+                if (response.success) {
+                    // TODO Show success modal and navigate on okay
+                    navigation.navigate('Space'); // This to be used when okay is pressed on above modal
+                } else {
+                    // TODO Replace error with fail toast
+                    throw new Error(response.error);
+                }
+            } catch (error) {
+                console.error('Error Creating Snapshot:', error);
+                
+                // TODO Replace error with fail toast
+                throw error;
+            }
+        } 
+        else {
+            try {
+                const url = `/snapshot/${id}`;
+                const method = 'PUT';
+                const body = {
+                    name: name,
+                    // TODO Include Space Id
+                    // TODO Include Folder Id
+                    episode: episodeNumber,
+                    scene: sceneNumber,
+                    storyDay: storyDay,
+                    // TODO Include Character,
+                    notes: notes
+                    // TODO Include AddedBy
+                };
+    
+                const response = await handleHttpRequest(url, method, body);
+    
+                if (response.success) {
+                    // TODO Show success modal and navigate on okay
+                    navigation.navigate('Space'); // This to be used when okay is pressed on above modal
+                } else {
+                    // TODO Replace error with fail toast
+                    throw new Error(response.error);
+                }
+            } catch (error) {
+                console.error('Error Updating Snapshot:', error);
+                
+                // TODO Replace error with fail toast
+                throw error;
+            }
+        }
+    }
+
+    const handleCreateCharacter = async () => {
+        try {
+            const url = '/character/';
+            const method = 'POST';
+            const body = {
+                name: characterName,
+                // TODO Include Space Id
+                // TODO Include AddedBy
+            };
+
+            const response = await handleHttpRequest(url, method, body);
+
+            if (response.success) {
+                // TODO Show success toast
+                // TODO Make sure data is refreshed in dropdown
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+
+            setShowAddCharacterModal(false);
+            setCharacterName('');
+        } catch (error) {
+            console.error('Error Creating Character:', error);
+            
+            // TODO Replace error with fail toast
+            throw error;
+        }
+    }
 
     return (
         <View style={dynamicStyles.container}>
@@ -74,7 +184,7 @@ const SnapshotGeneralInfo = ({ route }) => {
                             <TouchableOpacity style={[styles.modalButton, styles.buttonCancel]} testID='add-new-character-cancel-button' onPress={() => setShowAddCharacterModal(false)}>
                                 <Text style={[styles.buttonText, styles.buttonTextCancel]}>Cancel</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalButton, styles.buttonSave]} testID='add-new-character-submit-button' onPress={() => setShowAddCharacterModal(false)}>
+                            <TouchableOpacity style={[styles.modalButton, styles.buttonSave]} testID='add-new-character-submit-button' onPress={handleCreateCharacter}>
                                 <Text style={[styles.buttonText, styles.buttonTextSave]}>Submit</Text>
                             </TouchableOpacity>
                         </View>
@@ -149,7 +259,7 @@ const SnapshotGeneralInfo = ({ route }) => {
                     <TouchableOpacity style={[styles.formButton, styles.buttonCancel]} onPress={handleCancelPress} testID='general-cancel-button'>
                         <Text style={[styles.buttonText, styles.buttonTextCancel]}>Cancel</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.formButton, styles.buttonSave]} testID='general-submit-button'>
+                    <TouchableOpacity style={[styles.formButton, styles.buttonSave]} onPress={handleCreateOrEditSnapshot} testID='general-submit-button'>
                         <Text style={[styles.buttonText, styles.buttonTextSave]}>Submit</Text>
                     </TouchableOpacity>
                 </View>
