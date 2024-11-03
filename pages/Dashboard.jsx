@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, useWindowDimensions } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SpaceCard from '../components/SpaceCard';
@@ -13,11 +13,16 @@ const Dashboard = () => {
     const [showAddNewSpaceModal, setShowAddNewSpaceModal] = useState(false);
     const [spaceName, setSpaceName] = React.useState('');
     const [spaceType, setSpaceType] = useState("");
+    const [spaces, setSpaces] = useState("");
 
     const spaceTypes = [
         { key: '1', value: 'Movie' },
         { key: '2', value: 'Series' }
     ];
+
+    useEffect(() =>{
+        handleGetAllSpaces();
+    }, []);
 
     const handleSpacePress = () => {
         navigation.navigate('Space');
@@ -49,15 +54,37 @@ const Dashboard = () => {
             if (response.success) {
                 // TODO Show success toast
                 // TODO Refresh data on screen
+                handleGetAllSpaces();
             } else {
                 // TODO Replace error with fail toast
                 throw new Error(response.error);
             }
-
-            setShowAddNewSpaceModal(false);
-            setSpaceName('');
         } catch (error) {
             console.error('Error Creating Space:', error);
+            
+            // TODO Replace error with fail toast
+            throw error;
+        } finally {
+            setShowAddNewSpaceModal(false);
+            setSpaceName('');
+        }
+    }
+
+    const handleGetAllSpaces = async () => {
+        try {
+            const url = '/space';
+            const method = 'GET';
+
+            const response = await handleHttpRequest(url, method);
+
+            if (response.success) {
+                setSpaces(response.data);
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Getting Spaces:', error);
             
             // TODO Replace error with fail toast
             throw error;
@@ -140,8 +167,13 @@ const Dashboard = () => {
                     </View>
                 </View>
             </Modal>
-            <SpaceCard spaceName={"House of the Dragons"} onPress={handleSpacePress} />
-            <SpaceCard spaceName={"Fast & Furious"} onPress={handleSpacePress} />
+            {Array.isArray(spaces) && spaces.length > 0 ? spaces.map((space) => (
+                <SpaceCard key={space.id} spaceName={space.name} onPress={handleSpacePress} />
+            )) : 
+            <View style={styles.noSpacesContainer}>
+                <Text style={styles.noSpacesTitle}>No Spaces Yet</Text>
+                <Text style={styles.noSpacesText}>Get started by pressing the + button below to create your first space.</Text>
+            </View>}
             <Pressable style={styles.addNewButton} testID='add-space-button' onPress={() => setShowAddNewSpaceModal(true)}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
             </Pressable>
@@ -160,6 +192,19 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 30,
         right: 30
+    },
+    noSpacesContainer: {
+        alignItems: 'center'
+    },
+    noSpacesTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        paddingVertical: 10
+    },
+    noSpacesText: {
+        fontSize: 18,
+        width: 300,
+        textAlign: 'center'
     },
     modalContainer: {
         flex: 1,
