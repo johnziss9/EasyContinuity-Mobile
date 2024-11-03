@@ -182,7 +182,7 @@ const SnapshotGeneralInfo = ({ route }) => {
                 throw new Error(response.error);
             }
         } catch (error) {
-            console.error('Error Creating Character:', error);
+            console.error('Error Getting Characters:', error);
             
             // TODO Replace error with fail toast
             throw error;
