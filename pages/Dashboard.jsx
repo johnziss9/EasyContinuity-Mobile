@@ -28,12 +28,19 @@ const Dashboard = () => {
         setShowAddNewSpaceModal(false);
     };
 
+    // Using this to grab the value of the selected item
+    const handleSpaceTypeSelect = (selectedKey) => {
+        const selectedType = spaceTypes.find(type => type.key === selectedKey);
+        setSpaceType(selectedType?.value || '');
+    };
+
     const handleCreateSpace = async () => {
         try {
             const url = '/space/';
             const method = 'POST';
             const body = {
-                name: spaceName
+                name: spaceName,
+                type: spaceType
                 // TODO Include AddedBy
             };
 
@@ -109,7 +116,7 @@ const Dashboard = () => {
                             testID='space-name-text-input'
                         />
                         <SelectList
-                            setSelected={setSpaceType}
+                            setSelected={handleSpaceTypeSelect}
                             data={spaceTypes}
                             placeholder="Type"
                             searchPlaceholder="Search..."
