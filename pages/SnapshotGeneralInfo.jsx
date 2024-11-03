@@ -18,16 +18,10 @@ const SnapshotGeneralInfo = ({ route }) => {
     const [sceneNumber, setSceneNumber] = useState(null)
     const [storyDay, setStoryDay] = useState(null);
     const [notes, setNotes] = useState("");
-    const [selectedCharacter, setSelectedCharacter] = useState("");
+    const [selectedCharacterId, setSelectedCharacterId] = useState(null);
     const [showAddCharacterModal, setShowAddCharacterModal] = useState(false);
     const [characterName, setCharacterName] = useState("");
-
-    const characters = [
-        { key: '1', value: 'Add New Character' },
-        { key: '2', value: 'Tony Soprano' },
-        { key: '3', value: 'Wonder Woman' },
-        { key: '4', value: 'Rhaenyra' },
-    ];
+    const [characters, setCharacters] = useState([]);
 
     // useEffect(() => {
     //     if (id) {
@@ -38,11 +32,15 @@ const SnapshotGeneralInfo = ({ route }) => {
     //     // eslint-disable-next-line
     // }, [id]);
 
+    useEffect(() =>{
+        handleGetAllCharacters();
+    }, []);
+
     const handleSelectNewCharacter = (selectedKey, selectedValue) => {
         if (selectedKey === '1') {
             setShowAddCharacterModal(true);
         } else {
-            setSelectedCharacter(selectedValue);
+            setSelectedCharacterId(selectedKey);
         }
 
         // TODO Add validation if user selected first value and then cancels the snapshot shouldn't save
@@ -74,7 +72,7 @@ const SnapshotGeneralInfo = ({ route }) => {
                     episode: episodeNumber,
                     scene: sceneNumber,
                     storyDay: storyDay,
-                    // TODO Include Character,
+                    character: selectedCharacterId,
                     notes: notes
                     // TODO Include AddedBy
                 };
@@ -106,7 +104,7 @@ const SnapshotGeneralInfo = ({ route }) => {
                     episode: episodeNumber,
                     scene: sceneNumber,
                     storyDay: storyDay,
-                    // TODO Include Character,
+                    character: selectedCharacterId,
                     notes: notes
                     // TODO Include AddedBy
                 };
@@ -135,6 +133,7 @@ const SnapshotGeneralInfo = ({ route }) => {
             const method = 'POST';
             const body = {
                 name: characterName,
+                spaceId: 1
                 // TODO Include Space Id
                 // TODO Include AddedBy
             };
@@ -144,13 +143,44 @@ const SnapshotGeneralInfo = ({ route }) => {
             if (response.success) {
                 // TODO Show success toast
                 // TODO Make sure data is refreshed in dropdown
+                await handleGetAllCharacters();
             } else {
                 // TODO Replace error with fail toast
                 throw new Error(response.error);
             }
-
+        } catch (error) {
+            console.error('Error Creating Character:', error);
+            
+            // TODO Replace error with fail toast
+            throw error;
+        } finally {
+            // These will run whether the request succeeded or failed
             setShowAddCharacterModal(false);
             setCharacterName('');
+        }    
+    }
+
+    const handleGetAllCharacters = async () => {
+        try {
+            // TODO Get space id and replace the hard coded one.
+            const url = '/character/space/1';
+            const method = 'GET';
+
+            const response = await handleHttpRequest(url, method);
+
+            if (response.success) {
+                const formattedCharacters = [
+                    { key: '1', value: 'Add New Character' },
+                    ...response.data.map(character => ({
+                        key: character.id,
+                        value: character.name
+                    }))
+                ];
+                setCharacters(formattedCharacters);
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
         } catch (error) {
             console.error('Error Creating Character:', error);
             
