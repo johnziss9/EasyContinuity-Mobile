@@ -14,8 +14,8 @@ jest.mock('../api/api', () => ({
     default: jest.fn(() => Promise.resolve({
         success: true,
         data: [
-            { id: 1, name: 'Goodfellas' },
-            { id: 2, name: 'The Last of Us' }
+            { id: 1, name: 'Folder-1', spaceId: 1 },
+            { id: 2, name: 'Folder-2', spaceId: 1 }
         ]
     }))
 }));
