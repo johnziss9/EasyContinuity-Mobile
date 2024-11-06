@@ -42,30 +42,6 @@ const Space = () => {
         setShowAddNewFolderModal(true);
     }
 
-    const handleAddEditFolder = (name) => {
-        if (folderEditing) {
-            setFolders((prevFolders) =>
-                prevFolders.map(folder =>
-                    folder.id === folderId ? { ...folder, name: name } : folder
-                )
-            );
-
-            setFolderEditing(false);
-            setShowAddNewFolderModal(false);
-        } else {
-            setShowAddNewFolderModal(false);
-            const newId = (folders.length + 1).toString();
-            const newFolder = {
-                id: newId,
-                name: name
-            };
-
-            setFolders((prevFolders) => [...prevFolders, newFolder]);
-        }
-
-        setFolderName('');
-    }
-
     const handleDeleteFolder = (id) => {
         setFolders(prevFolders =>
             prevFolders.filter(folder => folder.id !== id)
@@ -76,34 +52,45 @@ const Space = () => {
         setSearchQuery('');
     }
 
-    const handleCreateFolder = async () => {
-        try {
-            const url = '/folder/';
-            const method = 'POST';
-            const body = {
-                name: folderName
-                // TODO Include Space Id
-                // TODO Include Folder Id
-                // TODO Include AddedBy
-            };
+    const handleCreateOrEditFolder = async () => {
+        if (folderEditing) {
+            // setFolders((prevFolders) =>
+            //     prevFolders.map(folder =>
+            //         folder.id === folderId ? { ...folder, name: name } : folder
+            //     )
+            // );
 
-            const response = await handleHttpRequest(url, method, body);
+            // setFolderEditing(false);
+            // setShowAddNewFolderModal(false);
+        } else {
+            try {
+                const url = '/folder/';
+                const method = 'POST';
+                const body = {
+                    name: folderName
+                    // TODO Include Space Id
+                    // TODO Include Folder Id
+                    // TODO Include AddedBy
+                };
 
-            if (response.success) {
-                // TODO Show success toast
-                // TODO Refresh data on screen
-            } else {
+                const response = await handleHttpRequest(url, method, body);
+
+                if (response.success) {
+                    // TODO Show success toast
+                    // TODO Refresh data on screen
+                } else {
+                    // TODO Replace error with fail toast
+                    throw new Error(response.error);
+                }
+
+                setShowAddNewFolderModal(false);
+                setFolderName('');
+            } catch (error) {
+                console.error('Error Creating Folder:', error);
+                
                 // TODO Replace error with fail toast
-                throw new Error(response.error);
+                throw error;
             }
-
-            setShowAddNewFolderModal(false);
-            setFolderName('');
-        } catch (error) {
-            console.error('Error Creating Folder:', error);
-            
-            // TODO Replace error with fail toast
-            throw error;
         }
     }
 
@@ -214,7 +201,7 @@ const Space = () => {
                             <TouchableOpacity style={[styles.modalFolderButton, styles.modalButtonCancel]} testID='add-folder-cancel-button' onPress={() => setShowAddNewFolderModal(false)}>
                                 <Text style={[styles.modalFolderButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalFolderButton, styles.modalButtonSave]} testID='add-folder-submit-button' onPress={handleCreateFolder}>
+                            <TouchableOpacity style={[styles.modalFolderButton, styles.modalButtonSave]} testID='add-folder-submit-button' onPress={handleCreateOrEditFolder}>
                                 <Text style={[styles.modalFolderButtonText, styles.modalButtonTextSave]}>Submit</Text>
                             </TouchableOpacity>
                         </View>
