@@ -8,11 +8,22 @@ jest.mock('@react-navigation/native', () => ({
     NavigationContainer: ({ children }) => children
 }));
 
-afterEach(() => {
-    jest.clearAllMocks();
-});
+// Mock the API handling
+jest.mock('../api/api', () => ({
+    __esModule: true,
+    default: jest.fn(() => Promise.resolve({
+        success: true,
+        data: [
+            { id: 1, name: 'Goodfellas' },
+            { id: 2, name: 'The Last of Us' }
+        ]
+    }))
+}));
 
 describe('Space Component', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
 
     it('should render the component', () => {
         const { getByTestId, getByText } = render(
@@ -32,19 +43,44 @@ describe('Space Component', () => {
         expect(getByText('Add Item:')).toBeTruthy();
     });
 
-    // TODO This test should be modified when the add space button is pressed
-    // it('should open the add new item modal, select folder button and add new folder', async () => {
-    //     const { getByTestId, getByText, getByPlaceholderText } = render(<Space />);
+    it('should open the add new item modal, select folder button and add new folder', async () => {
+        const apiMock = require('../api/api').default;
+        
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: '1', name: 'Folder 1' },
+                    { id: '2', name: 'Folder 2' }
+                ]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: '3', name: 'New Folder' }
+            }));
+    
+        const { getByTestId, queryByText, getByText } = render(<Space />);
+    
+        fireEvent.press(getByTestId('add-item-button'));
+    
+        fireEvent.press(getByTestId('add-new-folder-button'));
+    
+        const nameInput = getByTestId('folder-name-text-input');
+        fireEvent.changeText(nameInput, 'New Folder');
+    
+        fireEvent.press(getByTestId('add-folder-submit-button'));
+    
+        await waitFor(() => {
+            expect(apiMock).toHaveBeenCalledWith('/folder/', 'POST', {
+                name: 'New Folder'
+            });
+    
+            expect(queryByText('Enter Folder Name:')).toBeNull();
+        });
+    });
 
-    //     fireEvent.press(getByTestId('add-item-button'));
-    //     fireEvent.press(getByTestId('add-new-folder-button'));
-    //     fireEvent.changeText(getByPlaceholderText('Folder Name'), 'Folder-1');
-    //     fireEvent.press(getByTestId('add-space-submit-button'));
-
-    //     await waitFor(() => {
-    //         expect(getByText('Folder-1')).toBeTruthy();
-    //     });
-    // });
+    // TODO Add test for api error 
+    // TODO Add test for network error
 
     it('should open the add new item modal, select folder and cancel', async () => {
         const { getByTestId, queryByText, getByPlaceholderText, queryByPlaceholderText } = render(<Space />);
@@ -62,7 +98,7 @@ describe('Space Component', () => {
         expect(queryByText('Folder-2')).toBeNull();
     });
 
-    // TODO This test should be modified when the add folder button is pressed
+    // TODO This test should be modified when the submit button is pressed from edit - Do this when the update call is set
     // it('should allow editing a folder name', async () => {
     //     const { getByText, getByTestId, getByPlaceholderText, getAllByTestId } = render(
     //         <NavigationContainer>
