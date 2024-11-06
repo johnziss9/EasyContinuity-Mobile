@@ -43,6 +43,7 @@ describe('Space Component', () => {
         expect(getByText('Add Item:')).toBeTruthy();
     });
 
+    // TODO Modify tests to fetch all folders after creation
     it('should open the add new item modal, select folder button and add new folder', async () => {
         const apiMock = require('../api/api').default;
         
