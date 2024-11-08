@@ -110,6 +110,7 @@ const Space = () => {
             ]);
 
             if (!foldersResponse.success || !snapshotsResponse.success) {
+                // TODO Handle error and show toaster
                 throw new Error(foldersResponse.error || snapshotsResponse.error);
             }
 
