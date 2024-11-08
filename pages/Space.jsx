@@ -272,7 +272,7 @@ const Space = () => {
                 <ActivityIndicator size="large" color="#3F4F5F" />
             ) : (
                 <>
-                    {Array.isArray(folders) && Array.isArray(snapshots) ? (
+                    {Array.isArray(folders) && Array.isArray(snapshots) && (folders.length > 0 || snapshots.length > 0) ? (
                         <>
                             {folders.length > 0 && folders.map((folder) => (
                                 <FolderCard
@@ -286,17 +286,11 @@ const Space = () => {
                                 <SnapshotCard
                                     key={snapshot.id}
                                     snapshotName={snapshot.name}
-                                // images={[someImage, someImage2, someImage3, someImage4, someImage, someImage]}
-                                // onPress={() => handleSnapshotPress(snapshot)}
+                                    // images={[someImage, someImage2, someImage3, someImage4, someImage, someImage]}
+                                    // onPress={() => handleSnapshotPress(snapshot)}
                                     onPress={handleSnapshotPress}
                                 />
                             ))}
-                            {folders.length === 0 && snapshots.length === 0 && (
-                                <View style={styles.noItemsContainer}>
-                                    <Text style={styles.noItemsTitle}>No Items Yet</Text>
-                                    <Text style={styles.noItemsText}>Get started by pressing the + button below to add your first item.</Text>
-                                </View>
-                            )}
                         </>
                     ) : (
                         <View style={styles.noItemsContainer}>
@@ -306,7 +300,7 @@ const Space = () => {
                     )}
                 </>
             )}
-            
+
             <Pressable style={styles.addNewButton} testID='add-item-button' onPress={() => setShowAddNewItemModal(true)}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
             </Pressable>
