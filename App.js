@@ -45,8 +45,8 @@ const App = () => {
           <Stack.Screen
             name="Space"
             component={Space}
-            options={{
-              title: 'Title of Space',
+            options={({ route }) => ({
+              title: route.params?.spaceName || null,
               headerBackVisible: Platform.OS === 'ios',
               headerBackTitleVisible: false,
               headerStyle: {
@@ -56,7 +56,7 @@ const App = () => {
               headerTitleStyle: {
                 color: '#E2CFC8'
               }
-            }} />
+            })} />
           <Stack.Screen
             name="Snapshot"
             component={Snapshot}
@@ -75,7 +75,7 @@ const App = () => {
           <Stack.Screen
             name="SnapshotGeneralInfo"
             component={SnapshotGeneralInfo}
-            options={{
+            options={({ route }) => ({
               title: 'General Information',
               headerBackVisible: Platform.OS === 'ios',
               headerBackTitleVisible: false,
@@ -86,7 +86,7 @@ const App = () => {
               headerTitleStyle: {
                 color: '#E2CFC8'
               }
-            }} />
+            })} />
           <Stack.Screen
             name="SnapshotMakeupInfo"
             component={SnapshotMakeupInfo}

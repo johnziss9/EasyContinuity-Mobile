@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useParams } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, ScrollView, TextInput, Modal, View, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { SelectList } from 'react-native-dropdown-select-list'
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import handleHttpRequest from '../api/api';
 
-const SnapshotGeneralInfo = ({ route }) => {
+const SnapshotGeneralInfo = () => {
 
-    const { id } = isNewSnapshot ? useParams() : { id: null };
+    // const { id } = isNewSnapshot ? useParams() : { id: null };
+    const route = useRoute();
+    const { id } = route.params;
 
     const navigation = useNavigation();
     const { width } = useWindowDimensions();
@@ -47,7 +49,7 @@ const SnapshotGeneralInfo = ({ route }) => {
     };
 
     const handleCancelPress = () => {
-        navigation.navigate(isNewSnapshot ? 'Space' : 'Snapshot');
+        navigation.navigate(isNewSnapshot ? 'Space' : 'Snapshot', { id: isNewSnapshot ? spaceId : snapshotId });
     };
 
     const dynamicStyles = {
@@ -67,7 +69,7 @@ const SnapshotGeneralInfo = ({ route }) => {
                 const method = 'POST';
                 const body = {
                     name: name,
-                    // TODO Include Space Id
+                    spaceId: id,
                     // TODO Include Folder Id
                     episode: episodeNumber,
                     scene: sceneNumber,
@@ -81,7 +83,7 @@ const SnapshotGeneralInfo = ({ route }) => {
     
                 if (response.success) {
                     // TODO Show success modal and navigate on okay
-                    navigation.navigate('Space'); // This to be used when okay is pressed on above modal
+                    navigation.navigate('Space' , { id: id });
                 } else {
                     // TODO Replace error with fail toast
                     throw new Error(response.error);
