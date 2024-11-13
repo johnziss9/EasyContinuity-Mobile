@@ -165,7 +165,7 @@ const SnapshotGeneralInfo = () => {
     const handleGetAllCharacters = async () => {
         try {
             // TODO Get space id and replace the hard coded one.
-            const url = '/character/space/1';
+            const url = `/character/space/${id}`;
             const method = 'GET';
 
             const response = await handleHttpRequest(url, method);
