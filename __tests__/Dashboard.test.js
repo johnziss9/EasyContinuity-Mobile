@@ -52,6 +52,7 @@ describe('Dashboard', () => {
 
     // TODO Add test for api error 
     // TODO Add test for network error
+    // TODO Add test for errro when creating a new space
 
     it('should render the component and have an "Add New" button', async () => {
         const { getByTestId } = render(
@@ -150,7 +151,6 @@ describe('Dashboard', () => {
         });
     });
 
-    // TODO Modify test to take user to the correct space when clicked.
     it('should navigate to the "Space" screen when a Space component is pressed', async () => {
         const mockNavigate = jest.fn();
         useNavigation.mockReturnValue({ navigate: mockNavigate });
@@ -163,28 +163,31 @@ describe('Dashboard', () => {
 
         await waitFor(() => {
             fireEvent.press(getByText('Goodfellas'));
-            expect(mockNavigate).toHaveBeenCalledWith('Space');
+            expect(mockNavigate).toHaveBeenCalledWith('Space', {
+                id: 1,
+                spaceName: 'Goodfellas'
+            });
         });
     });
 
     it('should fetch and display spaces data on component mount', async () => {
         const apiMock = require('../api/api').default;
-        
+
         const { getAllByTestId } = render(
             <NavigationContainer>
                 <Dashboard />
             </NavigationContainer>
         );
-    
+
         await waitFor(() => {
             // Verify API was called with correct parameters
             expect(apiMock).toHaveBeenCalledWith('/space', 'GET');
             expect(apiMock).toHaveBeenCalledTimes(1);
-            
+
             // Verify data was rendered
             const spaceCards = getAllByTestId('space-card-component');
             expect(spaceCards).toHaveLength(2);
-            
+
             // Verify correct data was passed to the API mock
             const mockResponse = apiMock.mock.results[0].value;
             expect(mockResponse).resolves.toEqual({
@@ -200,7 +203,7 @@ describe('Dashboard', () => {
     // TODO this needs to be modified to fetch folders by space id
     it('should successfully create a new space', async () => {
         const apiMock = require('../api/api').default;
-        
+
         apiMock
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
@@ -221,39 +224,92 @@ describe('Dashboard', () => {
                     { id: 3, name: 'Mr. Robot', type: 'Series' }
                 ]
             }));
-    
+
         const { getByTestId, getByText, queryByText } = render(
             <NavigationContainer>
                 <Dashboard />
             </NavigationContainer>
         );
-    
+
         await waitFor(() => {
             fireEvent.press(getByTestId('add-space-button'));
         });
-    
+
         await waitFor(() => {
             const nameInput = getByTestId('space-name-text-input');
             fireEvent.changeText(nameInput, 'Mr. Robot');
-            
+
             const typeDropdown = getByTestId('space-type-select-dropdown');
             fireEvent.press(typeDropdown);
             const movieOption = getByTestId('space-type-select-item-2');
             fireEvent.press(movieOption);
         });
-    
+
         // Submit form
         fireEvent.press(getByTestId('add-space-submit-button'));
-    
+
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith('/space/', 'POST', {
                 name: 'Mr. Robot',
                 type: 'Series'
             });
-    
+
             expect(apiMock).toHaveBeenCalledWith('/space', 'GET');
             expect(queryByText('Enter Space Name:')).toBeNull();
             expect(getByText('Mr. Robot')).toBeTruthy();
+        });
+    });
+
+    it('should clear form inputs when modal is cancelled', async () => {
+        const { getByTestId, queryByTestId } = render(
+            <NavigationContainer>
+                <Dashboard />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            fireEvent.press(getByTestId('add-space-button'));
+        });
+
+        const nameInput = getByTestId('space-name-text-input');
+        fireEvent.changeText(nameInput, 'Test Space');
+
+        fireEvent.press(getByTestId('add-space-cancel-button'));
+
+        fireEvent.press(getByTestId('add-space-button'));
+        const newNameInput = getByTestId('space-name-text-input');
+        expect(newNameInput.props.value).toBe('');
+    });
+
+
+    it('should correctly select space type from dropdown', async () => {
+        const { getByTestId } = render(
+            <NavigationContainer>
+                <Dashboard />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            fireEvent.press(getByTestId('add-space-button'));
+        });
+
+        const typeDropdown = getByTestId('space-type-select-dropdown');
+        fireEvent.press(typeDropdown);
+
+        const movieOption = getByTestId('space-type-select-item-1');
+        fireEvent.press(movieOption);
+
+        const nameInput = getByTestId('space-name-text-input');
+        fireEvent.changeText(nameInput, 'Test Movie');
+
+        fireEvent.press(getByTestId('add-space-submit-button'));
+
+        await waitFor(() => {
+            const apiMock = require('../api/api').default;
+            expect(apiMock).toHaveBeenCalledWith('/space/', 'POST', {
+                name: 'Test Movie',
+                type: 'Movie'
+            });
         });
     });
 })
