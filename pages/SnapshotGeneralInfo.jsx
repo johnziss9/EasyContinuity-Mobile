@@ -135,7 +135,7 @@ const SnapshotGeneralInfo = () => {
             const method = 'POST';
             const body = {
                 name: characterName,
-                spaceId: 1
+                spaceId: id
                 // TODO Include Space Id
                 // TODO Include AddedBy
             };
