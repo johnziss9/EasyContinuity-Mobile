@@ -49,8 +49,7 @@ const SnapshotGeneralInfo = () => {
     };
 
     const handleCancelPress = () => {
-        // TODO Check if line below is working when the snapshot id comes in.
-        navigation.navigate(isNewSnapshot ? 'Space' : 'Snapshot', { id: isNewSnapshot ? spaceId : snapshotId });
+        navigation.navigate(isNewSnapshot ? 'Space' : 'Snapshot', { id: id });
     };
 
     const dynamicStyles = {

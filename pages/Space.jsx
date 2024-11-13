@@ -59,6 +59,11 @@ const Space = () => {
         setSearchQuery('');
     }
 
+    const handleCancelAddFolder = () => {
+        setShowAddNewFolderModal(false);
+        setFolderName('');
+    }
+
     const handleCreateOrEditFolder = async () => {
         if (folderEditing) {
             // setFolders((prevFolders) =>
@@ -229,7 +234,7 @@ const Space = () => {
                             testID='folder-name-text-input'
                         />
                         <View style={styles.modalFolderButtonContainer}>
-                            <TouchableOpacity style={[styles.modalFolderButton, styles.modalButtonCancel]} testID='add-folder-cancel-button' onPress={() => setShowAddNewFolderModal(false)}>
+                            <TouchableOpacity style={[styles.modalFolderButton, styles.modalButtonCancel]} testID='add-folder-cancel-button' onPress={handleCancelAddFolder}>
                                 <Text style={[styles.modalFolderButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={[styles.modalFolderButton, styles.modalButtonSave]} testID='add-folder-submit-button' onPress={handleCreateOrEditFolder}>
@@ -269,7 +274,7 @@ const Space = () => {
                 contentContainerStyle={styles.flatListContainer}
             /> */}
             {isLoading ? (
-                <ActivityIndicator size="large" color="#3F4F5F" />
+                <ActivityIndicator size="large" color="#3F4F5F" testID='activity-indicator' />
             ) : (
                 <>
                     {Array.isArray(folders) && Array.isArray(snapshots) && (folders.length > 0 || snapshots.length > 0) ? (
