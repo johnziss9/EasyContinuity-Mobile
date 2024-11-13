@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, useWindowDimensions } from 'react-native';
+import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, useWindowDimensions, ActivityIndicator } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SpaceCard from '../components/SpaceCard';
 import { SelectList } from 'react-native-dropdown-select-list'
@@ -11,25 +11,29 @@ const Dashboard = () => {
     const { width } = useWindowDimensions();
 
     const [showAddNewSpaceModal, setShowAddNewSpaceModal] = useState(false);
-    const [spaceName, setSpaceName] = React.useState('');
+    const [spaceNameField, setSpaceNameField] = React.useState('');
     const [spaceType, setSpaceType] = useState("");
-    const [spaces, setSpaces] = useState("");
+    const [spaces, setSpaces] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     const spaceTypes = [
         { key: '1', value: 'Movie' },
         { key: '2', value: 'Series' }
     ];
 
-    useEffect(() =>{
+    useEffect(() => {
         handleGetAllSpaces();
     }, []);
 
-    const handleSpacePress = () => {
-        navigation.navigate('Space');
+    const handleSpacePress = (spaceId, spaceName) => {
+        navigation.navigate('Space', {
+            id: spaceId,
+            spaceName: spaceName
+        });
     };
 
     const handleModalCancelPress = () => {
-        setSpaceName('');
+        setSpaceNameField('');
         setShowAddNewSpaceModal(false);
     };
 
@@ -44,7 +48,7 @@ const Dashboard = () => {
             const url = '/space/';
             const method = 'POST';
             const body = {
-                name: spaceName,
+                name: spaceNameField,
                 type: spaceType
                 // TODO Include AddedBy
             };
@@ -61,17 +65,19 @@ const Dashboard = () => {
             }
         } catch (error) {
             console.error('Error Creating Space:', error);
-            
+
             // TODO Replace error with fail toast
             throw error;
         } finally {
             setShowAddNewSpaceModal(false);
-            setSpaceName('');
+            setSpaceNameField('');
         }
     }
 
     const handleGetAllSpaces = async () => {
         try {
+            setIsLoading(true);
+
             const url = '/space';
             const method = 'GET';
 
@@ -85,9 +91,11 @@ const Dashboard = () => {
             }
         } catch (error) {
             console.error('Error Getting Spaces:', error);
-            
+
             // TODO Replace error with fail toast
             throw error;
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -136,8 +144,8 @@ const Dashboard = () => {
                         <Text style={styles.modalText} accessibilityLabel="Enter Space Name:">Enter Space Name:</Text>
                         <TextInput
                             style={dynamicStyles.modalTextbox}
-                            onChangeText={setSpaceName}
-                            value={spaceName}
+                            onChangeText={setSpaceNameField}
+                            value={spaceNameField}
                             placeholder='Space Name'
                             cursorColor={'#3F4F5F'}
                             testID='space-name-text-input'
@@ -167,13 +175,20 @@ const Dashboard = () => {
                     </View>
                 </View>
             </Modal>
-            {Array.isArray(spaces) && spaces.length > 0 ? spaces.map((space) => (
-                <SpaceCard key={space.id} spaceName={space.name} onPress={handleSpacePress} />
-            )) : 
-            <View style={styles.noSpacesContainer}>
-                <Text style={styles.noSpacesTitle}>No Spaces Yet</Text>
-                <Text style={styles.noSpacesText}>Get started by pressing the + button below to create your first space.</Text>
-            </View>}
+            {isLoading ? (
+                <ActivityIndicator size="large" color="#3F4F5F" />
+            ) : (
+                <>
+                    {Array.isArray(spaces) && spaces.length > 0 ? spaces.map((space) => (
+                        <SpaceCard key={space.id} spaceName={space.name} onPress={() => handleSpacePress(space.id, space.name)} />
+                    )) :
+                        <View style={styles.noSpacesContainer}>
+                            <Text style={styles.noSpacesTitle}>No Spaces Yet</Text>
+                            <Text style={styles.noSpacesText}>Get started by pressing the + button below to create your first space.</Text>
+                        </View>
+                    }
+                </>
+            )}
             <Pressable style={styles.addNewButton} testID='add-space-button' onPress={() => setShowAddNewSpaceModal(true)}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
             </Pressable>
@@ -259,7 +274,6 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: '#3F4F5F'
     },
-    
     dropdownListItem: {
         marginBottom: 5
     },

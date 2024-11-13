@@ -1,32 +1,36 @@
 import React, { useState } from 'react';
-import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, FlatList, TextInput, useWindowDimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, useWindowDimensions, ActivityIndicator } from 'react-native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useFileBrowser from '../hooks/useFileBrowser';
 import SnapshotCard from '../components/SnapshotCard';
 import FolderCard from '../components/FolderCard';
 import handleHttpRequest from '../api/api';
-import someImage from '../assets/dummy-image.jpg';
-import someImage2 from '../assets/dummy-image2.jpg';
-import someImage3 from '../assets/dummy-image3.jpeg';
-import someImage4 from '../assets/dummy-image4.jpeg';
 
 const Space = () => {
     const navigation = useNavigation();
-    const { filesInfo, browseFiles } = useFileBrowser();
+    // const { filesInfo, browseFiles } = useFileBrowser();
     const { width } = useWindowDimensions();
+    const route = useRoute();
+    const { id } = route.params;
 
     const [showAddNewItemModal, setShowAddNewItemModal] = useState(false);
     const [showAddNewFolderModal, setShowAddNewFolderModal] = useState(false);
 
-    const [folderId, setFolderId] = useState(false);
     const [folderName, setFolderName] = useState(false);
     const [folderEditing, setFolderEditing] = useState(false);
-    const [folders, setFolders] = useState([
-        { id: '1', name: 'Folder 1' },
-        { id: '2', name: 'Folder 2' },
-    ]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [folders, setFolders] = useState([]);
+    const [snapshots, setSnapshots] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            if (id) {
+                handleFetchSpaceItems();
+            }
+        }, [id])
+    );
 
     const handleSnapshotPress = () => {
         navigation.navigate('Snapshot');
@@ -34,7 +38,10 @@ const Space = () => {
 
     const handleAddSnapshotPress = () => {
         setShowAddNewItemModal(false);
-        navigation.navigate('SnapshotGeneralInfo', { isNewSnapshot: true });
+        navigation.navigate('SnapshotGeneralInfo', {
+            isNewSnapshot: true,
+            id: id
+        });
     };
 
     const handleAddFolderPress = () => {
@@ -42,14 +49,19 @@ const Space = () => {
         setShowAddNewFolderModal(true);
     }
 
-    const handleDeleteFolder = (id) => {
-        setFolders(prevFolders =>
-            prevFolders.filter(folder => folder.id !== id)
-        );
+    // const handleDeleteFolder = (id) => {
+    //     setFolders(prevFolders =>
+    //         prevFolders.filter(folder => folder.id !== id)
+    //     );
+    // }
+
+    const handleClearSearchBar = () => {
+        setSearchQuery('');
     }
 
-    const handleClearSearchBar = (id) => {
-        setSearchQuery('');
+    const handleCancelAddFolder = () => {
+        setShowAddNewFolderModal(false);
+        setFolderName('');
     }
 
     const handleCreateOrEditFolder = async () => {
@@ -67,9 +79,8 @@ const Space = () => {
                 const url = '/folder/';
                 const method = 'POST';
                 const body = {
-                    name: folderName
-                    // TODO Include Space Id
-                    // TODO Include Folder Id
+                    name: folderName,
+                    spaceId: id
                     // TODO Include AddedBy
                 };
 
@@ -77,7 +88,7 @@ const Space = () => {
 
                 if (response.success) {
                     // TODO Show success toast
-                    // TODO Refresh data on screen
+                    handleFetchSpaceItems();
                 } else {
                     // TODO Replace error with fail toast
                     throw new Error(response.error);
@@ -87,12 +98,37 @@ const Space = () => {
                 setFolderName('');
             } catch (error) {
                 console.error('Error Creating Folder:', error);
-                
+
                 // TODO Replace error with fail toast
                 throw error;
             }
         }
     }
+
+    const handleFetchSpaceItems = async () => {
+        try {
+            setIsLoading(true);
+
+            const [foldersResponse, snapshotsResponse] = await Promise.all([
+                handleHttpRequest(`/folder/space/${id}`, 'GET'),
+                handleHttpRequest(`/snapshot/space/${id}`, 'GET')
+            ]);
+
+            if (!foldersResponse.success || !snapshotsResponse.success) {
+                // TODO Handle error and show toaster
+                throw new Error(foldersResponse.error || snapshotsResponse.error);
+            }
+
+            setFolders(foldersResponse.data);
+            setSnapshots(snapshotsResponse.data);
+        } catch (error) {
+            console.error('Error fetching items:', error);
+            // TODO Replace with fail toast
+            throw error;
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const dynamicStyles = {
         modalTextbox: {
@@ -121,37 +157,37 @@ const Space = () => {
         },
     };
 
-    const handleEditFolder = (folder) => {
-        setShowAddNewFolderModal(true); // Hide Add New Modal
-        setFolderName(folder.name); // Update the textbox with the current folder name
-        setFolderEditing(true); // Set this to true to the app knows the user is editing
-        setFolderId(folder.id) // Update the hook with the current folder id
-    };
+    // const handleEditFolder = (folder) => {
+    //     setShowAddNewFolderModal(true); // Hide Add New Modal
+    //     setFolderName(folder.name); // Update the textbox with the current folder name
+    //     setFolderEditing(true); // Set this to true to the app knows the user is editing
+    //     setFolderId(folder.id) // Update the hook with the current folder id
+    // };
 
-    const renderFileItem = ({ item }) => { // item here returns an object from the array
-        const { name } = item; // name is extracted from item
-        const isFolder = Array.isArray(folders) && folders.some((folder) => folder.id === item.id);
+    // const renderFileItem = ({ item }) => { // item here returns an object from the array
+    //     const { name } = item; // name is extracted from item
+    //     const isFolder = Array.isArray(folders) && folders.some((folder) => folder.id === item.id);
 
-        const shouldRender = searchQuery.trim() === '' || name.toLowerCase().includes(searchQuery.toLowerCase());
+    //     const shouldRender = searchQuery.trim() === '' || name.toLowerCase().includes(searchQuery.toLowerCase());
 
-        if (!shouldRender) {
-            return null;
-        }
+    //     if (!shouldRender) {
+    //         return null;
+    //     }
 
-        return (
-            <View>
-                {isFolder ? (
-                    <FolderCard
-                        folderName={name}
-                        onEditPress={() => handleEditFolder({ id: item.id, name })}
-                        onDeletePress={() => handleDeleteFolder(item.id)}
-                    />
-                ) : (
-                    <SnapshotCard snapshotName={name} images={[someImage, someImage2, someImage3, someImage4, someImage, someImage]} onPress={handleSnapshotPress} />
-                )}
-            </View>
-        );
-    };
+    //     return (
+    //         <View>
+    //             {isFolder ? (
+    //                 <FolderCard
+    //                     folderName={name}
+    //                     onEditPress={() => handleEditFolder({ id: item.id, name })}
+    //                     onDeletePress={() => handleDeleteFolder(item.id)}
+    //                 />
+    //             ) : (
+    //                 <SnapshotCard snapshotName={name} images={[someImage, someImage2, someImage3, someImage4, someImage, someImage]} onPress={handleSnapshotPress} />
+    //             )}
+    //         </View>
+    //     );
+    // };
 
     return (
         <View style={styles.container}>
@@ -198,7 +234,7 @@ const Space = () => {
                             testID='folder-name-text-input'
                         />
                         <View style={styles.modalFolderButtonContainer}>
-                            <TouchableOpacity style={[styles.modalFolderButton, styles.modalButtonCancel]} testID='add-folder-cancel-button' onPress={() => setShowAddNewFolderModal(false)}>
+                            <TouchableOpacity style={[styles.modalFolderButton, styles.modalButtonCancel]} testID='add-folder-cancel-button' onPress={handleCancelAddFolder}>
                                 <Text style={[styles.modalFolderButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={[styles.modalFolderButton, styles.modalButtonSave]} testID='add-folder-submit-button' onPress={handleCreateOrEditFolder}>
@@ -218,16 +254,16 @@ const Space = () => {
                     testID="search-input"
                     selectionColor="#3F4F5F"
                 />
-                {searchQuery !== '' ? 
+                {searchQuery !== '' ?
                     <Pressable style={styles.searchBarIcon} testID='clear-search-button' onPress={handleClearSearchBar}>
                         <Ionicons name="close" size={20} color="#3F4F5F" />
                     </Pressable> :
-                    <Ionicons name="search-outline" size={20} color="#3F4F5F" style={styles.searchBarIcon} /> 
+                    <Ionicons name="search-outline" size={20} color="#3F4F5F" style={styles.searchBarIcon} />
                 }
 
             </View>
 
-            <FlatList
+            {/* <FlatList
                 data={[
                     ...(Array.isArray(folders) ? folders : []),
                     { name: 'Rhaenyra', id: 'snapshot-1' },
@@ -236,7 +272,39 @@ const Space = () => {
                 keyExtractor={(item) => item.id}
                 ListEmptyComponent={<Text>No items found</Text>}
                 contentContainerStyle={styles.flatListContainer}
-            />
+            /> */}
+            {isLoading ? (
+                <ActivityIndicator size="large" color="#3F4F5F" testID='activity-indicator' />
+            ) : (
+                <>
+                    {Array.isArray(folders) && Array.isArray(snapshots) && (folders.length > 0 || snapshots.length > 0) ? (
+                        <>
+                            {folders.length > 0 && folders.map((folder) => (
+                                <FolderCard
+                                    key={folder.id}
+                                    folderName={folder.name}
+                                // onEditPress={() => handleEditFolder({ id: folder.id, name: folder.name })}
+                                // onDeletePress={() => handleDeleteFolder(folder.id)}
+                                />
+                            ))}
+                            {snapshots.length > 0 && snapshots.map((snapshot) => (
+                                <SnapshotCard
+                                    key={snapshot.id}
+                                    snapshotName={snapshot.name}
+                                    // images={[someImage, someImage2, someImage3, someImage4, someImage, someImage]}
+                                    // onPress={() => handleSnapshotPress(snapshot)}
+                                    onPress={handleSnapshotPress}
+                                />
+                            ))}
+                        </>
+                    ) : (
+                        <View style={styles.noItemsContainer}>
+                            <Text style={styles.noItemsTitle}>No Items Yet</Text>
+                            <Text style={styles.noItemsText}>Get started by pressing the + button below to add your first item.</Text>
+                        </View>
+                    )}
+                </>
+            )}
 
             <Pressable style={styles.addNewButton} testID='add-item-button' onPress={() => setShowAddNewItemModal(true)}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
@@ -256,6 +324,19 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 30,
         right: 30
+    },
+    noItemsContainer: {
+        alignItems: 'center'
+    },
+    noItemsTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        paddingVertical: 10
+    },
+    noItemsText: {
+        fontSize: 18,
+        width: 300,
+        textAlign: 'center'
     },
     modalContainer: {
         flex: 1,
