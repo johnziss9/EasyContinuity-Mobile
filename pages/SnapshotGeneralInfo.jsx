@@ -6,14 +6,11 @@ import handleHttpRequest from '../api/api';
 
 const SnapshotGeneralInfo = () => {
 
-    // const { id } = isNewSnapshot ? useParams() : { id: null };
     const route = useRoute();
-    const { id } = route.params;
+    const { isNewSnapshot, spaceId, spaceName, folderId, folderName } = route.params;
 
     const navigation = useNavigation();
     const { width } = useWindowDimensions();
-
-    const { isNewSnapshot } = route.params; // Passing this to SnapshotGeneralInfo to show the right title
 
     const [name, setName] = useState("");
     const [episodeNumber, setEpisodeNumber] = useState("");
@@ -49,7 +46,15 @@ const SnapshotGeneralInfo = () => {
     };
 
     const handleCancelPress = () => {
-        navigation.navigate(isNewSnapshot ? 'Space' : 'Snapshot', { id: id });
+        if (isNewSnapshot && !folderId) {
+            navigation.navigate('Space', { spaceId: spaceId, spaceName: spaceName });
+          } else if (isNewSnapshot) {
+            // If it's a new snapshot and we have a folderId, go back to the folder view
+            navigation.navigate('Folder', { spaceId: spaceId, spaceName: spaceName, folderId: folderId, folderName: folderName });
+          } else {
+            // TODO: Once snapshot editing is implemented, this should navigate back to the specific snapshot using snapshotId
+            navigation.navigate('Snapshot', { id }); // TODO This will need to be updated to snapshotId when implemented
+          }
     };
 
     const dynamicStyles = {
@@ -69,8 +74,8 @@ const SnapshotGeneralInfo = () => {
                 const method = 'POST';
                 const body = {
                     name: name,
-                    spaceId: id,
-                    // TODO Include Folder Id
+                    spaceId: spaceId,
+                    folderId: folderId,
                     episode: episodeNumber,
                     scene: sceneNumber,
                     storyDay: storyDay,
@@ -83,7 +88,16 @@ const SnapshotGeneralInfo = () => {
     
                 if (response.success) {
                     // TODO Show success modal and navigate on okay
-                    navigation.navigate('Space' , { id: id });
+
+                    if (isNewSnapshot && !folderId) {
+                        navigation.navigate('Space', { spaceId: spaceId, spaceName: spaceName });
+                      } else if (isNewSnapshot) {
+                        // If it's a new snapshot and we have a folderId, go back to the folder view
+                        navigation.navigate('Folder', { spaceId: spaceId, spaceName: spaceName, folderId: folderId, folderName: folderName });
+                      } else {
+                        // TODO: Once snapshot editing is implemented, this should navigate back to the specific snapshot using snapshotId
+                        navigation.navigate('Snapshot', { id }); // TODO This will need to be updated to snapshotId when implemented
+                      }
                 } else {
                     // TODO Replace error with fail toast
                     throw new Error(response.error);
@@ -96,36 +110,36 @@ const SnapshotGeneralInfo = () => {
             }
         } 
         else {
-            try {
-                const url = `/snapshot/${id}`;
-                const method = 'PUT';
-                const body = {
-                    name: name,
-                    // TODO Include Space Id
-                    // TODO Include Folder Id
-                    episode: episodeNumber,
-                    scene: sceneNumber,
-                    storyDay: storyDay,
-                    character: selectedCharacterId,
-                    notes: notes
-                    // TODO Include AddedBy
-                };
+            // try {
+            //     const url = `/snapshot/${id}`;
+            //     const method = 'PUT';
+            //     const body = {
+            //         name: name,
+            //         // TODO Include Space Id
+            //         // TODO Include Folder Id
+            //         episode: episodeNumber,
+            //         scene: sceneNumber,
+            //         storyDay: storyDay,
+            //         character: selectedCharacterId,
+            //         notes: notes
+            //         // TODO Include AddedBy
+            //     };
     
-                const response = await handleHttpRequest(url, method, body);
+            //     const response = await handleHttpRequest(url, method, body);
     
-                if (response.success) {
-                    // TODO Show success modal and navigate on okay
-                    navigation.navigate('Space'); // This to be used when okay is pressed on above modal
-                } else {
-                    // TODO Replace error with fail toast
-                    throw new Error(response.error);
-                }
-            } catch (error) {
-                console.error('Error Updating Snapshot:', error);
+            //     if (response.success) {
+            //         // TODO Show success modal and navigate on okay
+            //         navigation.navigate('Space'); // This to be used when okay is pressed on above modal
+            //     } else {
+            //         // TODO Replace error with fail toast
+            //         throw new Error(response.error);
+            //     }
+            // } catch (error) {
+            //     console.error('Error Updating Snapshot:', error);
                 
-                // TODO Replace error with fail toast
-                throw error;
-            }
+            //     // TODO Replace error with fail toast
+            //     throw error;
+            // }
         }
     }
 
@@ -135,8 +149,7 @@ const SnapshotGeneralInfo = () => {
             const method = 'POST';
             const body = {
                 name: characterName,
-                spaceId: id
-                // TODO Include Space Id
+                spaceId: spaceId
                 // TODO Include AddedBy
             };
 
@@ -164,8 +177,7 @@ const SnapshotGeneralInfo = () => {
 
     const handleGetAllCharacters = async () => {
         try {
-            // TODO Get space id and replace the hard coded one.
-            const url = `/character/space/${id}`;
+            const url = `/character/space/${spaceId}`;
             const method = 'GET';
 
             const response = await handleHttpRequest(url, method);

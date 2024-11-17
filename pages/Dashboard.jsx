@@ -27,8 +27,8 @@ const Dashboard = () => {
 
     const handleSpacePress = (spaceId, spaceName) => {
         navigation.navigate('Space', {
-            id: spaceId,
-            spaceName: spaceName
+            spaceId,
+            spaceName
         });
     };
 
