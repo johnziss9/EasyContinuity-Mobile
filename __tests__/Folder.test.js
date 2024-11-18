@@ -286,7 +286,7 @@ describe('Folder Component', () => {
         });
     });
 
-    it('should navigate to SnapshotGeneralInfo when add snapshot is pressed', async () => {
+    it('should open the add new item modal, select Snapshot and navigate to SnapshotGeneralInfo', async () => {
         const { getByTestId } = render(
             <NavigationContainer>
                 <Folder />
