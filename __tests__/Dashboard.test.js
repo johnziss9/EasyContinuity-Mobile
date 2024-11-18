@@ -164,7 +164,7 @@ describe('Dashboard', () => {
         await waitFor(() => {
             fireEvent.press(getByText('Goodfellas'));
             expect(mockNavigate).toHaveBeenCalledWith('Space', {
-                id: 1,
+                spaceId: 1,
                 spaceName: 'Goodfellas'
             });
         });
