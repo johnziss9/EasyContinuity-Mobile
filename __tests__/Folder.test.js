@@ -3,11 +3,6 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import Folder from '../pages/Folder';
 import { NavigationContainer } from '@react-navigation/native';
 
-jest.mock('../api/api', () => ({
-    __esModule: true,
-    default: jest.fn(() => Promise.resolve({ success: true, data: [] }))
-}));
-
 const mockNavigate = jest.fn();
 const apiMock = require('../api/api').default;
 
@@ -195,7 +190,6 @@ describe('Folder Component', () => {
     });
 
     it('should show no items message when folder is empty', async () => {
-        const apiMock = require('../api/api').default;
         apiMock
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
@@ -233,7 +227,6 @@ describe('Folder Component', () => {
     });
 
     it('should open the add new item modal, select folder button and add new folder', async () => {
-        const apiMock = require('../api/api').default;
         apiMock
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
