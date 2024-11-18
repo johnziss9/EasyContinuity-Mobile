@@ -16,7 +16,7 @@ jest.mock('@react-navigation/native', () => {
         }),
         useRoute: () => ({
             params: {
-                id: 1,
+                spaceId: 1,
                 isNewSnapshot: true,
                 spaceName: 'Test Space'
             }
@@ -128,10 +128,14 @@ describe('SnapshotGeneralInfo', () => {
                 <SnapshotGeneralInfo />
             </NavigationContainer>
         );
-
+    
         await waitFor(() => {
             fireEvent.press(getByTestId('general-cancel-button'));
-            expect(mockNavigate).toHaveBeenCalledWith('Space', { id: 1 });
+            expect(mockNavigate).toHaveBeenCalledWith('Space', { 
+                spaceId: 1,
+                folderId: undefined,
+                spaceName: 'Test Space'
+            });
         });
     });
 
@@ -268,7 +272,7 @@ describe('SnapshotGeneralInfo', () => {
                 character: 2,  // Changed from "2" to 2
                 notes: 'Test notes'
             });
-            expect(mockNavigate).toHaveBeenCalledWith('Space', { id: 1 });
+            expect(mockNavigate).toHaveBeenCalledWith('Space', { spaceId: 1, folderId: undefined, spaceName: 'Test Space' });
         });
     });
 

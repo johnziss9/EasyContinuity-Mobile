@@ -16,7 +16,7 @@ jest.mock('@react-navigation/native', () => {
         }),
         useRoute: () => ({
             params: {
-                id: 1,
+                spaceId: 1,
                 spaceName: 'Test Space'
             }
         }),
@@ -30,15 +30,15 @@ jest.mock('../api/api', () => ({
         .mockImplementationOnce(() => Promise.resolve({
             success: true,
             data: [
-                { id: 1, name: 'Folder-1', spaceId: 1 },
-                { id: 2, name: 'Folder-2', spaceId: 1 }
+                { id: 1, name: 'Folder-1', spaceId: 1, parentId: null },
+                { id: 2, name: 'Folder-2', spaceId: 1, parentId: null }
             ]
         }))
         .mockImplementationOnce(() => Promise.resolve({
             success: true,
             data: [
-                { id: 3, name: 'Snapshot-1', spaceId: 1 },
-                { id: 4, name: 'Snapshot-2', spaceId: 1 }
+                { id: 3, name: 'Snapshot-1', spaceId: 1, folderId: null },
+                { id: 4, name: 'Snapshot-2', spaceId: 1, folderId: null }
             ]
         }))
 }));
@@ -80,25 +80,28 @@ describe('Space Component', () => {
         apiMock
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: [] // Empty folders
+                data: []
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: [{ id: 1, name: 'Snapshot-1', spaceId: 1 }]
+                data: [{ id: 1, name: 'Snapshot-1', spaceId: 1, folderId: null }]
             }));
-
+    
         const { getByText } = render(
             <NavigationContainer>
                 <Space />
             </NavigationContainer>
         );
-
+    
         await waitFor(() => {
             expect(getByText('Snapshot-1')).toBeTruthy();
         });
-
+    
         fireEvent.press(getByText('Snapshot-1'));
-        expect(mockNavigate).toHaveBeenCalledWith('Snapshot');
+        expect(mockNavigate).toHaveBeenCalledWith('Snapshot', {
+            id: 1,
+            snapshotName: 'Snapshot-1'
+        });
     });
 
     it('should open add new item modal', () => {
@@ -119,8 +122,8 @@ describe('Space Component', () => {
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
                 data: [
-                    { id: '1', name: 'Folder 1' },
-                    { id: '2', name: 'Folder 2' }
+                    { id: '1', name: 'Folder 1', parentId: null },
+                    { id: '2', name: 'Folder 2', parentId: null }
                 ]
             }))
             .mockImplementationOnce(() => Promise.resolve({
@@ -188,8 +191,8 @@ describe('Space Component', () => {
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
                 data: [
-                    { id: '1', name: 'Folder-1' },
-                    { id: '2', name: 'New Folder' }
+                    { id: '1', name: 'Folder-1', parentId: null },
+                    { id: '2', name: 'New Folder', parentId: null }
                 ]
             }))
             .mockImplementationOnce(() => Promise.resolve({
@@ -367,7 +370,9 @@ describe('Space Component', () => {
     
         expect(mockNavigate).toHaveBeenCalledWith('SnapshotGeneralInfo', {
             isNewSnapshot: true,
-            id: 1
+            spaceId: 1,
+            spaceName: 'Test Space',
+            folderId: null
         });
     });
 
@@ -420,6 +425,64 @@ describe('Space Component', () => {
         
         const newNameInput = getByPlaceholderText('Folder Name');
         expect(newNameInput.props.value).toBe('');
+    });
+
+    it('should navigate to Folder screen with correct params when folder is pressed', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 1, name: 'Test Folder', parentId: null }]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+    
+        const { getByText } = render(
+            <NavigationContainer>
+                <Space />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            expect(getByText('Test Folder')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByText('Test Folder'));
+        expect(mockNavigate).toHaveBeenCalledWith('Folder', {
+            folderId: 1,
+            folderName: 'Test Folder',
+            spaceId: 1,
+            spaceName: 'Test Space'
+        });
+    });
+    
+    it('should only display root folders (parentId is null)', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 1, name: 'Root Folder', parentId: null },
+                    { id: 2, name: 'Nested Folder', parentId: 1 }
+                ]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+    
+        const { getByText, queryByText } = render(
+            <NavigationContainer>
+                <Space />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            expect(getByText('Root Folder')).toBeTruthy();
+            expect(queryByText('Nested Folder')).toBeNull();
+        });
     });
 
     // TODO Add api errors tests for folders

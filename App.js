@@ -3,6 +3,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { enableScreens } from 'react-native-screens';
 import { Platform } from 'react-native';
+import { HeaderBackButton } from '@react-navigation/elements';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
@@ -12,6 +14,7 @@ import SnapshotGeneralInfo from './pages/SnapshotGeneralInfo';
 import SnapshotMakeupInfo from './pages/SnapshotMakeupInfo';
 import SnapshotHairInfo from './pages/SnapshotHairInfo';
 import SnapshotImagesManage from './pages/SnapshotImagesManage';
+import Folder from './pages/Folder';
 
 enableScreens();
 
@@ -21,117 +24,117 @@ const App = () => {
   return (
     <SafeAreaProvider>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Home">
+        <Stack.Navigator
+          initialRouteName="Home"
+          screenOptions={{
+            headerBackVisible: Platform.OS === 'ios',
+            headerBackTitleVisible: false,
+            presentation: 'card',
+            gestureEnabled: true,
+            fullScreenGestureEnabled: true,
+            headerStyle: {
+              backgroundColor: '#3F4F5F'
+            },
+            headerTintColor: '#E2CFC8',
+            headerTitleStyle: {
+              color: '#E2CFC8'
+            }
+          }}
+        >
           <Stack.Screen
             name="Home"
             component={Home}
-            options={{ headerShown: false }} // Hide the header for the Home screen
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="Dashboard"
             component={Dashboard}
             options={{
-              title: 'My Spaces',
-              headerBackVisible: Platform.OS === 'ios',
-              headerBackTitleVisible: false,
-              headerStyle: {
-                backgroundColor: '#3F4F5F'
-              },
-              headerTintColor: '#E2CFC8',
-              headerTitleStyle: {
-                color: '#E2CFC8'
-              }
-            }} />
+              title: 'My Spaces'
+            }}
+          />
           <Stack.Screen
             name="Space"
             component={Space}
             options={({ route }) => ({
-              title: route.params?.spaceName || null,
-              headerBackVisible: Platform.OS === 'ios',
-              headerBackTitleVisible: false,
-              headerStyle: {
-                backgroundColor: '#3F4F5F'
-              },
-              headerTintColor: '#E2CFC8',
-              headerTitleStyle: {
-                color: '#E2CFC8'
-              }
-            })} />
+              title: route.params?.spaceName || null
+            })}
+          />
+          <Stack.Screen
+            name="Folder"
+            component={Folder}
+            options={({ route, navigation }) => ({
+              title: route.params?.folderName || null,
+              headerBackVisible: false,
+              headerLeft: Platform.OS === 'ios' ? () => (
+                <HeaderBackButton
+                  tintColor="#E2CFC8"
+                  label=""
+                  labelVisible={false}
+                  style={{ marginLeft: -23 }} // Adjust position to match iOS default
+                  onPress={() => {
+                    const { parentFolderId, parentFolderName, spaceId, spaceName } = route.params;
+                    if (parentFolderId && parentFolderName) {
+                      navigation.navigate('Folder', {
+                        folderId: parentFolderId,
+                        folderName: parentFolderName,
+                        spaceId: spaceId,
+                        spaceName: spaceName
+                      });
+                    } else {
+                      navigation.navigate('Space', {
+                        spaceId: spaceId,
+                        spaceName: spaceName
+                      });
+                    }
+                  }}
+                  backImage={({ tintColor }) => (
+                    <Ionicons
+                      name="chevron-back"
+                      size={28} // Adjust size to match iOS default
+                      color={tintColor}
+                      style={{ marginLeft: 8 }} // Fine-tune icon position
+                    />
+                  )}
+                />
+              ) : undefined
+            })}
+          />
           <Stack.Screen
             name="Snapshot"
             component={Snapshot}
             options={{
-              title: 'Title of Snapshot',
-              headerBackVisible: Platform.OS === 'ios',
-              headerBackTitleVisible: false,
-              headerStyle: {
-                backgroundColor: '#3F4F5F'
-              },
-              headerTintColor: '#E2CFC8',
-              headerTitleStyle: {
-                color: '#E2CFC8'
-              }
-            }} />
+              title: 'Title of Snapshot'
+            }}
+          />
           <Stack.Screen
             name="SnapshotGeneralInfo"
             component={SnapshotGeneralInfo}
-            options={({ route }) => ({
-              title: 'General Information',
-              headerBackVisible: Platform.OS === 'ios',
-              headerBackTitleVisible: false,
-              headerStyle: {
-                backgroundColor: '#3F4F5F'
-              },
-              headerTintColor: '#E2CFC8',
-              headerTitleStyle: {
-                color: '#E2CFC8'
-              }
-            })} />
+            options={{
+              title: 'General Information'
+            }}
+          />
           <Stack.Screen
             name="SnapshotMakeupInfo"
             component={SnapshotMakeupInfo}
             options={{
-              title: 'Makeup Information',
-              headerBackVisible: Platform.OS === 'ios',
-              headerBackTitleVisible: false,
-              headerStyle: {
-                backgroundColor: '#3F4F5F'
-              },
-              headerTintColor: '#E2CFC8',
-              headerTitleStyle: {
-                color: '#E2CFC8'
-              }
-            }} />
+              title: 'Makeup Information'
+            }}
+          />
           <Stack.Screen
             name="SnapshotHairInfo"
             component={SnapshotHairInfo}
             options={{
-              title: 'Hair Information',
-              headerBackVisible: Platform.OS === 'ios',
-              headerBackTitleVisible: false,
-              headerStyle: {
-                backgroundColor: '#3F4F5F'
-              },
-              headerTintColor: '#E2CFC8',
-              headerTitleStyle: {
-                color: '#E2CFC8'
-              }
-            }} />
+              title: 'Hair Information'
+            }}
+          />
           <Stack.Screen
             name="SnapshotImagesManage"
             component={SnapshotImagesManage}
             options={{
-              title: 'Snapshot Images',
-              headerBackVisible: Platform.OS === 'ios',
-              headerBackTitleVisible: false,
-              headerStyle: {
-                backgroundColor: '#3F4F5F'
-              },
-              headerTintColor: '#E2CFC8',
-              headerTitleStyle: {
-                color: '#E2CFC8'
-              }
-            }} />
+              title: 'Snapshot Images'
+            }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
