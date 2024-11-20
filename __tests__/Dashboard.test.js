@@ -208,20 +208,20 @@ describe('Dashboard', () => {
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
                 data: [
-                    { id: 1, name: 'Goodfellas', type: 'Movie' },
-                    { id: 2, name: 'The Last of Us', type: 'Series' }
+                    { id: 1, name: 'Goodfellas', type: '1' },
+                    { id: 2, name: 'The Last of Us', type: '2' }
                 ]
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: { id: 3, name: 'Mr. Robot', type: 'Series' }
+                data: { id: 3, name: 'Mr. Robot', type: '2' }
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
                 data: [
-                    { id: 1, name: 'Goodfellas', type: 'Movie' },
-                    { id: 2, name: 'The Last of Us', type: 'Series' },
-                    { id: 3, name: 'Mr. Robot', type: 'Series' }
+                    { id: 1, name: 'Goodfellas', type: '1' },
+                    { id: 2, name: 'The Last of Us', type: '2' },
+                    { id: 3, name: 'Mr. Robot', type: '2' }
                 ]
             }));
 
@@ -251,7 +251,8 @@ describe('Dashboard', () => {
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith('/space/', 'POST', {
                 name: 'Mr. Robot',
-                type: 'Series'
+                type: '2',
+                createdOn: expect.any(String)
             });
 
             expect(apiMock).toHaveBeenCalledWith('/space', 'GET');
@@ -308,8 +309,179 @@ describe('Dashboard', () => {
             const apiMock = require('../api/api').default;
             expect(apiMock).toHaveBeenCalledWith('/space/', 'POST', {
                 name: 'Test Movie',
-                type: 'Movie'
+                type: '1',
+                createdOn: expect.any(String)
             });
         });
     });
+
+    it('should handle editing a space correctly', async () => {
+        const apiMock = require('../api/api').default;
+        
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 1, name: 'Test Space', type: '1' }
+                ]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Updated Space', type: '2' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 1, name: 'Updated Space', type: '2' }
+                ]
+            }));
+    
+        const { getByTestId, getByText } = render(
+            <NavigationContainer>
+                <Dashboard />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            expect(getByText('Test Space')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByTestId('edit-space-button'));
+    
+        await waitFor(() => {
+            const nameInput = getByTestId('space-name-text-input');
+            expect(nameInput.props.value).toBe('Test Space');
+            expect(getByTestId('space-type-select-dropdown')).toBeTruthy();
+        });
+    
+        fireEvent.changeText(getByTestId('space-name-text-input'), 'Updated Space');
+        
+        fireEvent.press(getByTestId('add-space-submit-button'));
+    
+        await waitFor(() => {
+            expect(apiMock).toHaveBeenCalledWith('/space/1', 'PUT', {
+                name: 'Updated Space',
+                type: '1',
+                lastUpdatedOn: expect.any(String)
+            });
+            expect(getByText('Updated Space')).toBeTruthy();
+        });
+    });
+
+    it('should display correct type in edit mode', async () => {
+        const apiMock = require('../api/api').default;
+        
+        apiMock.mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: [
+                { id: 1, name: 'Test Space', type: '1' }
+            ]
+        }));
+     
+        const { getByTestId, getByText } = render(
+            <NavigationContainer>
+                <Dashboard />
+            </NavigationContainer>
+        );
+     
+        await waitFor(() => {
+            expect(getByText('Test Space')).toBeTruthy();
+        });
+     
+        fireEvent.press(getByTestId('edit-space-button'));
+     
+        await waitFor(() => {
+            const movieOption = getByTestId('space-type-select-item-1');
+            expect(Array.isArray(movieOption.children) ? movieOption.children[0] : movieOption.children).toBe('Movie');
+        });
+     });
+
+     it('should cancel edit operation correctly', async () => {
+        const apiMock = require('../api/api').default;
+        
+        apiMock.mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: [
+                { id: 1, name: 'Original Name', type: '1' }
+            ]
+        }));
+     
+        const { getByTestId, getByText, queryByTestId } = render(
+            <NavigationContainer>
+                <Dashboard />
+            </NavigationContainer>
+        );
+     
+        await waitFor(() => {
+            expect(getByText('Original Name')).toBeTruthy();
+        });
+     
+        fireEvent.press(getByTestId('edit-space-button'));
+        
+        fireEvent.changeText(getByTestId('space-name-text-input'), 'Changed Name');
+     
+        fireEvent.press(getByTestId('add-space-cancel-button'));
+     
+        await waitFor(() => {
+            expect(queryByTestId('space-name-text-input')).toBeNull();
+            expect(getByText('Original Name')).toBeTruthy();
+            expect(apiMock).toHaveBeenCalledTimes(1);
+        });
+     });
+
+     it('should handle deleting a space correctly', async () => {
+        const apiMock = require('../api/api').default;
+        
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 1, name: 'Space to Delete', type: '1' }
+                ]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Space to Delete', type: '1', isDeleted: true }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+     
+        const { getByTestId, queryByText, getByText } = render(
+            <NavigationContainer>
+                <Dashboard />
+            </NavigationContainer>
+        );
+     
+        await waitFor(() => {
+            expect(getByText('Space to Delete')).toBeTruthy();
+        });
+     
+        fireEvent.press(getByTestId('delete-space-button'));
+     
+        await waitFor(() => {
+            expect(apiMock).toHaveBeenCalledWith('/space/1', 'PUT', {
+                name: 'Space to Delete',
+                type: '1',
+                isDeleted: true,
+                deletedOn: expect.any(String)
+            });
+     
+            expect(queryByText('Space to Delete')).toBeNull();
+     
+            expect(getByText('No Spaces Yet')).toBeTruthy();
+            expect(getByText('Get started by pressing the + button below to create your first space.')).toBeTruthy();
+        });
+     
+        expect(apiMock).toHaveBeenCalledTimes(3);
+        
+        const apiCalls = apiMock.mock.calls;
+        expect(apiCalls[0]).toEqual(['/space', 'GET']);
+        expect(apiCalls[1][0]).toBe('/space/1');
+        expect(apiCalls[1][1]).toBe('PUT');
+        expect(apiCalls[2]).toEqual(['/space', 'GET']);
+     });
+     
+     // TODO Add a test for modals
 })
