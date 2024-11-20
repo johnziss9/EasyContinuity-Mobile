@@ -12,9 +12,11 @@ const Dashboard = () => {
 
     const [showAddNewSpaceModal, setShowAddNewSpaceModal] = useState(false);
     const [spaceNameField, setSpaceNameField] = React.useState('');
-    const [spaceType, setSpaceType] = useState("");
+    const [spaceType, setSpaceType] = useState('');
     const [spaces, setSpaces] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isEditing, setIsEditing] = useState(false);
+    const [currentSpaceId, setCurrentSpaceId] = useState(null);
 
     const spaceTypes = [
         { key: '1', value: 'Movie' },
@@ -34,23 +36,34 @@ const Dashboard = () => {
 
     const handleModalCancelPress = () => {
         setSpaceNameField('');
+        setIsEditing(false);
         setShowAddNewSpaceModal(false);
     };
 
-    // Using this to grab the value of the selected item
     const handleSpaceTypeSelect = (selectedKey) => {
-        const selectedType = spaceTypes.find(type => type.key === selectedKey);
-        setSpaceType(selectedType?.value || '');
+        setSpaceType(selectedKey);
     };
 
-    const handleCreateSpace = async () => {
+    const handleEditSpacePress = (space) => {
+        setIsEditing(true);
+        setShowAddNewSpaceModal(true);
+        setCurrentSpaceId(space.id);
+        setSpaceNameField(space.name);
+        setSpaceType(space.type);
+    }
+
+    const handleDeleteSpacePress = async (space) => {
+        // TODO Add modal for confirmation
+
         try {
-            const url = '/space/';
-            const method = 'POST';
+            const url = `/space/${space.id}`;
+            const method = 'PUT';
             const body = {
-                name: spaceNameField,
-                type: spaceType
-                // TODO Include AddedBy
+                name: space.name,
+                type: space.type,
+                isDeleted: true,
+                deletedOn: new Date().toISOString()
+                // TODO Include deletedBy
             };
 
             const response = await handleHttpRequest(url, method, body);
@@ -64,13 +77,78 @@ const Dashboard = () => {
                 throw new Error(response.error);
             }
         } catch (error) {
-            console.error('Error Creating Space:', error);
+            console.error('Error Deleting Space:', error);
 
             // TODO Replace error with fail toast
             throw error;
         } finally {
-            setShowAddNewSpaceModal(false);
-            setSpaceNameField('');
+            // TODO Show deletion confirmation
+        }
+    }
+
+    const handleSaveSpace = async () => {
+        if (isEditing) {
+            try {
+                const url = `/space/${currentSpaceId}`;
+                const method = 'PUT';
+                const body = {
+                    name: spaceNameField,
+                    type: spaceType,
+                    lastUpdatedOn: new Date().toISOString()
+                    // TODO Include lastUpdatedBy
+                };
+    
+                const response = await handleHttpRequest(url, method, body);
+    
+                if (response.success) {
+                    // TODO Show success toast
+                    // TODO Refresh data on screen
+                    handleGetAllSpaces();
+                } else {
+                    // TODO Replace error with fail toast
+                    throw new Error(response.error);
+                }
+            } catch (error) {
+                console.error('Error Updating Space:', error);
+    
+                // TODO Replace error with fail toast
+                throw error;
+            } finally {
+                setShowAddNewSpaceModal(false);
+                setSpaceNameField('');
+                setSpaceType('');
+                setIsEditing(false);
+            }
+        } else {
+            try {
+                const url = '/space/';
+                const method = 'POST';
+                const body = {
+                    name: spaceNameField,
+                    type: spaceType,
+                    createdOn: new Date().toISOString()
+                    // TODO Include AddedBy
+                };
+    
+                const response = await handleHttpRequest(url, method, body);
+    
+                if (response.success) {
+                    // TODO Show success toast
+                    // TODO Refresh data on screen
+                    handleGetAllSpaces();
+                } else {
+                    // TODO Replace error with fail toast
+                    throw new Error(response.error);
+                }
+            } catch (error) {
+                console.error('Error Creating Space:', error);
+    
+                // TODO Replace error with fail toast
+                throw error;
+            } finally {
+                setShowAddNewSpaceModal(false);
+                setSpaceNameField('');
+            }
         }
     }
 
@@ -150,37 +228,68 @@ const Dashboard = () => {
                             cursorColor={'#3F4F5F'}
                             testID='space-name-text-input'
                         />
-                        <SelectList
-                            setSelected={handleSpaceTypeSelect}
-                            data={spaceTypes}
-                            placeholder="Type"
-                            searchPlaceholder="Search..."
-                            style={styles.selectList}
-                            boxStyles={dynamicStyles.dropdownBox}
-                            inputStyles={styles.dropdownInput}
-                            dropdownStyles={dynamicStyles.dropdownList}
-                            dropdownItemStyles={styles.dropdownListItem}
-                            dropdownTextStyles={styles.dropdownListText}
-                            maxHeight={150}
-                            testID="space-type-select"
-                        />
+                        {!isEditing ?
+                            <SelectList
+                                setSelected={handleSpaceTypeSelect}
+                                data={spaceTypes}
+                                placeholder="Type"
+                                searchPlaceholder="Search..."
+                                save='key'
+                                style={styles.selectList}
+                                boxStyles={dynamicStyles.dropdownBox}
+                                inputStyles={styles.dropdownInput}
+                                dropdownStyles={dynamicStyles.dropdownList}
+                                dropdownItemStyles={styles.dropdownListItem}
+                                dropdownTextStyles={styles.dropdownListText}
+                                maxHeight={150}
+                                testID="space-type-select"
+                            /> :
+                            <View pointerEvents='none'>
+                                <SelectList
+                                    setSelected={handleSpaceTypeSelect}
+                                    data={spaceTypes}
+                                    placeholder="Type"
+                                    defaultOption={spaceTypes.find(type => type.key === spaceType)}
+                                    save="key"
+                                    style={styles.selectList}
+                                    boxStyles={{
+                                        ...dynamicStyles.dropdownBox,
+                                        backgroundColor: 'rgba(153, 153, 153, 0.3)'
+                                    }}
+                                    inputStyles={styles.dropdownInput}
+                                    dropdownStyles={dynamicStyles.dropdownList}
+                                    dropdownItemStyles={styles.dropdownListItem}
+                                    dropdownTextStyles={styles.dropdownListText}
+                                    maxHeight={150}
+                                    testID="space-type-select"
+                                    pointerEvents="none"
+                                />
+                            </View>      
+                        }
                         <View style={styles.modalButtonsContainer}>
                             <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} testID='add-space-cancel-button' onPress={handleModalCancelPress}>
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonSave]} testID='add-space-submit-button' onPress={handleCreateSpace}>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonSave]} testID='add-space-submit-button' onPress={handleSaveSpace}>
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>Submit</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
                 </View>
             </Modal>
+
             {isLoading ? (
                 <ActivityIndicator size="large" color="#3F4F5F" />
             ) : (
                 <>
                     {Array.isArray(spaces) && spaces.length > 0 ? spaces.map((space) => (
-                        <SpaceCard key={space.id} spaceName={space.name} onPress={() => handleSpacePress(space.id, space.name)} />
+                        <SpaceCard 
+                            key={space.id} 
+                            spaceName={space.name} 
+                            onPress={() => handleSpacePress(space.id, space.name)}
+                            onEditPress={() => handleEditSpacePress(space)}
+                            onDeletePress={() => handleDeleteSpacePress(space)}
+                        />
                     )) :
                         <View style={styles.noSpacesContainer}>
                             <Text style={styles.noSpacesTitle}>No Spaces Yet</Text>
