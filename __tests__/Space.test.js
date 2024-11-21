@@ -76,7 +76,7 @@ describe('Space Component', () => {
 
     it('should navigate to Snapshot screen when snapshot card is pressed', async () => {
         const apiMock = require('../api/api').default;
-        
+
         apiMock
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
@@ -86,17 +86,17 @@ describe('Space Component', () => {
                 success: true,
                 data: [{ id: 1, name: 'Snapshot-1', spaceId: 1, folderId: null }]
             }));
-    
+
         const { getByText } = render(
             <NavigationContainer>
                 <Space />
             </NavigationContainer>
         );
-    
+
         await waitFor(() => {
             expect(getByText('Snapshot-1')).toBeTruthy();
         });
-    
+
         fireEvent.press(getByText('Snapshot-1'));
         expect(mockNavigate).toHaveBeenCalledWith('Snapshot', {
             id: 1,
@@ -168,7 +168,8 @@ describe('Space Component', () => {
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith('/folder/', 'POST', {
                 name: 'New Folder',
-                spaceId: 1
+                spaceId: 1,
+                createdOn: expect.any(String)
             });
 
             expect(queryByText('Enter Folder Name:')).toBeNull();
@@ -177,7 +178,8 @@ describe('Space Component', () => {
             expect(apiMock).toHaveBeenNthCalledWith(2, '/snapshot/space/1', 'GET');
             expect(apiMock).toHaveBeenNthCalledWith(3, '/folder/', 'POST', {
                 name: 'New Folder',
-                spaceId: 1
+                spaceId: 1,
+                createdOn: expect.any(String)
             });
             expect(apiMock).toHaveBeenNthCalledWith(4, '/folder/space/1', 'GET');
             expect(apiMock).toHaveBeenNthCalledWith(5, '/snapshot/space/1', 'GET');
@@ -223,45 +225,6 @@ describe('Space Component', () => {
         });
     });
 
-    // TODO This test should be modified when the submit button is pressed from edit - Do this when the update call is set
-    // it('should allow editing a folder name', async () => {
-    //     const { getByText, getByTestId, getByPlaceholderText, getAllByTestId } = render(
-    //         <NavigationContainer>
-    //             <Space />
-    //         </NavigationContainer>
-    //     );
-
-    //     expect(getByText('Folder 1')).toBeTruthy();
-
-    //     fireEvent.press(getAllByTestId('edit-folder-button')[0]);
-
-    //     expect(getByPlaceholderText('Folder Name')).toBeTruthy();
-
-    //     fireEvent.changeText(getByPlaceholderText('Folder Name'), 'Folder 01');
-    //     fireEvent.press(getByTestId('add-folder-submit-button'));
-
-    //     await waitFor(() => {
-    //         expect(getByText('Folder 01')).toBeTruthy();
-    //     });
-    // });
-
-    // TODO This test should be modified when the update fetch is implemented.
-    // it('should allow deleting a folder', async () => {
-    //     const { getByText, getAllByTestId, queryByText } = render(
-    //         <NavigationContainer>
-    //             <Space />
-    //         </NavigationContainer>
-    //     );
-
-    //     expect(getByText('Folder 1')).toBeTruthy();
-
-    //     fireEvent.press(getAllByTestId('delete-folder-button')[0]);
-
-    //     await waitFor(() => {
-    //         expect(queryByText('Folder 1')).toBeNull();
-    //     });
-    // });
-
     // TODO This test should be modified when the search bar is fixed. Check the test below too.
     // it('should filter items when using the search bar', async () => {
     //     const { getByTestId, getByText, queryByText } = render(
@@ -303,7 +266,7 @@ describe('Space Component', () => {
     // TODO This is a similar test to above. It might be more accurate. Base it more on this.
     // it('should filter folders and snapshots based on search query', async () => {
     //     const apiMock = require('../api/api').default;
-        
+
     //     apiMock
     //         .mockImplementationOnce(() => Promise.resolve({
     //             success: true,
@@ -319,26 +282,26 @@ describe('Space Component', () => {
     //                 { id: 4, name: 'Another Snapshot', spaceId: 1 }
     //             ]
     //         }));
-    
+
     //     const { getByTestId, queryByText } = render(
     //         <NavigationContainer>
     //             <Space />
     //         </NavigationContainer>
     //     );
-    
+
     //     await waitFor(() => {
     //         fireEvent.changeText(getByTestId('search-input'), 'Test');
-            
+
     //         // Should show matching items
     //         expect(queryByText('Test Folder')).toBeTruthy();
     //         expect(queryByText('Test Snapshot')).toBeTruthy();
-            
+
     //         // Should hide non-matching items
     //         expect(queryByText('Another Folder')).toBeNull();
     //         expect(queryByText('Another Snapshot')).toBeNull();
     //     });
     // });
-    
+
     // it('should clear search and show all items when search is cleared', async () => {
     //     // Similar to above test but testing the clear functionality
     // });
@@ -364,10 +327,10 @@ describe('Space Component', () => {
                 <Space />
             </NavigationContainer>
         );
-    
+
         fireEvent.press(getByTestId('add-item-button'));
         fireEvent.press(getByTestId('add-new-snapshot-button'));
-    
+
         expect(mockNavigate).toHaveBeenCalledWith('SnapshotGeneralInfo', {
             isNewSnapshot: true,
             spaceId: 1,
@@ -382,10 +345,10 @@ describe('Space Component', () => {
                 <Space />
             </NavigationContainer>
         );
-    
+
         fireEvent.press(getByTestId('add-item-button'));
         expect(queryByText('Add Item:')).toBeTruthy();
-        
+
         fireEvent.press(getByTestId('add-new-folder-button'));
         expect(queryByText('Add Item:')).toBeNull();
     });
@@ -396,10 +359,10 @@ describe('Space Component', () => {
                 <Space />
             </NavigationContainer>
         );
-    
+
         fireEvent.press(getByTestId('add-item-button'));
         expect(queryByText('Add Item:')).toBeTruthy();
-        
+
         fireEvent.press(getByTestId('add-new-snapshot-button'));
         expect(queryByText('Add Item:')).toBeNull();
     });
@@ -410,19 +373,19 @@ describe('Space Component', () => {
                 <Space />
             </NavigationContainer>
         );
-    
+
         fireEvent.press(getByTestId('add-item-button'));
         fireEvent.press(getByTestId('add-new-folder-button'));
-        
+
         const nameInput = getByPlaceholderText('Folder Name');
         fireEvent.changeText(nameInput, 'Test Folder');
-        
+
         fireEvent.press(getByTestId('add-folder-cancel-button'));
-    
+
         // Open modal again to check if input was reset
         fireEvent.press(getByTestId('add-item-button'));
         fireEvent.press(getByTestId('add-new-folder-button'));
-        
+
         const newNameInput = getByPlaceholderText('Folder Name');
         expect(newNameInput.props.value).toBe('');
     });
@@ -438,17 +401,17 @@ describe('Space Component', () => {
                 success: true,
                 data: []
             }));
-    
+
         const { getByText } = render(
             <NavigationContainer>
                 <Space />
             </NavigationContainer>
         );
-    
+
         await waitFor(() => {
             expect(getByText('Test Folder')).toBeTruthy();
         });
-    
+
         fireEvent.press(getByText('Test Folder'));
         expect(mockNavigate).toHaveBeenCalledWith('Folder', {
             folderId: 1,
@@ -457,7 +420,7 @@ describe('Space Component', () => {
             spaceName: 'Test Space'
         });
     });
-    
+
     it('should only display root folders (parentId is null)', async () => {
         const apiMock = require('../api/api').default;
         apiMock
@@ -472,16 +435,186 @@ describe('Space Component', () => {
                 success: true,
                 data: []
             }));
-    
+
         const { getByText, queryByText } = render(
+            <NavigationContainer>
+                <Space />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(getByText('Root Folder')).toBeTruthy();
+            expect(queryByText('Nested Folder')).toBeNull();
+        });
+    });
+
+    it('should open edit folder modal with correct folder data', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 1, name: 'Test Folder', parentId: null }]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+
+        const { getByText, getAllByTestId, getByPlaceholderText } = render(
+            <NavigationContainer>
+                <Space />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(getByText('Test Folder')).toBeTruthy();
+        });
+
+        // Get all edit buttons and click the first one
+        const editButtons = getAllByTestId('edit-folder-button');
+        fireEvent.press(editButtons[0]);
+
+        expect(getByPlaceholderText('Folder Name').props.value).toBe('Test Folder');
+    });
+
+    it('should successfully edit a folder', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 1, name: 'Test Folder', parentId: null }]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Updated Folder' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 1, name: 'Updated Folder', parentId: null }]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+
+        const { getByText, getAllByTestId, getByPlaceholderText, getByTestId } = render(
+            <NavigationContainer>
+                <Space />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(getByText('Test Folder')).toBeTruthy();
+        });
+
+        const editButtons = getAllByTestId('edit-folder-button');
+        fireEvent.press(editButtons[0]);
+
+        const nameInput = getByPlaceholderText('Folder Name');
+        fireEvent.changeText(nameInput, 'Updated Folder');
+
+        fireEvent.press(getByTestId('add-folder-submit-button'));
+
+        await waitFor(() => {
+            expect(apiMock).toHaveBeenCalledWith('/folder/1', 'PUT', {
+                name: 'Updated Folder',
+                lastUpdatedOn: expect.any(String)
+            });
+            expect(getByText('Updated Folder')).toBeTruthy();
+        });
+    });
+
+    it('should cancel edit operation correctly', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 1, name: 'Test Folder', parentId: null }]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+    
+        const { getByText, getAllByTestId, getByPlaceholderText, queryByPlaceholderText, getByTestId } = render(
             <NavigationContainer>
                 <Space />
             </NavigationContainer>
         );
     
         await waitFor(() => {
-            expect(getByText('Root Folder')).toBeTruthy();
-            expect(queryByText('Nested Folder')).toBeNull();
+            expect(getByText('Test Folder')).toBeTruthy();
+        });
+    
+        const editButtons = getAllByTestId('edit-folder-button');
+        fireEvent.press(editButtons[0]);
+        
+        const nameInput = getByPlaceholderText('Folder Name');
+        expect(nameInput.props.value).toBe('Test Folder');
+    
+        fireEvent.press(getByTestId('add-folder-cancel-button'));
+    
+        await waitFor(() => {
+            expect(queryByPlaceholderText('Folder Name')).toBeNull();
+            
+            expect(getByText('Test Folder')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByTestId('add-item-button'));
+        fireEvent.press(getByTestId('add-new-folder-button'));
+        
+        const newNameInput = getByPlaceholderText('Folder Name');
+        expect(newNameInput.props.value).toBe('');
+    });
+
+    it('should successfully delete a folder', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 1, name: 'Test Folder', parentId: null }]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { success: true }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+
+        const { getByText, getAllByTestId, queryByText } = render(
+            <NavigationContainer>
+                <Space />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(getByText('Test Folder')).toBeTruthy();
+        });
+
+        const deleteButtons = getAllByTestId('delete-folder-button');
+        fireEvent.press(deleteButtons[0]);
+
+        await waitFor(() => {
+            expect(apiMock).toHaveBeenCalledWith('/folder/1', 'PUT', {
+                name: 'Test Folder',
+                isDeleted: true,
+                deletedOn: expect.any(String)
+            });
+            expect(queryByText('Test Folder')).toBeNull();
         });
     });
 
