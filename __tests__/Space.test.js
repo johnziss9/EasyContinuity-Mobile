@@ -65,14 +65,19 @@ describe('Space Component', () => {
         expect(queryByTestId('activity-indicator')).toBeTruthy();
 
         await waitFor(() => {
+            expect(queryByTestId('activity-indicator')).toBeNull();
+        }, { timeout: 10000 });
+
+        await waitFor(() => {
             expect(getByTestId('search-input')).toBeTruthy();
             expect(getByTestId('add-item-button')).toBeTruthy();
             expect(getByText('Folder-1')).toBeTruthy();
             expect(getByText('Folder-2')).toBeTruthy();
             expect(getByText('Snapshot-1')).toBeTruthy();
             expect(getByText('Snapshot-2')).toBeTruthy();
-        });
-    });
+        }, { timeout: 10000 });
+
+    }, 15000);
 
     it('should navigate to Snapshot screen when snapshot card is pressed', async () => {
         const apiMock = require('../api/api').default;

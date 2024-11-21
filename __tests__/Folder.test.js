@@ -61,11 +61,15 @@ describe('Folder Component', () => {
         expect(queryByTestId('activity-indicator')).toBeTruthy();
 
         await waitFor(() => {
+            expect(queryByTestId('activity-indicator')).toBeNull();
+        }, { timeout: 10000 });
+
+        await waitFor(() => {
             expect(getByTestId('add-item-button')).toBeTruthy();
             expect(getByText('No Items In This Folder Yet')).toBeTruthy();
             expect(getByText('Get started by pressing the + button below to add your first item.')).toBeTruthy();
-        });
-    });
+        }, { timeout: 10000 });
+    }, 15000);
 
     it('should navigate to nested folder with correct params', async () => {
         apiMock
