@@ -15,6 +15,7 @@ const Folder = () => {
     const [parentFolderName, setParentFolderName] = useState(null);
     const [snapshots, setSnapshots] = useState([]);
     const [folderNameField, setFolderNameField] = useState('');
+    const [currentFolderId, setCurrentFolderId] = useState(0);
     const [folderEditing, setFolderEditing] = useState(false);
 
     const [showAddNewItemModal, setShowAddNewItemModal] = useState(false);
@@ -125,6 +126,13 @@ const Folder = () => {
         setShowAddNewFolderModal(true);
     }
 
+    const handleEditFolderPress = (folder) => {
+        setFolderEditing(true);
+        setShowAddNewFolderModal(true);
+        setCurrentFolderId(folder.id);
+        setFolderNameField(folder.name);
+    }
+
     const handleAddSnapshotPress = () => {
         setShowAddNewItemModal(false);
         navigation.navigate('SnapshotGeneralInfo', {
@@ -144,19 +152,73 @@ const Folder = () => {
 
     const handleCancelAddFolder = () => {
         setShowAddNewFolderModal(false);
+        setFolderEditing(false);
         setFolderNameField('');
+    }
+
+    const handleDeleteFolderPress = async (folder) => {
+        // TODO Add modal for confirmation
+
+        try {
+            const url = `/folder/${folder.id}`;
+            const method = 'PUT';
+            const body = {
+                name: folder.name,
+                isDeleted: true,
+                deletedOn: new Date().toISOString()
+                // TODO Include deletedBy
+            };
+
+            const response = await handleHttpRequest(url, method, body);
+
+            if (response.success) {
+                // TODO Show success toast
+                handleFetchAllFolderData();
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Deleting Folder:', error);
+
+            // TODO Replace error with fail toast
+            throw error;
+        } finally {
+            // TODO Show deletion confirmation
+        }
     }
 
     const handleCreateOrEditFolder = async () => {
         if (folderEditing) {
-            // setFolders((prevFolders) =>
-            //     prevFolders.map(folder =>
-            //         folder.id === folderId ? { ...folder, name: name } : folder
-            //     )
-            // );
-
-            // setFolderEditing(false);
-            // setShowAddNewFolderModal(false);
+            try {
+                const url = `/folder/${currentFolderId}`;
+                const method = 'PUT';
+                const body = {
+                    name: folderNameField,
+                    lastUpdatedOn: new Date().toISOString()
+                    // TODO Include lastUpdatedBy
+                };
+    
+                const response = await handleHttpRequest(url, method, body);
+    
+                if (response.success) {
+                    // TODO Show success toast
+                    // TODO Refresh data on screen
+                    handleFetchAllFolderData();
+                } else {
+                    // TODO Replace error with fail toast
+                    throw new Error(response.error);
+                }
+            } catch (error) {
+                console.error('Error Updating Folder:', error);
+    
+                // TODO Replace error with fail toast
+                throw error;
+            } finally {
+                setShowAddNewFolderModal(false);
+                setFolderNameField('');
+                setFolderEditing(false);
+            }
         } else {
             try {
                 const url = '/folder/';
@@ -164,7 +226,8 @@ const Folder = () => {
                 const body = {
                     name: folderNameField,
                     spaceId: spaceId,
-                    parentId: folderId
+                    parentId: folderId,
+                    createdOn: new Date().toISOString()
                     // TODO Include AddedBy
                 };
 
@@ -271,8 +334,8 @@ const Folder = () => {
                                 <FolderCard
                                     key={folder.id}
                                     folderName={folder.name}
-                                    // onEditPress={() => handleEditFolder({ id: folder.id, name: folder.name })}
-                                    // onDeletePress={() => handleDeleteFolder(folder.id)}
+                                    onEditPress={ () => handleEditFolderPress(folder) }
+                                    onDeletePress={() => handleDeleteFolderPress(folder)}
                                     onPress={() => handleFolderPress(folder.id, folder.name)}
                                 />
                             ))}
