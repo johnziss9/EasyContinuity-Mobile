@@ -17,7 +17,8 @@ const Space = () => {
     const [showAddNewItemModal, setShowAddNewItemModal] = useState(false);
     const [showAddNewFolderModal, setShowAddNewFolderModal] = useState(false);
 
-    const [folderName, setFolderName] = useState(false);
+    const [folderName, setFolderName] = useState('');
+    const [currentFolderId, setCurrentFolderId] = useState(0);
     const [folderEditing, setFolderEditing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [folders, setFolders] = useState([]);
@@ -63,11 +64,12 @@ const Space = () => {
         setShowAddNewFolderModal(true);
     }
 
-    // const handleDeleteFolder = (id) => {
-    //     setFolders(prevFolders =>
-    //         prevFolders.filter(folder => folder.id !== id)
-    //     );
-    // }
+    const handleEditFolderPress = (folder) => {
+        setFolderEditing(true);
+        setShowAddNewFolderModal(true);
+        setCurrentFolderId(folder.id);
+        setFolderName(folder.name);
+    }
 
     const handleClearSearchBar = () => {
         setSearchQuery('');
@@ -75,26 +77,81 @@ const Space = () => {
 
     const handleCancelAddFolder = () => {
         setShowAddNewFolderModal(false);
+        setFolderEditing(false);
         setFolderName('');
+    }
+
+    const handleDeleteFolderPress = async (folder) => {
+        // TODO Add modal for confirmation
+
+        try {
+            const url = `/folder/${folder.id}`;
+            const method = 'PUT';
+            const body = {
+                name: folder.name,
+                isDeleted: true,
+                deletedOn: new Date().toISOString()
+                // TODO Include deletedBy
+            };
+
+            const response = await handleHttpRequest(url, method, body);
+
+            if (response.success) {
+                // TODO Show success toast
+                handleFetchSpaceItems();
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Deleting Folder:', error);
+
+            // TODO Replace error with fail toast
+            throw error;
+        } finally {
+            // TODO Show deletion confirmation
+        }
     }
 
     const handleCreateOrEditFolder = async () => {
         if (folderEditing) {
-            // setFolders((prevFolders) =>
-            //     prevFolders.map(folder =>
-            //         folder.id === folderId ? { ...folder, name: name } : folder
-            //     )
-            // );
-
-            // setFolderEditing(false);
-            // setShowAddNewFolderModal(false);
+            try {
+                const url = `/folder/${currentFolderId}`;
+                const method = 'PUT';
+                const body = {
+                    name: folderName,
+                    lastUpdatedOn: new Date().toISOString()
+                    // TODO Include lastUpdatedBy
+                };
+    
+                const response = await handleHttpRequest(url, method, body);
+    
+                if (response.success) {
+                    // TODO Show success toast
+                    // TODO Refresh data on screen
+                    handleFetchSpaceItems();
+                } else {
+                    // TODO Replace error with fail toast
+                    throw new Error(response.error);
+                }
+            } catch (error) {
+                console.error('Error Updating Folder:', error);
+    
+                // TODO Replace error with fail toast
+                throw error;
+            } finally {
+                setShowAddNewFolderModal(false);
+                setFolderName('');
+                setFolderEditing(false);
+            }
         } else {
             try {
                 const url = '/folder/';
                 const method = 'POST';
                 const body = {
                     name: folderName,
-                    spaceId: spaceId
+                    spaceId: spaceId,
+                    createdOn: new Date().toISOString()
                     // TODO Include AddedBy
                 };
 
@@ -174,38 +231,6 @@ const Space = () => {
         },
     };
 
-    // const handleEditFolder = (folder) => {
-    //     setShowAddNewFolderModal(true); // Hide Add New Modal
-    //     setFolderName(folder.name); // Update the textbox with the current folder name
-    //     setFolderEditing(true); // Set this to true to the app knows the user is editing
-    //     setFolderId(folder.id) // Update the hook with the current folder id
-    // };
-
-    // const renderFileItem = ({ item }) => { // item here returns an object from the array
-    //     const { name } = item; // name is extracted from item
-    //     const isFolder = Array.isArray(folders) && folders.some((folder) => folder.id === item.id);
-
-    //     const shouldRender = searchQuery.trim() === '' || name.toLowerCase().includes(searchQuery.toLowerCase());
-
-    //     if (!shouldRender) {
-    //         return null;
-    //     }
-
-    //     return (
-    //         <View>
-    //             {isFolder ? (
-    //                 <FolderCard
-    //                     folderName={name}
-    //                     onEditPress={() => handleEditFolder({ id: item.id, name })}
-    //                     onDeletePress={() => handleDeleteFolder(item.id)}
-    //                 />
-    //             ) : (
-    //                 <SnapshotCard snapshotName={name} images={[someImage, someImage2, someImage3, someImage4, someImage, someImage]} onPress={handleSnapshotPress} />
-    //             )}
-    //         </View>
-    //     );
-    // };
-
     return (
         <View style={styles.container}>
 
@@ -280,16 +305,6 @@ const Space = () => {
 
             </View>
 
-            {/* <FlatList
-                data={[
-                    ...(Array.isArray(folders) ? folders : []),
-                    { name: 'Rhaenyra', id: 'snapshot-1' },
-                ]}
-                renderItem={renderFileItem}
-                keyExtractor={(item) => item.id}
-                ListEmptyComponent={<Text>No items found</Text>}
-                contentContainerStyle={styles.flatListContainer}
-            /> */}
             {isLoading ? (
                 <ActivityIndicator size="large" color="#3F4F5F" testID='activity-indicator' />
             ) : (
@@ -300,8 +315,8 @@ const Space = () => {
                                 <FolderCard
                                     key={folder.id}
                                     folderName={folder.name}
-                                    // onEditPress={() => handleEditFolder({ id: folder.id, name: folder.name })}
-                                    // onDeletePress={() => handleDeleteFolder(folder.id)}
+                                    onEditPress={ () => handleEditFolderPress(folder) }
+                                    onDeletePress={() => handleDeleteFolderPress(folder)}
                                     onPress={() => handleFolderPress(folder.id, folder.name)}
                                 />
                             ))}
