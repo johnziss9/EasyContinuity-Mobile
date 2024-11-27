@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { StyleSheet, View, Text, ScrollView, Modal, Image, TouchableOpacity, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import someImage from '../assets/dummy-image.jpg';
 import someImage2 from '../assets/dummy-image2.jpg';
 import someImage3 from '../assets/dummy-image3.jpeg';
@@ -8,11 +8,15 @@ import someImage4 from '../assets/dummy-image4.jpeg';
 import ImageGrid from '../components/ImageGrid';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useFileBrowser from '../hooks/useFileBrowser';
+import handleHttpRequest from '../api/api';
 
 // TODO Using testImages prop in order to test the empty dummyImages array in the Snapshot tests - Needs to be removed
 const Snapshot = ({ testImages = null }) => {
 
     const navigation = useNavigation();
+    const route = useRoute();
+
+    const { spaceId, spaceName, folderId, folderName, snapshotId, snapshotName } = route.params;
 
     const MAX_IMAGES = 6;
 
@@ -23,6 +27,8 @@ const Snapshot = ({ testImages = null }) => {
     const [showImageModal, setShowImageModal] = useState(false);
     const [selectedImages, setSelectedImages] = useState([]);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [snapshot, setSnapshot] = useState({});
+    const [characterName, setCharacterName] = useState('');
 
     // Initial code was: const dummyImages = [
     // TODO This would need to be removed and updated when there's not images coming from the database
@@ -33,19 +39,20 @@ const Snapshot = ({ testImages = null }) => {
         { id: 4, source: someImage4 }
     ];
 
-    const renderField = (label, value, index, sectionId) => (
-        <View
-            key={`field-${index}`}
-            style={styles.fieldContainer}
-            testID={`${sectionId}-field-${index}`}
-        >
-            <Text style={styles.fieldLabel}>{label}</Text>
-            <Text style={styles.fieldText}>{value}</Text>
-        </View>
-    );
+    const renderField = (label, value, index, sectionId) => {
+        return (
+            <View
+                key={`field-${index}`}
+                style={styles.fieldContainer}
+                testID={`${sectionId}-field-${index}`}
+            >
+                <Text style={styles.fieldLabel}>{label}</Text>
+                <Text style={styles.fieldText}>{value}</Text>
+            </View>
+        );
+    }
 
-    const renderSection = (title, fields, onPress) => {
-        const sectionId = title.toLowerCase().replace(/\s+/g, '-');
+    const renderSection = (title, fields, onPress, sectionId) => {
         return (
             <View
                 key={`section-${sectionId}`}
@@ -72,7 +79,7 @@ const Snapshot = ({ testImages = null }) => {
     };
 
     const handleEditGeneralPress = () => {
-        navigation.navigate('SnapshotGeneralInfo', { isNewSnapshot: false });
+        navigation.navigate('SnapshotGeneralInfo', { isNewSnapshot: false, spaceId, spaceName, folderId, folderName, snapshotId, snapshotName });
     };
 
     const handleEditMakeupPress = () => {
@@ -97,9 +104,60 @@ const Snapshot = ({ testImages = null }) => {
     };
 
     // TODO Remove this once images are working correctly when uploading
-    useEffect(() => {
-        console.log('Current filesInfo:', filesInfo);
-    }, [filesInfo]);
+    useFocusEffect(
+        useCallback(() => {
+            handleGetSnapshotInfo();
+
+            console.log('Current filesInfo:', filesInfo);
+        }, [filesInfo])
+    );
+
+    const handleGetCharacterName = async (characterId) => {
+        try {
+            const url = `/character/${characterId}`;
+            const method = 'GET';
+
+            const response = await handleHttpRequest(url, method);
+
+            if (response.success) {
+                setCharacterName(response.data.name)
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Getting Character:', error);
+            
+            // TODO Replace error with fail toast
+            throw error;
+        }
+    }
+
+    const handleGetSnapshotInfo = async () => {
+        try {
+            const url = `/snapshot/${snapshotId}`;
+            const method = 'GET';
+
+            const response = await handleHttpRequest(url, method);
+
+            console.log('API Response:', response); 
+
+            if (response.success) {
+                setSnapshot(response.data);
+                if (response.data.character) {
+                    await handleGetCharacterName(response.data.character);
+                }
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Getting Snapshot:', error);
+            
+            // TODO Replace error with fail toast
+            throw error;
+        }
+    }
 
     const handleBrowseFiles = async () => {
         console.log('Attempting to browse files...');
@@ -193,31 +251,29 @@ const Snapshot = ({ testImages = null }) => {
                 </View>
 
                 {renderSection("General", [
-                    ["Episode Number:", "Something"],
-                    ["Scene Number:", "Something"],
-                    ["Story Day:", "Something"],
-                    ["Actor Name:", "Something"],
-                    ["Actor Number:", "Something"],
-                    ["Character:", "Something"],
-                    ["Notes:", "Something"]
+                    ["Episode Number:", snapshot.episode],
+                    ["Scene Number:", snapshot.scene],
+                    ["Story Day:", snapshot.storyDay],
+                    ["Character:", characterName],
+                    ["Notes:", snapshot.notes]
                 ], handleEditGeneralPress, 'edit-general-button')}
 
                 {renderSection("Makeup", [
-                    ["Skin:", "Something"],
-                    ["Brows:", "Something"],
-                    ["Eyes:", "Something"],
-                    ["Lips:", "Something"],
-                    ["Effects:", "Something"],
-                    ["Makeup Notes:", "Something"]
-                ], handleEditMakeupPress, 'edit-general-button')}
+                    ["Skin:", snapshot.skin],
+                    ["Brows:", snapshot.brows],
+                    ["Eyes:", snapshot.eyes],
+                    ["Lips:", snapshot.lips],
+                    ["Effects:", snapshot.effects],
+                    ["Makeup Notes:", snapshot.makeupNotes]
+                ], handleEditMakeupPress, 'edit-makeup-button')}
 
                 {renderSection("Hair", [
-                    ["Prep:", "Something"],
-                    ["Method:", "Something"],
-                    ["Styling Tools:", "Something"],
-                    ["Products:", "Something"],
-                    ["Hair Notes:", "Something"]
-                ], handleEditHairPress)}
+                    ["Prep:", snapshot.prep],
+                    ["Method:", snapshot.method],
+                    ["Styling Tools:", snapshot.stylingTools],
+                    ["Products:", snapshot.products],
+                    ["Hair Notes:", snapshot.hairNotes]
+                ], handleEditHairPress, 'edit-hair-button')}
             </ScrollView>
         </View>
     );

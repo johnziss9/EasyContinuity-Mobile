@@ -235,8 +235,8 @@ describe('SnapshotGeneralInfo', () => {
                     name: 'New Test Snapshot',
                     spaceId: 1,
                     episode: '1',
-                    scene: '2',
-                    storyDay: '3',
+                    scene: 2,
+                    storyDay: 3,
                     character: 2,
                     notes: 'Test notes'
                 }
@@ -267,10 +267,11 @@ describe('SnapshotGeneralInfo', () => {
                 name: 'New Test Snapshot',
                 spaceId: 1,
                 episode: '1',
-                scene: '2',
-                storyDay: '3',
-                character: 2,  // Changed from "2" to 2
-                notes: 'Test notes'
+                scene: 2,
+                storyDay: 3,
+                character: 2,
+                notes: 'Test notes',
+                createdOn: expect.any(String)
             });
             expect(mockNavigate).toHaveBeenCalledWith('Space', { spaceId: 1, folderId: undefined, spaceName: 'Test Space' });
         });
@@ -297,6 +298,159 @@ describe('SnapshotGeneralInfo', () => {
         await waitFor(() => {
             // Verify modal is closed
             expect(queryByText('Add New Character:')).toBeNull();
+        });
+    });
+
+    it('should load and display existing snapshot data when editing', async () => {
+        const apiMock = require('../api/api').default;
+        
+        // Mock route params for editing
+        jest.spyOn(require('@react-navigation/native'), 'useRoute').mockReturnValue({
+            params: {
+                spaceId: 1,
+                isNewSnapshot: false,
+                spaceName: 'Test Space',
+                snapshotId: 1
+            }
+        });
+    
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 2, name: 'Character 1' },
+                    { id: 3, name: 'Character 2' }
+                ]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: {
+                    id: 1,
+                    name: 'Test Snapshot',
+                    episode: '101',
+                    scene: 5,
+                    storyDay: 12,
+                    character: 2,
+                    notes: 'Test notes'
+                }
+            }));
+    
+        const { getByTestId, getByText } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            expect(getByText('Edit Snapshot')).toBeTruthy();
+            expect(getByTestId('snapshot-name-text-input').props.value).toBe('Test Snapshot');
+            expect(getByTestId('episode-number-text-input').props.value).toBe('101');
+            expect(getByTestId('scene-number-text-input').props.value).toBe('5');
+            expect(getByTestId('story-day-text-input').props.value).toBe('12');
+            expect(getByTestId('snapshot-notes-text-input').props.value).toBe('Test notes');
+            expect(apiMock).toHaveBeenCalledWith('/snapshot/1', 'GET');
+        });
+    });
+
+    it('should successfully update an existing snapshot', async () => {
+        const apiMock = require('../api/api').default;
+        
+        jest.spyOn(require('@react-navigation/native'), 'useRoute').mockReturnValue({
+            params: {
+                spaceId: 1,
+                isNewSnapshot: false,
+                spaceName: 'Test Space',
+                snapshotId: 1,
+                snapshotName: 'Old Name'
+            }
+        });
+    
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 2, name: 'Character 1' }]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { 
+                    id: 1,
+                    name: 'Test Snapshot',
+                    episode: '101',
+                    scene: 5,
+                    storyDay: 12,
+                    character: 2
+                }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { 
+                    id: 1,
+                    name: 'Updated Snapshot'
+                }
+            }));
+    
+        const { getByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            fireEvent.changeText(getByTestId('snapshot-name-text-input'), 'Updated Snapshot');
+            fireEvent.press(getByTestId('general-submit-button'));
+        });
+    
+        await waitFor(() => {
+            expect(apiMock).toHaveBeenCalledWith('/snapshot/1', 'PUT', expect.objectContaining({
+                name: 'Updated Snapshot',
+                lastUpdatedOn: expect.any(String)
+            }));
+        });
+    });
+
+    it('should correctly parse scene and story day numbers when creating/updating', async () => {
+        const apiMock = require('../api/api').default;
+    
+        const { getByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            fireEvent.changeText(getByTestId('scene-number-text-input'), '42');
+            fireEvent.changeText(getByTestId('story-day-text-input'), '365');
+            fireEvent.press(getByTestId('general-submit-button'));
+    
+            expect(apiMock).toHaveBeenCalledWith(expect.any(String), expect.any(String), 
+                expect.objectContaining({
+                    scene: 42,
+                    storyDay: 365
+                })
+            );
+        });
+    });
+
+    it('should handle null scene and story day values', async () => {
+        const apiMock = require('../api/api').default;
+    
+        const { getByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            fireEvent.changeText(getByTestId('scene-number-text-input'), '');
+            fireEvent.changeText(getByTestId('story-day-text-input'), '');
+            fireEvent.press(getByTestId('general-submit-button'));
+    
+            expect(apiMock).toHaveBeenCalledWith(expect.any(String), expect.any(String), 
+                expect.objectContaining({
+                    scene: null,
+                    storyDay: null
+                })
+            );
         });
     });
 

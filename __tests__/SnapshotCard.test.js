@@ -11,10 +11,12 @@ jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
 
 describe('SnapshotCard', () => {
     const mockOnPress = jest.fn();
+    const mockOnDeletePress = jest.fn();
     const defaultProps = {
         snapshotName: 'Test Snapshot',
         images: [{ uri: 'image1.jpg' }, { uri: 'image2.jpg' }, { uri: 'image3.jpg' }],
         onPress: mockOnPress,
+        onDeletePress: mockOnDeletePress,
     };
 
     describe('Wide screen (width >= 400)', () => {
@@ -62,6 +64,17 @@ describe('SnapshotCard', () => {
             const { getByTestId } = render(<SnapshotCard {...defaultProps} />);
             fireEvent.press(getByTestId('snapshot-component'));
             expect(mockOnPress).toHaveBeenCalled();
+        });
+
+        it('should call onDeletePress when delete button is pressed', () => {
+            const { getByTestId } = render(<SnapshotCard {...defaultProps} />);
+            fireEvent.press(getByTestId('delete-snapshot-button'));
+            expect(mockOnDeletePress).toHaveBeenCalled();
+        });
+    
+        it('should render delete button', () => {
+            const { getByTestId } = render(<SnapshotCard {...defaultProps} />);
+            expect(getByTestId('delete-snapshot-button')).toBeTruthy();
         });
     });
 
