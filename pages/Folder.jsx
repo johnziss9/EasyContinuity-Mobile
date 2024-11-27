@@ -145,7 +145,11 @@ const Folder = () => {
 
     const handleSnapshotPress = (snapshot) => {
         navigation.navigate('Snapshot', {
-            id: snapshot.id,
+            spaceId,
+            spaceName,
+            folderId: folderId,
+            folderName: folderName,
+            snapshotId: snapshot.id,
             snapshotName: snapshot.name
         });
     };
@@ -154,6 +158,38 @@ const Folder = () => {
         setShowAddNewFolderModal(false);
         setFolderEditing(false);
         setFolderNameField('');
+    }
+    
+    const handleDeleteSnapshotPress = async (snapshot) => {
+        // TODO Add modal for confirmation
+
+        try {
+            const url = `/snapshot/${snapshot.id}`;
+            const method = 'PUT';
+            const body = {
+                name: snapshot.name,
+                isDeleted: true,
+                deletedOn: new Date().toISOString()
+                // TODO Include deletedBy
+            };
+
+            const response = await handleHttpRequest(url, method, body);
+
+            if (response.success) {
+                // TODO Show success toast
+                handleFetchAllFolderData();
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Deleting Snapshot:', error);
+
+            // TODO Replace error with fail toast
+            throw error;
+        } finally {
+            // TODO Show deletion confirmation
+        }
     }
 
     const handleDeleteFolderPress = async (folder) => {
@@ -344,6 +380,7 @@ const Folder = () => {
                                     key={snapshot.id}
                                     snapshotName={snapshot.name}
                                     // images={[someImage, someImage2, someImage3, someImage4, someImage, someImage]}
+                                    onDeletePress={() => handleDeleteSnapshotPress(snapshot)}
                                     onPress={() => handleSnapshotPress(snapshot)}
                                 />
                             ))}
