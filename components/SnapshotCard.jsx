@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Text, Pressable, Image, TouchableOpacity, useWindowDimensions } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const SnapshotCard = ({ snapshotName, images = [], onPress }) => {
+const SnapshotCard = ({ snapshotName, images = [], onPress, onDeletePress }) => {
 
     const { width } = useWindowDimensions();
 
@@ -57,10 +57,7 @@ const SnapshotCard = ({ snapshotName, images = [], onPress }) => {
                     </>
                 }
                 {width < 400 ? <Text style={styles.compactText} testID='compact-text'>{snapshotName}</Text> : null}
-                <TouchableOpacity style={styles.editSpace}>
-                    <Ionicons name="create-outline" size={30} color="#CDA7AF" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.deleteSpace}>
+                <TouchableOpacity style={styles.deleteSpace} onPress={onDeletePress} testID="delete-snapshot-button">
                     <Ionicons name="trash-outline" size={30} color="#CDA7AF" />
                 </TouchableOpacity>
             </View>

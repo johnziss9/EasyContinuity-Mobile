@@ -7,33 +7,40 @@ import handleHttpRequest from '../api/api';
 const SnapshotGeneralInfo = () => {
 
     const route = useRoute();
-    const { isNewSnapshot, spaceId, spaceName, folderId, folderName } = route.params;
+    const { isNewSnapshot, spaceId, spaceName, folderId, folderName, snapshotId, snapshotName } = route.params;
 
     const navigation = useNavigation();
     const { width } = useWindowDimensions();
 
     const [name, setName] = useState("");
-    const [episodeNumber, setEpisodeNumber] = useState("");
-    const [sceneNumber, setSceneNumber] = useState(null)
-    const [storyDay, setStoryDay] = useState(null);
-    const [notes, setNotes] = useState("");
+    const [episodeNumber, setEpisodeNumber] = useState('');
+    const [sceneNumber, setSceneNumber] = useState('')
+    const [storyDay, setStoryDay] = useState('');
+    const [notes, setNotes] = useState('');
     const [selectedCharacterId, setSelectedCharacterId] = useState(null);
     const [showAddCharacterModal, setShowAddCharacterModal] = useState(false);
     const [characterName, setCharacterName] = useState("");
     const [characters, setCharacters] = useState([]);
-
-    // useEffect(() => {
-    //     if (id) {
-    //         handleFetchCustomer();
-
-    //         setIsEdit(true);
-    //     }
-    //     // eslint-disable-next-line
-    // }, [id]);
+    const [snapshot, setSnapshot] = useState([]);
 
     useEffect(() =>{
         handleGetAllCharacters();
+
+        if (!isNewSnapshot) {
+            handleFetchSnapshot(snapshotId);
+        }
     }, []);
+
+    useEffect(() => {
+        if (!isNewSnapshot && snapshot) {
+            setName(snapshot.name || '');
+            setEpisodeNumber(snapshot.episode || '');
+            setSceneNumber(snapshot.scene ? snapshot.scene.toString() : '');
+            setStoryDay(snapshot.storyDay ? snapshot.storyDay.toString() : '');
+            setNotes(snapshot.notes || '');
+            setSelectedCharacterId(snapshot.character || null);
+        }
+    }, [snapshot, isNewSnapshot]);
 
     const handleSelectNewCharacter = (selectedKey, selectedValue) => {
         if (selectedKey === '1') {
@@ -52,8 +59,7 @@ const SnapshotGeneralInfo = () => {
             // If it's a new snapshot and we have a folderId, go back to the folder view
             navigation.navigate('Folder', { spaceId: spaceId, spaceName: spaceName, folderId: folderId, folderName: folderName });
           } else {
-            // TODO: Once snapshot editing is implemented, this should navigate back to the specific snapshot using snapshotId
-            navigation.navigate('Snapshot', { id }); // TODO This will need to be updated to snapshotId when implemented
+            navigation.navigate('Snapshot', { snapshotId, snapshotName });
           }
     };
 
@@ -66,6 +72,27 @@ const SnapshotGeneralInfo = () => {
         }
     };
 
+    const handleFetchSnapshot = async () => {
+        try {
+            const url = `/snapshot/${snapshotId}`;
+            const method = 'GET';
+
+            const response = await handleHttpRequest(url, method);
+
+            if (response.success) {
+                setSnapshot(response.data);
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Getting Snapshot:', error);
+            
+            // TODO Replace error with fail toast
+            throw error;
+        }
+    }
+
     const handleCreateOrEditSnapshot = async () => {
         if (isNewSnapshot)
         {
@@ -77,10 +104,11 @@ const SnapshotGeneralInfo = () => {
                     spaceId: spaceId,
                     folderId: folderId,
                     episode: episodeNumber,
-                    scene: sceneNumber,
-                    storyDay: storyDay,
+                    scene: sceneNumber ? parseInt(sceneNumber) : null,
+                    storyDay: storyDay ? parseInt(storyDay) : null,
                     character: selectedCharacterId,
-                    notes: notes
+                    notes: notes,
+                    createdOn: new Date().toISOString()
                     // TODO Include AddedBy
                 };
     
@@ -95,8 +123,7 @@ const SnapshotGeneralInfo = () => {
                         // If it's a new snapshot and we have a folderId, go back to the folder view
                         navigation.navigate('Folder', { spaceId: spaceId, spaceName: spaceName, folderId: folderId, folderName: folderName });
                       } else {
-                        // TODO: Once snapshot editing is implemented, this should navigate back to the specific snapshot using snapshotId
-                        navigation.navigate('Snapshot', { id }); // TODO This will need to be updated to snapshotId when implemented
+                        navigation.navigate('Snapshot', { snapshotId, snapshotName });
                       }
                 } else {
                     // TODO Replace error with fail toast
@@ -110,36 +137,37 @@ const SnapshotGeneralInfo = () => {
             }
         } 
         else {
-            // try {
-            //     const url = `/snapshot/${id}`;
-            //     const method = 'PUT';
-            //     const body = {
-            //         name: name,
-            //         // TODO Include Space Id
-            //         // TODO Include Folder Id
-            //         episode: episodeNumber,
-            //         scene: sceneNumber,
-            //         storyDay: storyDay,
-            //         character: selectedCharacterId,
-            //         notes: notes
-            //         // TODO Include AddedBy
-            //     };
+            try {
+                const url = `/snapshot/${snapshotId}`;
+                const method = 'PUT';
+                const body = {
+                    name: name,
+                    spaceId: spaceId,
+                    folderId: folderId,
+                    episode: episodeNumber,
+                    scene: sceneNumber ? parseInt(sceneNumber) : null,
+                    storyDay: storyDay ? parseInt(storyDay) : null,
+                    character: selectedCharacterId,
+                    notes: notes,
+                    lastUpdatedOn: new Date().toISOString()
+                    // TODO Include AddedBy
+                };
+
+                const response = await handleHttpRequest(url, method, body);
     
-            //     const response = await handleHttpRequest(url, method, body);
-    
-            //     if (response.success) {
-            //         // TODO Show success modal and navigate on okay
-            //         navigation.navigate('Space'); // This to be used when okay is pressed on above modal
-            //     } else {
-            //         // TODO Replace error with fail toast
-            //         throw new Error(response.error);
-            //     }
-            // } catch (error) {
-            //     console.error('Error Updating Snapshot:', error);
+                if (response.success) {
+                    // TODO Show success modal and navigate on okay
+                    navigation.navigate('Snapshot', { spaceId: spaceId, spaceName: spaceName, folderId: folderId, folderName: folderName, snapshotId: snapshotId, snapshotName: name });
+                } else {
+                    // TODO Replace error with fail toast
+                    throw new Error(response.error);
+                }
+            } catch (error) {
+                console.error('Error Updating Snapshot:', error);
                 
-            //     // TODO Replace error with fail toast
-            //     throw error;
-            // }
+                // TODO Replace error with fail toast
+                throw error;
+            }
         }
     }
 
@@ -157,7 +185,6 @@ const SnapshotGeneralInfo = () => {
 
             if (response.success) {
                 // TODO Show success toast
-                // TODO Make sure data is refreshed in dropdown
                 await handleGetAllCharacters();
             } else {
                 // TODO Replace error with fail toast
@@ -169,7 +196,6 @@ const SnapshotGeneralInfo = () => {
             // TODO Replace error with fail toast
             throw error;
         } finally {
-            // These will run whether the request succeeded or failed
             setShowAddCharacterModal(false);
             setCharacterName('');
         }    
@@ -278,6 +304,7 @@ const SnapshotGeneralInfo = () => {
                 <SelectList
                     setSelected={handleSelectNewCharacter}
                     data={characters}
+                    defaultOption={characters.find(char => char.key === selectedCharacterId)}
                     placeholder="Character"
                     searchPlaceholder="Search..."
                     boxStyles={styles.dropdownBox}

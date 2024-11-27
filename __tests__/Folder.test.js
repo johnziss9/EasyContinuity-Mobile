@@ -142,7 +142,11 @@ describe('Folder Component', () => {
 
         fireEvent.press(getByText('Test Snapshot'));
         expect(mockNavigate).toHaveBeenCalledWith('Snapshot', {
-            id: 1,
+            spaceId: 1,
+            spaceName: 'Test Space',
+            folderId: 1,
+            folderName: 'Test Folder',
+            snapshotId: 1,
             snapshotName: 'Test Snapshot'
         });
     });
@@ -574,6 +578,61 @@ describe('Folder Component', () => {
                 deletedOn: expect.any(String)
             });
             expect(queryByText('Test Folder')).toBeNull();
+        });
+    });
+
+    it('should successfully delete a snapshot', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Current Folder', parentId: null }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 2, name: 'Test Snapshot', folderId: 1 }]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { success: true }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Current Folder', parentId: null }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+    
+        const { getByText, getByTestId, queryByText } = render(
+            <NavigationContainer>
+                <Folder />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            expect(getByText('Test Snapshot')).toBeTruthy();
+        });
+    
+        const deleteButton = getByTestId('delete-snapshot-button');
+        fireEvent.press(deleteButton);
+    
+        await waitFor(() => {
+            expect(apiMock).toHaveBeenCalledWith('/snapshot/2', 'PUT', {
+                name: 'Test Snapshot',
+                isDeleted: true,
+                deletedOn: expect.any(String)
+            });
+            expect(queryByText('Test Snapshot')).toBeNull();
         });
     });
 });

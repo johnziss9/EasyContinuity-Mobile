@@ -103,9 +103,9 @@ const App = () => {
           <Stack.Screen
             name="Snapshot"
             component={Snapshot}
-            options={{
-              title: 'Title of Snapshot'
-            }}
+            options={({ route }) => ({
+              title: route.params?.snapshotName || null,
+            })}
           />
           <Stack.Screen
             name="SnapshotGeneralInfo"
