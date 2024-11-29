@@ -274,7 +274,7 @@ const Snapshot = ({ testImages = null }) => {
                 </View>
 
                 {renderSection("General", [
-                    ...(spaceType === 2 ? [["Episode Number:", snapshot.episode]] : []),
+                    ...(Number(spaceType) === 2 ? [["Episode Number:", snapshot.episode]] : []),
                     ["Scene Number:", snapshot.scene],
                     ["Story Day:", snapshot.storyDay],
                     ["Character:", characterName],
