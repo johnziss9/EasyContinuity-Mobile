@@ -179,10 +179,24 @@ describe('Snapshot', () => {
         });
 
         fireEvent.press(getByTestId('edit-edit-makeup-button-button'));
-        expect(mockNavigate).toHaveBeenCalledWith('SnapshotMakeupInfo', { isNewSnapshot: false });
+        expect(mockNavigate).toHaveBeenCalledWith('SnapshotMakeupInfo', { 
+            spaceId: 1,
+            spaceName: 'Test Space',
+            folderId: 1,
+            folderName: 'Test Folder',
+            snapshotId: 1,
+            snapshotName: 'Test Snapshot'
+        });
 
         fireEvent.press(getByTestId('edit-edit-hair-button-button'));
-        expect(mockNavigate).toHaveBeenCalledWith('SnapshotHairInfo', { isNewSnapshot: false });
+        expect(mockNavigate).toHaveBeenCalledWith('SnapshotHairInfo', { 
+            spaceId: 1,
+            spaceName: 'Test Space',
+            folderId: 1,
+            folderName: 'Test Folder',
+            snapshotId: 1,
+            snapshotName: 'Test Snapshot'
+         });
     });
 
     it('should call browseFiles when add images button is pressed', async () => {
