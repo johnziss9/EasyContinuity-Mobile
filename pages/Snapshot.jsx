@@ -83,11 +83,11 @@ const Snapshot = ({ testImages = null }) => {
     };
 
     const handleEditMakeupPress = () => {
-        navigation.navigate('SnapshotMakeupInfo', { isNewSnapshot: false });
+        navigation.navigate('SnapshotMakeupInfo', { spaceId, spaceName, folderId, folderName, snapshotId, snapshotName });
     };
 
     const handleEditHairPress = () => {
-        navigation.navigate('SnapshotHairInfo', { isNewSnapshot: false });
+        navigation.navigate('SnapshotHairInfo', { spaceId, spaceName, folderId, folderName, snapshotId, snapshotName });
     };
 
     const handleImagePress = (index) => {

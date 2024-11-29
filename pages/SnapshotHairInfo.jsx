@@ -1,21 +1,94 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, ScrollView, TextInput, Modal, View, TouchableOpacity, useWindowDimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import handleHttpRequest from '../api/api';
 
-const SnapshotHairInfo = ({ route }) => {
+const SnapshotHairInfo = () => {
+
+    const route = useRoute();
+    const { isNewSnapshot, spaceId, spaceName, folderId, folderName, snapshotId, snapshotName } = route.params;
+
     const navigation = useNavigation();
     const { width } = useWindowDimensions();
 
-    const { isNewSnapshot } = route.params; // Passing this to SnapshotHairInfo to show the right title
-
     const [prep, setPrep] = useState("");
-    const [method, setMethod] = useState("");
+    const [hairMethod, setHairMethod] = useState("");
     const [stylingTools, setStylingTools] = useState("");
     const [products, setProducts] = useState("");
     const [notes, setNotes] = useState("");
+    const [snapshot, setSnapshot] = useState([]);
+
+    useEffect(() => {
+        handleFetchSnapshot(snapshotId);
+    }, []);
+
+    useEffect(() => {
+        if (snapshot) {
+            setPrep(snapshot.prep || '');
+            setHairMethod(snapshot.method || '');
+            setStylingTools(snapshot.stylingTools || '');
+            setProducts(snapshot.products || '');
+            setNotes(snapshot.hairNotes || '');
+        }
+    }, [snapshot]);
+
+    const handleFetchSnapshot = async () => {
+        try {
+            const url = `/snapshot/${snapshotId}`;
+            const method = 'GET';
+
+            const response = await handleHttpRequest(url, method);
+
+            if (response.success) {
+                setSnapshot(response.data);
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Getting Snapshot:', error);
+
+            // TODO Replace error with fail toast
+            throw error;
+        }
+    }
+
+    const handleUpdateHairPress = async () => {
+        try {
+            const url = `/snapshot/${snapshotId}`;
+            const method = 'PUT';
+            const body = {
+                name: snapshotName,
+                spaceId: spaceId,
+                folderId: folderId,
+                prep: prep,
+                method: hairMethod,
+                stylingTools: stylingTools,
+                products: products,
+                hairNotes: notes,
+                lastUpdatedOn: new Date().toISOString()
+                // TODO Include AddedBy
+            };
+
+            const response = await handleHttpRequest(url, method, body);
+
+            if (response.success) {
+                // TODO Show success modal and navigate on okay
+                navigation.navigate('Snapshot', { spaceId: spaceId, spaceName: spaceName, folderId: folderId, folderName: folderName, snapshotId: snapshotId, snapshotName: snapshotName });
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Updating Snapshot:', error);
+            
+            // TODO Replace error with fail toast
+            throw error;
+        }
+    }
 
     const handleCancelPress = () => {
-        navigation.navigate(isNewSnapshot ? 'Space' : 'Snapshot');
+        navigation.navigate('Snapshot', { spaceId: spaceId, spaceName: spaceName, folderId: folderId, folderName: folderName, snapshotId: snapshotId, snapshotName: snapshotName });
     };
 
     const dynamicStyles = {
@@ -28,7 +101,7 @@ const SnapshotHairInfo = ({ route }) => {
     };
 
     return (
-        <View style={dynamicStyles.container}>
+        <View style={dynamicStyles.container} testID='snapshot-hair-container'>
             <ScrollView showsVerticalScrollIndicator={false}>
                 <Text style={styles.header}>{isNewSnapshot ? "Add Hair Details" : "Edit Hair Details"}</Text>
                 <Text style={styles.label} accessibilityLabel="Prep:">Prep:</Text>
@@ -45,8 +118,8 @@ const SnapshotHairInfo = ({ route }) => {
                 <Text style={styles.label} accessibilityLabel="Method:">Method:</Text>
                 <TextInput
                     style={styles.multilineTextbox}
-                    onChangeText={setMethod}
-                    value={method}
+                    onChangeText={setHairMethod}
+                    value={hairMethod}
                     placeholder='Method'
                     multiline
                     numberOfLines={4}
@@ -90,7 +163,7 @@ const SnapshotHairInfo = ({ route }) => {
                     <TouchableOpacity style={[styles.formButton, styles.buttonCancel]} onPress={handleCancelPress} testID='hair-cancel-button'>
                         <Text style={[styles.buttonText, styles.buttonTextCancel]}>Cancel</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.formButton, styles.buttonSave]} testID='hair-submit-button'>
+                    <TouchableOpacity style={[styles.formButton, styles.buttonSave]} onPress={handleUpdateHairPress} testID='hair-submit-button'>
                         <Text style={[styles.buttonText, styles.buttonTextSave]}>Submit</Text>
                     </TouchableOpacity>
                 </View>
