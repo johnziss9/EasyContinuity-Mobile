@@ -51,6 +51,14 @@ describe('Snapshot', () => {
             success: true,
             data: {
                 id: 1,
+                type: 2 
+            }
+        }));
+    
+        apiMock.mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: {
+                id: 1,
                 name: 'Test Snapshot',
                 episode: '1',
                 scene: '1',
@@ -69,14 +77,26 @@ describe('Snapshot', () => {
                 products: 'Test products',
                 hairNotes: 'Test hair notes'
             }
-        }))
-            .mockImplementationOnce(() => Promise.resolve({
-                success: true,
-                data: {
-                    id: 1,
-                    name: 'Test Character'
-                }
-            }));
+        }));
+    
+        apiMock.mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: {
+                id: 1,
+                name: 'Test Character'
+            }
+        }));
+    
+        jest.spyOn(require('@react-navigation/native'), 'useRoute').mockReturnValue({
+            params: {
+                spaceId: 1,
+                spaceName: 'Test Space',
+                folderId: 1,
+                folderName: 'Test Folder',
+                snapshotId: 1,
+                snapshotName: 'Test Snapshot'
+            }
+        });
     
         const { getByText, getByTestId, getAllByTestId } = render(
             <NavigationContainer>
@@ -93,6 +113,8 @@ describe('Snapshot', () => {
     
             // Check for content in General section with their labels
             const generalFields = getAllByTestId(/^edit-general-button-field-/);
+            
+            // First field should be Episode Number since spaceType is 2
             expect(generalFields[0]).toHaveTextContent('Episode Number:');
             expect(generalFields[0]).toHaveTextContent('1');
             expect(generalFields[1]).toHaveTextContent('Scene Number:');
@@ -246,26 +268,34 @@ describe('Snapshot', () => {
     });
 
     it('should fetch and display snapshot data on mount', async () => {
-        apiMock
-            .mockImplementationOnce(() => Promise.resolve({
-                success: true,
-                data: {
-                    id: 1,
-                    name: 'Test Snapshot',
-                    episode: '101',
-                    scene: '5',
-                    storyDay: '12',
-                    character: 2,
-                    notes: 'Snapshot test notes'
-                }
-            }))
-            .mockImplementationOnce(() => Promise.resolve({
-                success: true,
-                data: {
-                    id: 2,
-                    name: 'John Smith'
-                }
-            }));
+        apiMock.mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: {
+                id: 1,
+                type: 2
+            }
+        }));
+    
+        apiMock.mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: {
+                id: 1,
+                name: 'Test Snapshot',
+                episode: '101',
+                scene: '5',
+                storyDay: '12',
+                character: 2,
+                notes: 'Snapshot test notes'
+            }
+        }));
+    
+        apiMock.mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: {
+                id: 2,
+                name: 'John Smith'
+            }
+        }));
     
         const { getByText } = render(
             <NavigationContainer>
@@ -280,8 +310,111 @@ describe('Snapshot', () => {
             expect(getByText('John Smith')).toBeTruthy(); // Character name
             expect(getByText('Snapshot test notes')).toBeTruthy(); // Notes
     
-            expect(apiMock).toHaveBeenNthCalledWith(1, '/snapshot/1', 'GET');
-            expect(apiMock).toHaveBeenNthCalledWith(2, '/character/2', 'GET');
+            expect(apiMock).toHaveBeenNthCalledWith(1, '/space/1', 'GET');
+            expect(apiMock).toHaveBeenNthCalledWith(2, '/snapshot/1', 'GET');
+            expect(apiMock).toHaveBeenNthCalledWith(3, '/character/2', 'GET');
         });
+    });
+
+    it('should not show Episode Number when spaceType is 1', async () => {
+        apiMock.mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: {
+                id: 1,
+                type: 1
+            }
+        }));
+
+        apiMock.mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: {
+                id: 1,
+                name: 'Test Snapshot',
+                episode: '101',
+                scene: '5',
+                storyDay: '12',
+                character: 2,
+                notes: 'Test notes'
+            }
+        }));
+
+        apiMock.mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: {
+                id: 2,
+                name: 'Test Character'
+            }
+        }));
+
+        const { getAllByTestId, queryByText } = render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            const generalFields = getAllByTestId(/^edit-general-button-field-/);
+            
+            // First field should be Scene Number
+            expect(generalFields[0]).toHaveTextContent('Scene Number:');
+            expect(generalFields[0]).toHaveTextContent('5');
+            
+            // Episode Number should not be present
+            expect(queryByText(/Episode Number:/)).toBeNull();
+        });
+    });
+
+    it('should show Episode Number when spaceType is 2', async () => {
+        apiMock.mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: {
+                id: 1,
+                type: 2
+            }
+        }));
+
+        apiMock.mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: {
+                id: 1,
+                name: 'Test Snapshot',
+                episode: '101',
+                scene: '5',
+                storyDay: '12',
+                character: 2,
+                notes: 'Test notes'
+            }
+        }));
+
+        apiMock.mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: {
+                id: 2,
+                name: 'Test Character'
+            }
+        }));
+
+        const { getAllByTestId } = render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            const generalFields = getAllByTestId(/^edit-general-button-field-/);
+            
+            // First field should be Episode Number
+            expect(generalFields[0]).toHaveTextContent('Episode Number:');
+            expect(generalFields[0]).toHaveTextContent('101');
+            
+            // Second field should be Scene Number
+            expect(generalFields[1]).toHaveTextContent('Scene Number:');
+            expect(generalFields[1]).toHaveTextContent('5');
+        });
+
+        // Verify API calls were made in correct order
+        expect(apiMock).toHaveBeenNthCalledWith(1, '/space/1', 'GET');
+        expect(apiMock).toHaveBeenNthCalledWith(2, '/snapshot/1', 'GET');
+        expect(apiMock).toHaveBeenNthCalledWith(3, '/character/2', 'GET');
     });
 });

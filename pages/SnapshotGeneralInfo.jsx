@@ -22,8 +22,10 @@ const SnapshotGeneralInfo = () => {
     const [characterName, setCharacterName] = useState("");
     const [characters, setCharacters] = useState([]);
     const [snapshot, setSnapshot] = useState([]);
+    const [spaceType, setSpaceType] = useState(0);
 
     useEffect(() =>{
+        handleGetSpaceType();
         handleGetAllCharacters();
 
         if (!isNewSnapshot) {
@@ -71,6 +73,27 @@ const SnapshotGeneralInfo = () => {
             paddingTop: 30
         }
     };
+
+    const handleGetSpaceType = async () => {
+        try {
+            const url = `/space/${spaceId}`;
+            const method = 'GET';
+
+            const response = await handleHttpRequest(url, method);
+
+            if (response.success) {
+                setSpaceType(response.data.type);
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Getting Space Type:', error);
+            
+            // TODO Replace error with fail toast
+            throw error;
+        }
+    }
 
     const handleFetchSnapshot = async () => {
         try {
@@ -273,15 +296,19 @@ const SnapshotGeneralInfo = () => {
                     cursorColor={'#3F4F5F'}
                     testID='snapshot-name-text-input'
                 />
-                <Text style={styles.label} accessibilityLabel="Episode Number:">Episode Number:</Text>
-                <TextInput
-                    style={styles.textbox}
-                    onChangeText={setEpisodeNumber}
-                    value={episodeNumber}
-                    placeholder='Episode Number'
-                    cursorColor={'#3F4F5F'}
-                    testID='episode-number-text-input'
-                />
+                {spaceType == 2 ?
+                    <>
+                        <Text style={styles.label} accessibilityLabel="Episode Number:">Episode Number:</Text>
+                        <TextInput
+                            style={styles.textbox}
+                            onChangeText={setEpisodeNumber}
+                            value={episodeNumber}
+                            placeholder='Episode Number'
+                            cursorColor={'#3F4F5F'}
+                            testID='episode-number-text-input'
+                        /> 
+                    </> 
+                : null}
                 <Text style={styles.label} accessibilityLabel="Scene Number:">Scene Number:</Text>
                 <TextInput
                     style={styles.textbox}
