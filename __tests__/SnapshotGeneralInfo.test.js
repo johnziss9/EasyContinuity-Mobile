@@ -66,12 +66,29 @@ describe('SnapshotGeneralInfo', () => {
     });
 
     it('should render correctly for new snapshot', async () => {
+        const apiMock = require('../api/api').default;
+        
+        apiMock.mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: {
+                id: 1,
+                type: 2
+            }
+        }))
+        .mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: [
+                { id: 2, name: 'Character 1' },
+                { id: 3, name: 'Character 2' }
+            ]
+        }));
+    
         const { getByText, getByTestId } = render(
             <NavigationContainer>
                 <SnapshotGeneralInfo />
             </NavigationContainer>
         );
-
+    
         await waitFor(() => {
             expect(getByText('Add New Snapshot')).toBeTruthy();
             expect(getByTestId('snapshot-name-text-input')).toBeTruthy();
@@ -84,23 +101,40 @@ describe('SnapshotGeneralInfo', () => {
     });
 
     it('should allow input in text fields', async () => {
+        const apiMock = require('../api/api').default;
+        
+        apiMock.mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: {
+                id: 1,
+                type: 2
+            }
+        }))
+        .mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: [
+                { id: 2, name: 'Character 1' },
+                { id: 3, name: 'Character 2' }
+            ]
+        }));
+    
         const { getByTestId } = render(
             <NavigationContainer>
                 <SnapshotGeneralInfo />
             </NavigationContainer>
         );
-
+    
         await waitFor(() => {
             const nameInput = getByTestId('snapshot-name-text-input');
             const episodeInput = getByTestId('episode-number-text-input');
             const sceneInput = getByTestId('scene-number-text-input');
             const storyInput = getByTestId('story-day-text-input');
-
+    
             fireEvent.changeText(nameInput, 'Test Snapshot');
             fireEvent.changeText(episodeInput, 'Test Episode Number');
             fireEvent.changeText(sceneInput, 'Test Scene Number');
             fireEvent.changeText(storyInput, 'Test Story Day');
-
+    
             expect(nameInput.props.value).toBe('Test Snapshot');
             expect(episodeInput.props.value).toBe('Test Episode Number');
             expect(sceneInput.props.value).toBe('Test Scene Number');
@@ -175,6 +209,14 @@ describe('SnapshotGeneralInfo', () => {
         apiMock
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
+                data: {
+                    id: 1,
+                    type: 2
+                }
+            }))
+
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
                 data: [
                     { id: 2, name: 'Character 1' },
                     { id: 3, name: 'Character 2' }
@@ -192,24 +234,24 @@ describe('SnapshotGeneralInfo', () => {
                     { id: 4, name: 'New Test Character' }
                 ]
             }));
-
+    
         const { getByTestId, queryByText } = render(
             <NavigationContainer>
                 <SnapshotGeneralInfo />
             </NavigationContainer>
         );
-
+    
         await waitFor(() => {
             const addNewOption = getByTestId('character-select-option-1');
             fireEvent.press(addNewOption);
         });
-
+    
         const nameInput = getByTestId('character-name-text-input');
         fireEvent.changeText(nameInput, 'New Test Character');
         fireEvent.press(getByTestId('add-new-character-submit-button'));
-
+    
         await waitFor(() => {
-            expect(apiMock).toHaveBeenNthCalledWith(2, '/character/', 'POST', {
+            expect(apiMock).toHaveBeenNthCalledWith(3, '/character/', 'POST', {
                 name: 'New Test Character',
                 spaceId: 1
             });
@@ -221,6 +263,13 @@ describe('SnapshotGeneralInfo', () => {
         const apiMock = require('../api/api').default;
         
         apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: {
+                    id: 1,
+                    type: 2
+                }
+            }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
                 data: [
@@ -262,10 +311,10 @@ describe('SnapshotGeneralInfo', () => {
         fireEvent.press(getByTestId('general-submit-button'));
     
         await waitFor(() => {
-            // Update expectation to use number instead of string for character ID
-            expect(apiMock).toHaveBeenNthCalledWith(2, '/snapshot/', 'POST', {
+            expect(apiMock).toHaveBeenNthCalledWith(3, '/snapshot/', 'POST', {
                 name: 'New Test Snapshot',
                 spaceId: 1,
+                folderId: undefined,
                 episode: '1',
                 scene: 2,
                 storyDay: 3,
@@ -273,7 +322,11 @@ describe('SnapshotGeneralInfo', () => {
                 notes: 'Test notes',
                 createdOn: expect.any(String)
             });
-            expect(mockNavigate).toHaveBeenCalledWith('Space', { spaceId: 1, folderId: undefined, spaceName: 'Test Space' });
+            expect(mockNavigate).toHaveBeenCalledWith('Space', { 
+                spaceId: 1, 
+                spaceName: 'Test Space',
+                folderId: undefined 
+            });
         });
     });
 
@@ -315,6 +368,13 @@ describe('SnapshotGeneralInfo', () => {
         });
     
         apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: {
+                    id: 1,
+                    type: 2
+                }
+            }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
                 data: [
@@ -368,7 +428,16 @@ describe('SnapshotGeneralInfo', () => {
         apiMock
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: [{ id: 2, name: 'Character 1' }]
+                data: {
+                    id: 1,
+                    type: 2
+                }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 2, name: 'Character 1' }
+                ]
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
@@ -452,6 +521,78 @@ describe('SnapshotGeneralInfo', () => {
                 })
             );
         });
+    });
+
+    it('should not show Episode Number field when spaceType is 1', async () => {
+        const apiMock = require('../api/api').default;
+        
+        apiMock.mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: {
+                id: 1,
+                type: 1
+            }
+        }))
+        .mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: [
+                { id: 2, name: 'Character 1' },
+                { id: 3, name: 'Character 2' }
+            ]
+        }));
+    
+        const { queryByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            // Episode Number field should not be present
+            expect(queryByTestId('episode-number-text-input')).toBeNull();
+            // But other fields should still be there
+            expect(queryByTestId('scene-number-text-input')).toBeTruthy();
+            expect(queryByTestId('story-day-text-input')).toBeTruthy();
+        });
+    
+        // Verify space type API was called
+        expect(apiMock).toHaveBeenCalledWith('/space/1', 'GET');
+    });
+    
+    it('should show Episode Number field when spaceType is 2', async () => {
+        const apiMock = require('../api/api').default;
+        
+        apiMock.mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: {
+                id: 1,
+                type: 2
+            }
+        }))
+        .mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: [
+                { id: 2, name: 'Character 1' },
+                { id: 3, name: 'Character 2' }
+            ]
+        }));
+    
+        const { queryByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            // Episode Number field should be present
+            expect(queryByTestId('episode-number-text-input')).toBeTruthy();
+            // Along with other fields
+            expect(queryByTestId('scene-number-text-input')).toBeTruthy();
+            expect(queryByTestId('story-day-text-input')).toBeTruthy();
+        });
+    
+        // Verify space type API was called
+        expect(apiMock).toHaveBeenCalledWith('/space/1', 'GET');
     });
 
     // TODO Uncomment this when the bug is fixed that clears the character select list.
