@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, ScrollView, TextInput, View, TouchableOpacity, useWindowDimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import handleHttpRequest from '../api/api';
 
-const SnapshotMakeupInfo = ({ route }) => {
+const SnapshotMakeupInfo = () => {
+
+    const route = useRoute();
+    const { isNewSnapshot, spaceId, spaceName, folderId, folderName, snapshotId, snapshotName } = route.params;
+
     const navigation = useNavigation();
     const { width } = useWindowDimensions();
-
-    const { isNewSnapshot } = route.params; // Passing this to SnapshotMakeupInfo to show the right title
 
     const [skin, setSkin] = useState("");
     const [brows, setBrows] = useState("");
@@ -14,9 +17,81 @@ const SnapshotMakeupInfo = ({ route }) => {
     const [lips, setLips] = useState("");
     const [effects, setEffects] = useState("");
     const [notes, setNotes] = useState("");
+    const [snapshot, setSnapshot] = useState([]);
+
+    useEffect(() => {
+        handleFetchSnapshot(snapshotId);
+    }, []);
+
+    useEffect(() => {
+        if (snapshot) {
+            setSkin(snapshot.skin || '');
+            setBrows(snapshot.brows || '');
+            setEyes(snapshot.eyes || '');
+            setLips(snapshot.lips || '');
+            setEffects(snapshot.effects || '');
+            setNotes(snapshot.makeupNotes || '');
+        }
+    }, [snapshot]);
+
+    const handleFetchSnapshot = async () => {
+        try {
+            const url = `/snapshot/${snapshotId}`;
+            const method = 'GET';
+
+            const response = await handleHttpRequest(url, method);
+
+            if (response.success) {
+                setSnapshot(response.data);
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Getting Snapshot:', error);
+
+            // TODO Replace error with fail toast
+            throw error;
+        }
+    }
+
+    const handleUpdateMakeupPress = async () => {
+        try {
+            const url = `/snapshot/${snapshotId}`;
+            const method = 'PUT';
+            const body = {
+                name: snapshotName,
+                spaceId: spaceId,
+                folderId: folderId,
+                skin: skin,
+                brows: brows,
+                eyes: eyes,
+                lips: lips,
+                effects: effects,
+                makeupNotes: notes,
+                lastUpdatedOn: new Date().toISOString()
+                // TODO Include AddedBy
+            };
+
+            const response = await handleHttpRequest(url, method, body);
+
+            if (response.success) {
+                // TODO Show success modal and navigate on okay
+                navigation.navigate('Snapshot', { spaceId: spaceId, spaceName: spaceName, folderId: folderId, folderName: folderName, snapshotId: snapshotId, snapshotName: snapshotName });
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Updating Snapshot:', error);
+            
+            // TODO Replace error with fail toast
+            throw error;
+        }
+    }
 
     const handleCancelPress = () => {
-        navigation.navigate(isNewSnapshot ? 'Space' : 'Snapshot');
+        navigation.navigate('Snapshot', { spaceId: spaceId, spaceName: spaceName, folderId: folderId, folderName: folderName, snapshotId: snapshotId, snapshotName: snapshotName });
     };
 
     const dynamicStyles = {
@@ -29,7 +104,7 @@ const SnapshotMakeupInfo = ({ route }) => {
     };
 
     return (
-        <View style={dynamicStyles.container}>
+        <View style={dynamicStyles.container} testID='snapshot-makeup-container'>
             <ScrollView showsVerticalScrollIndicator={false}>
                 <Text style={styles.header}>{isNewSnapshot ? "Add Makeup Details" : "Edit Makeup Details"}</Text>
                 <Text style={styles.label} accessibilityLabel="Skin:">Skin:</Text>
@@ -102,7 +177,7 @@ const SnapshotMakeupInfo = ({ route }) => {
                     <TouchableOpacity style={[styles.formButton, styles.buttonCancel]} onPress={handleCancelPress} testID='makeup-cancel-button'>
                         <Text style={[styles.buttonText, styles.buttonTextCancel]}>Cancel</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.formButton, styles.buttonSave]} testID='makeup-submit-button'>
+                    <TouchableOpacity style={[styles.formButton, styles.buttonSave]} onPress={handleUpdateMakeupPress} testID='makeup-submit-button'>
                         <Text style={[styles.buttonText, styles.buttonTextSave]}>Submit</Text>
                     </TouchableOpacity>
                 </View>
