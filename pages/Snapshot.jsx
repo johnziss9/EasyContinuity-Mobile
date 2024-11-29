@@ -29,6 +29,7 @@ const Snapshot = ({ testImages = null }) => {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [snapshot, setSnapshot] = useState({});
     const [characterName, setCharacterName] = useState('');
+    const [spaceType, setSpaceType] = useState(0);
 
     // Initial code was: const dummyImages = [
     // TODO This would need to be removed and updated when there's not images coming from the database
@@ -106,11 +107,33 @@ const Snapshot = ({ testImages = null }) => {
     // TODO Remove this once images are working correctly when uploading
     useFocusEffect(
         useCallback(() => {
+            handleGetSpaceType();
             handleGetSnapshotInfo();
 
             console.log('Current filesInfo:', filesInfo);
         }, [filesInfo])
     );
+
+    const handleGetSpaceType = async () => {
+        try {
+            const url = `/space/${spaceId}`;
+            const method = 'GET';
+
+            const response = await handleHttpRequest(url, method);
+
+            if (response.success) {
+                setSpaceType(response.data.type);
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Getting Space Type:', error);
+            
+            // TODO Replace error with fail toast
+            throw error;
+        }
+    }
 
     const handleGetCharacterName = async (characterId) => {
         try {
@@ -251,7 +274,7 @@ const Snapshot = ({ testImages = null }) => {
                 </View>
 
                 {renderSection("General", [
-                    ["Episode Number:", snapshot.episode],
+                    ...(Number(spaceType) === 2 ? [["Episode Number:", snapshot.episode]] : []),
                     ["Scene Number:", snapshot.scene],
                     ["Story Day:", snapshot.storyDay],
                     ["Character:", characterName],
