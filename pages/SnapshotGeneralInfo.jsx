@@ -130,7 +130,7 @@ const SnapshotGeneralInfo = () => {
         }
     }
 
-    const handleAddOrEditCharacterCancel = () => {
+    const handleCancelAddOrEditCharacter = () => {
         setShowAddCharacterModal(false);
         setCharacterName('');
         setShowManageCharactersModal(true);
@@ -412,7 +412,7 @@ const SnapshotGeneralInfo = () => {
                             testID='character-name-text-input'
                         />
                         <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity style={[styles.modalButton, styles.buttonCancel]} testID='add-new-character-cancel-button' onPress={handleAddOrEditCharacterCancel}>
+                            <TouchableOpacity style={[styles.modalButton, styles.buttonCancel]} testID='add-new-character-cancel-button' onPress={handleCancelAddOrEditCharacter}>
                                 <Text style={[styles.buttonText, styles.buttonTextCancel]}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={[styles.modalButton, styles.buttonSave]} testID='add-new-character-submit-button' onPress={handleCreateOrEditCharacter}>
