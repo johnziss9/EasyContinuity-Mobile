@@ -5,7 +5,6 @@ import CharacterCard from '../components/CharacterCard';
 describe('CharacterCard', () => {
     const mockProps = {
         characterName: 'Test Character',
-        onPress: jest.fn(),
         onEditPress: jest.fn(),
         onDeletePress: jest.fn(),
     };
