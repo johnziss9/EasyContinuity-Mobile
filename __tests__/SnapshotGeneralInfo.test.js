@@ -2,7 +2,6 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import SnapshotGeneralInfo from '../pages/SnapshotGeneralInfo';
 import { NavigationContainer } from '@react-navigation/native';
-import { prettyDOM } from '@testing-library/react-native';
 
 const mockNavigate = jest.fn();
 
