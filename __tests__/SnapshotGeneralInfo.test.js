@@ -611,43 +611,43 @@ describe('SnapshotGeneralInfo', () => {
         expect(apiMock).toHaveBeenCalledWith('/space/1', 'GET');
     });
 
-    it('should show settings button when there is more than one character', async () => {
+    it('should show manage characters button when there is one or more characters', async () => {
         const apiMock = require('../api/api').default;
+        
+        // Test with one character
         apiMock
             .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: [
-                    { id: 2, name: 'Character 1' }
-                ]
+                data: [{ id: 2, name: 'Character 1' }]  // Single character
             }));
-
+    
         const { getByTestId } = render(
             <NavigationContainer>
                 <SnapshotGeneralInfo />
             </NavigationContainer>
         );
-
+    
         await waitFor(() => {
             expect(getByTestId('manage-characters-button')).toBeTruthy();
         });
     });
-
-    it('should not show settings button when there is one or no characters', async () => {
+    
+    it('should not show manage characters button when there are no characters', async () => {
         const apiMock = require('../api/api').default;
         apiMock
             .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: [{ id: 2, name: 'Character 1' }]
+                data: []  // No characters
             }));
-
+    
         const { queryByTestId } = render(
             <NavigationContainer>
                 <SnapshotGeneralInfo />
             </NavigationContainer>
         );
-
+    
         await waitFor(() => {
             expect(queryByTestId('manage-characters-button')).toBeNull();
         });
