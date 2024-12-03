@@ -614,12 +614,11 @@ describe('SnapshotGeneralInfo', () => {
     it('should show manage characters button when there is one or more characters', async () => {
         const apiMock = require('../api/api').default;
         
-        // Test with one character
         apiMock
             .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: [{ id: 2, name: 'Character 1' }]  // Single character
+                data: [{ id: 2, name: 'Character 1' }]
             }));
     
         const { getByTestId } = render(
@@ -639,7 +638,7 @@ describe('SnapshotGeneralInfo', () => {
             .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: []  // No characters
+                data: []
             }));
     
         const { queryByTestId } = render(

@@ -4,7 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const CharacterCard = ({ characterName, onEditPress, onDeletePress }) => {
     return (
-        <View style={styles.pressable} testID='character-component'>
+        <View style={styles.cardContainer} testID='character-component'>
             <View style={styles.container}>
                 <View style={styles.characterContainer}>
                     <Ionicons name="person-sharp" size={40} color="#CDA7AF" />
@@ -24,7 +24,7 @@ const CharacterCard = ({ characterName, onEditPress, onDeletePress }) => {
 }
 
 const styles = StyleSheet.create({
-    pressable: {
+    cardContainer: {
         width: '100%',
         alignItems: 'center',
     },
