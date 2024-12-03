@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import SnapshotGeneralInfo from '../pages/SnapshotGeneralInfo';
 import { NavigationContainer } from '@react-navigation/native';
+import { prettyDOM } from '@testing-library/react-native';
 
 const mockNavigate = jest.fn();
 
@@ -268,7 +269,8 @@ describe('SnapshotGeneralInfo', () => {
         await waitFor(() => {
             expect(apiMock).toHaveBeenNthCalledWith(3, '/character/', 'POST', {
                 name: 'New Test Character',
-                spaceId: 1
+                spaceId: 1,
+                createdOn: expect.any(String)
             });
             expect(queryByText('Add New Character:')).toBeNull();
         });
@@ -608,6 +610,273 @@ describe('SnapshotGeneralInfo', () => {
 
         // Verify space type API was called
         expect(apiMock).toHaveBeenCalledWith('/space/1', 'GET');
+    });
+
+    it('should show settings button when there is more than one character', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 2, name: 'Character 1' }
+                ]
+            }));
+
+        const { getByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(getByTestId('manage-characters-button')).toBeTruthy();
+        });
+    });
+
+    it('should not show settings button when there is one or no characters', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 2, name: 'Character 1' }]
+            }));
+
+        const { queryByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(queryByTestId('manage-characters-button')).toBeNull();
+        });
+    });
+
+    it('should open manage characters modal when settings button is pressed', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 2, name: 'Character 1' },
+                    { id: 3, name: 'Character 2' }
+                ]
+            }));
+
+        const { getByTestId, getByText } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            fireEvent.press(getByTestId('manage-characters-button'));
+            expect(getByText('Manage Characters (2):')).toBeTruthy();
+        });
+    });
+
+    it('should open edit character modal with character data when edit is pressed', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 2, name: 'Character 1' },
+                    { id: 3, name: 'Character 2' }
+                ]
+            }));
+
+        const { getByTestId, getByText, getAllByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            fireEvent.press(getByTestId('manage-characters-button'));
+            const editButtons = getAllByTestId('edit-folder-button');
+            fireEvent.press(editButtons[0]);
+            
+            expect(getByText('Update Character:')).toBeTruthy();
+            const input = getByTestId('character-name-text-input');
+            expect(input.props.value).toBe('Character 1');
+        });
+    });
+
+    it('should update character and return to manage characters modal when edit form is submitted', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            // Initial space type call
+            .mockImplementationOnce(() => Promise.resolve({ 
+                success: true, 
+                data: { id: 1, type: 2 } 
+            }))
+            // Initial characters call
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 2, name: 'Character 1' },
+                    { id: 3, name: 'Character 2' }
+                ]
+            }))
+            // Update character call
+            .mockImplementationOnce(() => Promise.resolve({ 
+                success: true,
+                data: { id: 2, name: 'Updated Character' }
+            }))
+            // Get characters after update call
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 2, name: 'Updated Character' },
+                    { id: 3, name: 'Character 2' }
+                ]
+            }));
+    
+        const { getByTestId, getAllByTestId, getByText, queryByText } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            expect(getByTestId('manage-characters-button')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByTestId('manage-characters-button'));
+        
+        await waitFor(() => {
+            expect(getByText('Manage Characters (2):')).toBeTruthy();
+        });
+    
+        const editButtons = getAllByTestId('edit-folder-button');
+        fireEvent.press(editButtons[0]);
+    
+        await waitFor(() => {
+            expect(getByText('Update Character:')).toBeTruthy();
+        });
+    
+        const input = getByTestId('character-name-text-input');
+        fireEvent.changeText(input, 'Updated Character');
+        fireEvent.press(getByTestId('add-new-character-submit-button'));
+    
+        await waitFor(() => {
+            // Verify the PUT request was made
+            expect(apiMock).toHaveBeenCalledWith('/character/2', 'PUT', expect.objectContaining({
+                name: 'Updated Character',
+                lastUpdatedOn: expect.any(String)
+            }));
+    
+            expect(queryByText('Update Character:')).toBeNull();
+            
+            expect(getByText('Manage Characters (2):')).toBeTruthy();
+        });
+    
+        await waitFor(() => {
+            const characterElements = getAllByTestId('character-component');
+            expect(characterElements).toHaveLength(2);
+        });
+    });
+
+    it('should return to manage characters modal when edit is cancelled', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 2, name: 'Character 1' },
+                    { id: 3, name: 'Character 2' }
+                ]
+            }));
+
+        const { getByTestId, getByText, getAllByTestId, queryByText } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            fireEvent.press(getByTestId('manage-characters-button'));
+            const editButtons = getAllByTestId('edit-folder-button');
+            fireEvent.press(editButtons[0]);
+            
+            fireEvent.press(getByTestId('add-new-character-cancel-button'));
+            expect(queryByText('Update Character:')).toBeNull();
+            expect(getByText('Manage Characters (2):')).toBeTruthy();
+        });
+    });
+
+    it('should soft delete character when delete is pressed', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 2, name: 'Character 1' },
+                    { id: 3, name: 'Character 2' }
+                ]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({ success: true }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 3, name: 'Character 2' }
+                ]
+            }));
+
+        const { getByTestId, getAllByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            fireEvent.press(getByTestId('manage-characters-button'));
+            const deleteButtons = getAllByTestId('delete-folder-button');
+            fireEvent.press(deleteButtons[0]);
+
+            expect(apiMock).toHaveBeenCalledWith('/character/2', 'PUT', expect.objectContaining({
+                isDeleted: true,
+                deletedOn: expect.any(String)
+            }));
+        });
+    });
+
+    it('should close manage characters modal when last character is deleted', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 2, name: 'Character 1' }
+                ]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({ success: true }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+
+        const { getByTestId, getAllByTestId, queryByText } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            fireEvent.press(getByTestId('manage-characters-button'));
+            const deleteButtons = getAllByTestId('delete-folder-button');
+            fireEvent.press(deleteButtons[0]);
+
+            expect(queryByText('Manage Characters (0):')).toBeNull();
+        });
     });
 
     // TODO Uncomment this when the bug is fixed that clears the character select list.
