@@ -66,7 +66,7 @@ describe('Folder Component', () => {
 
         await waitFor(() => {
             expect(getByTestId('add-item-button')).toBeTruthy();
-            expect(getByText('No Items In This Folder Yet')).toBeTruthy();
+            expect(getByText('No Items In Folder Yet')).toBeTruthy();
             expect(getByText('Get started by pressing the + button below to add your first item.')).toBeTruthy();
         }, { timeout: 10000 });
     }, 15000);
@@ -220,7 +220,7 @@ describe('Folder Component', () => {
         );
 
         await waitFor(() => {
-            expect(getByText('No Items In This Folder Yet')).toBeTruthy();
+            expect(getByText('No Items In Folder Yet')).toBeTruthy();
         });
     });
 
