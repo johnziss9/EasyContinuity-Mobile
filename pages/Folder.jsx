@@ -387,7 +387,7 @@ const Folder = () => {
                         </>
                     ) : (
                         <View style={styles.noItemsContainer}>
-                            <Text style={styles.noItemsTitle}>No Items In This Folder Yet</Text>
+                            <Text style={styles.noItemsTitle}>No Items In Folder Yet</Text>
                             <Text style={styles.noItemsText}>Get started by pressing the + button below to add your first item.</Text>
                         </View>
                     )}
@@ -413,17 +413,24 @@ const styles = StyleSheet.create({
         right: 30
     },
     noItemsContainer: {
-        alignItems: 'center'
+        alignItems: 'center',
+        borderWidth: 3,
+        borderRadius: 10,
+        borderColor: '#3F4F5F',
+        padding: 20,
+        maxWidth: 600,
+        marginHorizontal: 20
     },
     noItemsTitle: {
-        fontSize: 20,
+        fontSize: 23,
         fontWeight: 'bold',
-        paddingVertical: 10
+        marginBottom: 10,
+        color: '#3F4F5F'
     },
     noItemsText: {
         fontSize: 18,
-        width: 300,
-        textAlign: 'center'
+        textAlign: 'center',
+        color: '#3F4F5F'
     },
     modalContainer: {
         flex: 1,
