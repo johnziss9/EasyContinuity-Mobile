@@ -318,17 +318,23 @@ const styles = StyleSheet.create({
         right: 30
     },
     noSpacesContainer: {
-        alignItems: 'center'
+        alignItems: 'center',
+        borderWidth: 3,
+        borderRadius: 10,
+        borderColor: '#3F4F5F',
+        padding: 20,
+        maxWidth: 600
     },
     noSpacesTitle: {
-        fontSize: 20,
+        fontSize: 23,
         fontWeight: 'bold',
-        paddingVertical: 10
+        marginBottom: 10,
+        color: '#3F4F5F'
     },
     noSpacesText: {
         fontSize: 18,
-        width: 300,
-        textAlign: 'center'
+        textAlign: 'center',
+        color: '#3F4F5F'
     },
     modalContainer: {
         flex: 1,
