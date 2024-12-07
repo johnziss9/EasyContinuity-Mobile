@@ -696,7 +696,7 @@ describe('SnapshotGeneralInfo', () => {
 
         await waitFor(() => {
             fireEvent.press(getByTestId('manage-characters-button'));
-            const editButtons = getAllByTestId('edit-folder-button');
+            const editButtons = getAllByTestId('edit-character-button');
             fireEvent.press(editButtons[0]);
             
             expect(getByText('Update Character:')).toBeTruthy();
@@ -751,7 +751,7 @@ describe('SnapshotGeneralInfo', () => {
             expect(getByText('Manage Characters (2):')).toBeTruthy();
         });
     
-        const editButtons = getAllByTestId('edit-folder-button');
+        const editButtons = getAllByTestId('edit-character-button');
         fireEvent.press(editButtons[0]);
     
         await waitFor(() => {
@@ -800,7 +800,7 @@ describe('SnapshotGeneralInfo', () => {
 
         await waitFor(() => {
             fireEvent.press(getByTestId('manage-characters-button'));
-            const editButtons = getAllByTestId('edit-folder-button');
+            const editButtons = getAllByTestId('edit-character-button');
             fireEvent.press(editButtons[0]);
             
             fireEvent.press(getByTestId('add-new-character-cancel-button'));
@@ -836,7 +836,7 @@ describe('SnapshotGeneralInfo', () => {
 
         await waitFor(() => {
             fireEvent.press(getByTestId('manage-characters-button'));
-            const deleteButtons = getAllByTestId('delete-folder-button');
+            const deleteButtons = getAllByTestId('delete-character-button');
             fireEvent.press(deleteButtons[0]);
 
             expect(apiMock).toHaveBeenCalledWith('/character/2', 'PUT', expect.objectContaining({
@@ -870,7 +870,7 @@ describe('SnapshotGeneralInfo', () => {
 
         await waitFor(() => {
             fireEvent.press(getByTestId('manage-characters-button'));
-            const deleteButtons = getAllByTestId('delete-folder-button');
+            const deleteButtons = getAllByTestId('delete-character-button');
             fireEvent.press(deleteButtons[0]);
 
             expect(queryByText('Manage Characters (0):')).toBeNull();
@@ -907,7 +907,7 @@ describe('SnapshotGeneralInfo', () => {
         fireEvent.press(getByTestId('manage-characters-button'));
     
         await waitFor(() => {
-            const editButtons = getAllByTestId('edit-folder-button');
+            const editButtons = getAllByTestId('edit-character-button');
             fireEvent.press(editButtons[0]);
         });
     
@@ -1016,7 +1016,7 @@ describe('SnapshotGeneralInfo', () => {
         fireEvent.press(getByTestId('manage-characters-button'));
     
         await waitFor(() => {
-            const editButtons = getAllByTestId('edit-folder-button');
+            const editButtons = getAllByTestId('edit-character-button');
             fireEvent.press(editButtons[0]);
         });
     
@@ -1163,7 +1163,7 @@ describe('SnapshotGeneralInfo', () => {
             expect(initialCards[2]).toHaveTextContent('Character 3');
         });
     
-        const deleteButtons = getAllByTestId('delete-folder-button');
+        const deleteButtons = getAllByTestId('delete-character-button');
         fireEvent.press(deleteButtons[0]);
     
         await waitFor(() => {
