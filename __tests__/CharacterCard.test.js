@@ -18,19 +18,19 @@ describe('CharacterCard', () => {
 
         expect(getByText(mockProps.characterName)).toBeTruthy();
         expect(getByTestId('character-component')).toBeTruthy();
-        expect(getByTestId('edit-folder-button')).toBeTruthy();
-        expect(getByTestId('delete-folder-button')).toBeTruthy();
+        expect(getByTestId('edit-character-button')).toBeTruthy();
+        expect(getByTestId('delete-character-button')).toBeTruthy();
     });
 
     it('should call onEditPress when edit button is pressed', () => {
         const { getByTestId } = render(<CharacterCard {...mockProps} />);
-        fireEvent.press(getByTestId('edit-folder-button'));
+        fireEvent.press(getByTestId('edit-character-button'));
         expect(mockProps.onEditPress).toHaveBeenCalled();
     });
 
     it('should call onDeletePress when delete button is pressed', () => {
         const { getByTestId } = render(<CharacterCard {...mockProps} />);
-        fireEvent.press(getByTestId('delete-folder-button'));
+        fireEvent.press(getByTestId('delete-character-button'));
         expect(mockProps.onDeletePress).toHaveBeenCalled();
     });
 

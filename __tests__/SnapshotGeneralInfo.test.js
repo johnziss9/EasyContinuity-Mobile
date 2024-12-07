@@ -365,8 +365,8 @@ describe('SnapshotGeneralInfo', () => {
         fireEvent.press(getByTestId('add-new-character-cancel-button'));
 
         await waitFor(() => {
-            // Verify modal is closed
             expect(queryByText('Add New Character:')).toBeNull();
+            expect(queryByText(/Manage Characters \(\d+\):/)).toBeNull();
         });
     });
 
@@ -696,7 +696,7 @@ describe('SnapshotGeneralInfo', () => {
 
         await waitFor(() => {
             fireEvent.press(getByTestId('manage-characters-button'));
-            const editButtons = getAllByTestId('edit-folder-button');
+            const editButtons = getAllByTestId('edit-character-button');
             fireEvent.press(editButtons[0]);
             
             expect(getByText('Update Character:')).toBeTruthy();
@@ -751,7 +751,7 @@ describe('SnapshotGeneralInfo', () => {
             expect(getByText('Manage Characters (2):')).toBeTruthy();
         });
     
-        const editButtons = getAllByTestId('edit-folder-button');
+        const editButtons = getAllByTestId('edit-character-button');
         fireEvent.press(editButtons[0]);
     
         await waitFor(() => {
@@ -800,7 +800,7 @@ describe('SnapshotGeneralInfo', () => {
 
         await waitFor(() => {
             fireEvent.press(getByTestId('manage-characters-button'));
-            const editButtons = getAllByTestId('edit-folder-button');
+            const editButtons = getAllByTestId('edit-character-button');
             fireEvent.press(editButtons[0]);
             
             fireEvent.press(getByTestId('add-new-character-cancel-button'));
@@ -836,7 +836,7 @@ describe('SnapshotGeneralInfo', () => {
 
         await waitFor(() => {
             fireEvent.press(getByTestId('manage-characters-button'));
-            const deleteButtons = getAllByTestId('delete-folder-button');
+            const deleteButtons = getAllByTestId('delete-character-button');
             fireEvent.press(deleteButtons[0]);
 
             expect(apiMock).toHaveBeenCalledWith('/character/2', 'PUT', expect.objectContaining({
@@ -870,76 +870,319 @@ describe('SnapshotGeneralInfo', () => {
 
         await waitFor(() => {
             fireEvent.press(getByTestId('manage-characters-button'));
-            const deleteButtons = getAllByTestId('delete-folder-button');
+            const deleteButtons = getAllByTestId('delete-character-button');
             fireEvent.press(deleteButtons[0]);
 
             expect(queryByText('Manage Characters (0):')).toBeNull();
         });
     });
 
-    // TODO Uncomment this when the bug is fixed that clears the character select list.
-    // it('should clear character modal input when closed', async () => {
-    //     const { getByTestId, queryByTestId } = render(
-    //         <NavigationContainer>
-    //             <SnapshotGeneralInfo />
-    //         </NavigationContainer>
-    //     );
+    it('should clear character name textbox when edit form is submitted', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 2, name: 'Character 1' }]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({ 
+                success: true, 
+                data: { id: 2, name: 'Updated Character' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 2, name: 'Updated Character' }]
+            }));
+    
+        const { getByTestId, getAllByTestId, queryByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            expect(getByTestId('manage-characters-button')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByTestId('manage-characters-button'));
+    
+        await waitFor(() => {
+            const editButtons = getAllByTestId('edit-character-button');
+            fireEvent.press(editButtons[0]);
+        });
+    
+        const input = getByTestId('character-name-text-input');
+        fireEvent.changeText(input, 'Updated Character');
+        
+        fireEvent.press(getByTestId('add-new-character-submit-button'));
+    
+        await waitFor(() => {
+            const updatedInput = queryByTestId('character-name-text-input');
+            expect(updatedInput).toBeNull();
+        });
+    });
 
-    //     await waitFor(() => {
-    //         const addNewOption = getByTestId('character-select-option-1');
-    //         fireEvent.press(addNewOption);
-    //     });
+    it('should show clear button only when character is selected', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 2, name: 'Character 1' }]
+            }));
+    
+        const { getByTestId, queryByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+    
+        expect(queryByTestId('clear-character-button')).toBeNull();
+    
+        await waitFor(() => {
+            fireEvent.press(getByTestId('character-select-option-2'));
+            expect(getByTestId('clear-character-button')).toBeTruthy();
+        });
+    });
 
-    //     // Enter character name
-    //     const nameInput = getByTestId('character-name-text-input');
-    //     fireEvent.changeText(nameInput, 'Test Character');
+    it('should clear selected character when clear button is pressed', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 2, name: 'Character 1' }]
+            }));
+    
+        const { getByTestId, queryByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            fireEvent.press(getByTestId('character-select-option-2'));
+            expect(getByTestId('clear-character-button')).toBeTruthy();
+    
+            fireEvent.press(getByTestId('clear-character-button'));
+            
+            expect(queryByTestId('clear-character-button')).toBeNull();
+        });
+    });
 
-    //     // Close modal
-    //     fireEvent.press(getByTestId('add-new-character-cancel-button'));
+    it('should clear selection when add character modal is cancelled', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 2, name: 'Character 1' }]
+            }));
+    
+        const { getByTestId, queryByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            fireEvent.press(getByTestId('character-select-option-1'));
+        });
+    
+        fireEvent.press(getByTestId('add-new-character-cancel-button'));
+    
+        expect(queryByTestId('clear-character-button')).toBeNull();
+    });
 
-    //     // Reopen modal
-    //     await waitFor(() => {
-    //         const addNewOption = getByTestId('character-select-option-1');
-    //         fireEvent.press(addNewOption);
+    it('should return to manage characters modal when edit is cancelled', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 2, name: 'Character 1' }]
+            }));
+    
+        const { getByTestId, getAllByTestId, getByText } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            expect(getByTestId('manage-characters-button')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByTestId('manage-characters-button'));
+    
+        await waitFor(() => {
+            const editButtons = getAllByTestId('edit-character-button');
+            fireEvent.press(editButtons[0]);
+        });
+    
+        fireEvent.press(getByTestId('add-new-character-cancel-button'));
+    
+        await waitFor(() => {
+            expect(getByText('Manage Characters (1):')).toBeTruthy();
+        });
+    });    
 
-    //         // Get new input reference
-    //         const newNameInput = getByTestId('character-name-text-input');
-    //         // Verify input is cleared
-    //         expect(newNameInput.props.value).toBe('');
-    //     });
-    // });
+    it('should navigate to snapshot with correct params when cancel pressed while editing', async () => {
+        const mockNavigate = jest.fn();
+        jest.spyOn(require('@react-navigation/native'), 'useNavigation').mockReturnValue({
+            navigate: mockNavigate
+        });
+    
+        jest.spyOn(require('@react-navigation/native'), 'useRoute').mockReturnValue({
+            params: {
+                spaceId: 1,
+                isNewSnapshot: false,
+                spaceName: 'Test Space',
+                snapshotId: 123,
+                snapshotName: 'Test Snapshot'
+            }
+        });
+    
+        const { getByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            fireEvent.press(getByTestId('general-cancel-button'));
+        });
+    
+        expect(mockNavigate).toHaveBeenCalledWith('Snapshot', {
+            spaceId: 1,
+            spaceName: 'Test Space',
+            snapshotId: 123,
+            snapshotName: 'Test Snapshot'
+        });
+    });
+    
+    it('should select newly added character in SelectList', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }))
+            .mockImplementationOnce(() => Promise.resolve({ 
+                success: true, 
+                data: { 
+                    id: '2',
+                    name: 'New Character' 
+                }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ 
+                    id: '2', 
+                    name: 'New Character' 
+                }]
+            }));
+    
+        const { getByTestId, queryByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            expect(getByTestId('character-select-option-1')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByTestId('character-select-option-1'));
+    
+        await waitFor(() => {
+            expect(getByTestId('character-name-text-input')).toBeTruthy();
+        });
+    
+        fireEvent.changeText(getByTestId('character-name-text-input'), 'New Character');
+        fireEvent.press(getByTestId('add-new-character-submit-button'));
+    
+        await waitFor(() => {
+            expect(apiMock).toHaveBeenCalledTimes(4);
+        });
+    });
 
-
-    // TODO Fix this when the update comes in
-    // it('should render correctly for editing snapshot', async () => {
-    //     const { getByText, getByTestId } = render(<SnapshotGeneralInfo route={{ params: { isNewSnapshot: false } }} />);
-
-    //     await waitFor(() => {
-    //         expect(getByText('Edit Snapshot')).toBeTruthy();
-    //         expect(getByTestId('snapshot-name-text-input')).toBeTruthy();
-    //         expect(getByTestId('episode-number-text-input')).toBeTruthy();
-    //         expect(getByTestId('scene-number-text-input')).toBeTruthy();
-    //         expect(getByTestId('story-day-text-input')).toBeTruthy();
-    //         expect(getByTestId('snapshot-notes-text-input')).toBeTruthy();
-    //     });
-    // });
-
-    // TODO Fix this when the update comes in
-    // it('should navigate to the "Snapshot" screen when a Cancel button is pressed from an edited Snapshot', async () => {
-    //     const mockNavigate = jest.fn();
-
-    //     useNavigation.mockReturnValue({ navigate: mockNavigate });
-
-    //     const { getByTestId } = render(<SnapshotGeneralInfo route={{ params: { isNewSnapshot: false } }} />);
-
-    //     await waitFor(() => {
-    //         fireEvent.press(getByTestId('general-cancel-button'));
-    //         expect(mockNavigate).toHaveBeenCalledWith('Snapshot');
-    //     });
-    // });
-
-    // TODO Write a test for when pressing the submit button in the form
-    // TODO Write a test for when pressing the submit button in the new character modal
     // TODO Write tests for snapshot api errors
     // TODO Write tests for character api errors
+
+    it('should keep manage characters modal open and update content when deleting a character', async () => {
+        const apiMock = require('../api/api').default;
+        
+        jest.spyOn(require('@react-navigation/native'), 'useRoute').mockReturnValue({
+            params: {
+                spaceId: 1,
+                isNewSnapshot: true,
+                spaceName: 'Test Space'
+            }
+        });
+    
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({ 
+                success: true, 
+                data: { id: 1, type: 2 } 
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 2, name: 'Character 1' },
+                    { id: 3, name: 'Character 2' },
+                    { id: 4, name: 'Character 3' }
+                ]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({ success: true }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 3, name: 'Character 2' },
+                    { id: 4, name: 'Character 3' }
+                ]
+            }));
+    
+        const { getByTestId, getByText, getAllByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            fireEvent.press(getByTestId('manage-characters-button'));
+            expect(getByText('Manage Characters (3):')).toBeTruthy();
+        });
+    
+        await waitFor(() => {
+            const initialCards = getAllByTestId('character-component');
+            expect(initialCards).toHaveLength(3);
+            expect(initialCards[0]).toHaveTextContent('Character 1');
+            expect(initialCards[1]).toHaveTextContent('Character 2');
+            expect(initialCards[2]).toHaveTextContent('Character 3');
+        });
+    
+        const deleteButtons = getAllByTestId('delete-character-button');
+        fireEvent.press(deleteButtons[0]);
+    
+        await waitFor(() => {
+            expect(apiMock).toHaveBeenCalledTimes(4);
+            expect(apiMock).toHaveBeenNthCalledWith(3, '/character/2', 'PUT', expect.objectContaining({
+                name: 'Character 1',
+                isDeleted: true,
+                deletedOn: expect.any(String)
+            }));
+            expect(apiMock).toHaveBeenNthCalledWith(4, '/character/space/1', 'GET');
+        });
+    
+        await waitFor(() => {
+            expect(getByText('Manage Characters (2):')).toBeTruthy();
+    
+            const updatedCards = getAllByTestId('character-component');
+            expect(updatedCards).toHaveLength(2);
+            expect(updatedCards[0]).toHaveTextContent('Character 2');
+            expect(updatedCards[1]).toHaveTextContent('Character 3');
+        });
+    });
 });
