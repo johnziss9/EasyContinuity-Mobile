@@ -20,6 +20,8 @@ const SnapshotGeneralInfo = () => {
     const [storyDay, setStoryDay] = useState('');
     const [notes, setNotes] = useState('');
     const [selectedCharacterId, setSelectedCharacterId] = useState(null);
+    const [selectListKey, setSelectListKey] = useState(0);
+    const [selectedValue, setSelectedValue] = useState('');
     const [showAddCharacterModal, setShowAddCharacterModal] = useState(false);
     const [showManageCharactersModal, setShowManageCharactersModal] = useState(false);
     const [characterName, setCharacterName] = useState("");
@@ -50,11 +52,18 @@ const SnapshotGeneralInfo = () => {
         }
     }, [snapshot, isNewSnapshot]);
 
+    const handleClear = () => {
+        setSelectedCharacterId(null);
+        setSelectedValue('');
+        setSelectListKey(prev => prev + 1);
+    };
+
     const handleSelectNewCharacter = (selectedKey, selectedValue) => {
         if (selectedKey === '1') {
             setShowAddCharacterModal(true);
         } else {
             setSelectedCharacterId(selectedKey);
+            setSelectedValue(selectedValue);
         }
 
         // TODO Add validation if user selected first value and then cancels the snapshot shouldn't save
@@ -67,9 +76,14 @@ const SnapshotGeneralInfo = () => {
             // If it's a new snapshot and we have a folderId, go back to the folder view
             navigation.navigate('Folder', { spaceId: spaceId, spaceName: spaceName, folderId: folderId, folderName: folderName });
         } else {
-            navigation.navigate('Snapshot', { snapshotId, snapshotName });
+            navigation.navigate('Snapshot', { spaceId: spaceId, spaceName: spaceName, snapshotId, snapshotName });
         }
     };
+
+    const handleCloseManageCharacters = () => {
+        setShowManageCharactersModal(false);
+        handleClear();
+    }
 
     const handleEditCharacterPress = (character) => {
         setShowManageCharactersModal(false);
@@ -131,9 +145,14 @@ const SnapshotGeneralInfo = () => {
     }
 
     const handleCancelAddOrEditCharacter = () => {
+        handleClear();
+
         setShowAddCharacterModal(false);
         setCharacterName('');
-        setShowManageCharactersModal(true);
+
+        if (isEditing) {
+            setShowManageCharactersModal(true);
+        }
     }
 
     const handleDeleteCharacterPress = async (character) => {
@@ -170,7 +189,7 @@ const SnapshotGeneralInfo = () => {
 
                 // This closes the Manage Characters modal if there are no more characters to manage.
                 if (getResponse.data.length === 0) {
-                    setShowManageCharactersModal(false);
+                    handleCloseManageCharacters();
                 }
             } else {
                 // TODO Replace error with fail toast
@@ -215,7 +234,7 @@ const SnapshotGeneralInfo = () => {
                         // If it's a new snapshot and we have a folderId, go back to the folder view
                         navigation.navigate('Folder', { spaceId: spaceId, spaceName: spaceName, folderId: folderId, folderName: folderName });
                     } else {
-                        navigation.navigate('Snapshot', { snapshotId, snapshotName });
+                        navigation.navigate('Snapshot', { spaceId: spaceId, spaceName: spaceName, snapshotId, snapshotName });
                     }
                 } else {
                     // TODO Replace error with fail toast
@@ -264,7 +283,7 @@ const SnapshotGeneralInfo = () => {
     }
 
     const handleCreateOrEditCharacter = async () => {
-        if (!isEditing) {
+        if (!isEditing) {            
             try {
                 const url = '/character/';
                 const method = 'POST';
@@ -280,6 +299,10 @@ const SnapshotGeneralInfo = () => {
                 if (response.success) {
                     // TODO Show success toast
                     await handleGetAllCharacters();
+
+                    // Setting these two so the new added character is selected on the SelectList
+                    setSelectedCharacterId(response.data.id);
+                    setSelectListKey(prev => prev + 1); 
                 } else {
                     // TODO Replace error with fail toast
                     throw new Error(response.error);
@@ -310,6 +333,7 @@ const SnapshotGeneralInfo = () => {
                     handleGetAllCharacters();
                     setShowAddCharacterModal(false);
                     setShowManageCharactersModal(true);
+                    setCharacterName('');
                 } else {
                     // TODO Replace error with fail toast
                     throw new Error(response.error);
@@ -385,7 +409,7 @@ const SnapshotGeneralInfo = () => {
                             </>
                         )}
                         <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity style={[styles.modalButton, styles.buttonSave]} testID='manage-characters-close-button' onPress={() => setShowManageCharactersModal(false)}>
+                            <TouchableOpacity style={[styles.modalButton, styles.buttonSave]} testID='manage-characters-close-button' onPress={handleCloseManageCharacters}>
                                 <Text style={[styles.buttonText, styles.buttonTextSave]}>Close</Text>
                             </TouchableOpacity>
                         </View>
@@ -467,19 +491,32 @@ const SnapshotGeneralInfo = () => {
                 />
                 <View style={styles.characterLabel}>
                     <Text style={styles.label} accessibilityLabel="Character:">Character:</Text>
-                    {characters.length > 1 &&
+                    <View style={styles.characterSelectButtons}>
+                    {selectedCharacterId && 
                         <TouchableOpacity
-                            onPress={() => setShowManageCharactersModal(true)}
+                            onPress={handleClear}
                             style={styles.characterButton}
-                            testID='manage-characters-button'
+                            testID='clear-character-button'
                         >
-                            <Ionicons name="settings-outline" size={20} color="#3F4F5F" />
+                            <Ionicons name="close-circle-outline" size={21} color="#3F4F5F" />
                         </TouchableOpacity>
                     }
+                        {characters.length > 1 &&
+                            <TouchableOpacity
+                                onPress={() => setShowManageCharactersModal(true)}
+                                style={styles.characterButton}
+                                testID='manage-characters-button'
+                            >
+                                <Ionicons name="settings-outline" size={20} color="#3F4F5F" />
+                            </TouchableOpacity>
+                        }
+                    </View>
                 </View>
                 <SelectList
+                    key={selectListKey}
                     setSelected={handleSelectNewCharacter}
                     data={characters}
+                    value={selectedValue}
                     defaultOption={characters.find(char => char.key === selectedCharacterId)}
                     placeholder="Character"
                     searchPlaceholder="Search..."
@@ -674,6 +711,10 @@ const styles = StyleSheet.create({
     characterLabel: {
         flexDirection: 'row',
         alignItems: 'flex-start'
+    },
+    characterSelectButtons: {
+        flexDirection: 'row',
+        alignItems: 'center'
     },
     characterButton: {
         marginLeft: 8,
