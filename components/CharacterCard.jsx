@@ -11,10 +11,10 @@ const CharacterCard = ({ characterName, onEditPress, onDeletePress }) => {
                     <Text style={styles.text}>{characterName}</Text>
                 </View>
                 <View style={styles.buttonContainer}>
-                    <TouchableOpacity onPress={onEditPress} testID="edit-folder-button">
+                    <TouchableOpacity onPress={onEditPress} testID="edit-character-button">
                         <Ionicons name="create-outline" size={30} color="#CDA7AF" />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={onDeletePress} testID="delete-folder-button">
+                    <TouchableOpacity onPress={onDeletePress} testID="delete-character-button">
                         <Ionicons name="trash-outline" size={30} color="#CDA7AF" />
                     </TouchableOpacity>
                 </View>
