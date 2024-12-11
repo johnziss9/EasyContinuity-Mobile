@@ -6,6 +6,7 @@ import useFileBrowser from '../hooks/useFileBrowser';
 import SnapshotCard from '../components/SnapshotCard';
 import FolderCard from '../components/FolderCard';
 import handleHttpRequest from '../api/api';
+import SearchBar from '../components/SearchBar';
 
 const Space = () => {
     const navigation = useNavigation();
@@ -24,6 +25,7 @@ const Space = () => {
     const [folders, setFolders] = useState([]);
     const [snapshots, setSnapshots] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [searchResults, setSearchResults] = useState(null);
 
     useFocusEffect(
         React.useCallback(() => {
@@ -77,6 +79,8 @@ const Space = () => {
 
     const handleClearSearchBar = () => {
         setSearchQuery('');
+        setSearchResults(null);
+        handleFetchSpaceItems();
     }
 
     const handleCancelAddFolder = () => {
@@ -84,6 +88,38 @@ const Space = () => {
         setFolderEditing(false);
         setFolderName('');
     }
+
+    const handleSearch = async () => {
+        // If the search string is empty then it exits the function to prevent API calls
+        if (!searchQuery.trim()) return;
+
+        setIsLoading(true);
+        try {
+            const response = await handleHttpRequest(
+                `/space/${spaceId}/search?query=${encodeURIComponent(searchQuery)}`,
+                'GET'
+            );
+
+            if (!response.success) {
+                throw new Error(response.error);
+            }
+
+            // Transform results to include type information
+            const resultsWithType = response.data.map(item => ({
+                ...item,
+                itemType: ('episode' in item || 'scene' in item || 'storyDay' in item)
+                    ? 'snapshot'
+                    : 'folder'
+            }));
+
+            setSearchResults(resultsWithType);
+        } catch (error) {
+            console.error('Search failed:', error);
+            // TODO: Show error toast
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleDeleteSnapshotPress = async (snapshot) => {
         // TODO Add modal for confirmation
@@ -159,9 +195,9 @@ const Space = () => {
                     lastUpdatedOn: new Date().toISOString()
                     // TODO Include lastUpdatedBy
                 };
-    
+
                 const response = await handleHttpRequest(url, method, body);
-    
+
                 if (response.success) {
                     // TODO Show success toast
                     // TODO Refresh data on screen
@@ -172,7 +208,7 @@ const Space = () => {
                 }
             } catch (error) {
                 console.error('Error Updating Folder:', error);
-    
+
                 // TODO Replace error with fail toast
                 throw error;
             } finally {
@@ -253,18 +289,7 @@ const Space = () => {
             fontSize: 18,
             marginBottom: 10,
             color: '#3F4F5F'
-        },
-        searchInput: {
-            marginBottom: 30,
-            borderBottomWidth: 1,
-            borderColor: '#3F4F5F',
-            width: width < 420 ? 300 : width > 600 ? 500 : 350,
-            paddingLeft: 5,
-            height: 50,
-            outlineStyle: 'none',
-            color: '#3F4F5F',
-            fontSize: 18
-        },
+        }
     };
 
     return (
@@ -323,54 +348,82 @@ const Space = () => {
                 </View>
             </Modal>
 
-            <View style={styles.searchContainer}>
-                <TextInput
-                    style={dynamicStyles.searchInput}
-                    placeholder="Search by name"
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    testID="search-input"
-                    selectionColor="#3F4F5F"
-                />
-                {searchQuery !== '' ?
-                    <Pressable style={styles.searchBarIcon} testID='clear-search-button' onPress={handleClearSearchBar}>
-                        <Ionicons name="close" size={20} color="#3F4F5F" />
-                    </Pressable> :
-                    <Ionicons name="search-outline" size={20} color="#3F4F5F" style={styles.searchBarIcon} />
-                }
-
-            </View>
+            <SearchBar
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onSearch={handleSearch}
+                onClear={handleClearSearchBar}
+                width={width}
+            />
 
             {isLoading ? (
                 <ActivityIndicator size="large" color="#3F4F5F" testID='activity-indicator' />
             ) : (
                 <>
-                    {Array.isArray(folders) && Array.isArray(snapshots) && (folders.length > 0 || snapshots.length > 0) ? (
-                        <>
-                            {folders.length > 0 && folders.map((folder) => (
-                                <FolderCard
-                                    key={folder.id}
-                                    folderName={folder.name}
-                                    onEditPress={ () => handleEditFolderPress(folder) }
-                                    onDeletePress={() => handleDeleteFolderPress(folder)}
-                                    onPress={() => handleFolderPress(folder.id, folder.name)}
-                                />
-                            ))}
-                            {snapshots.length > 0 && snapshots.map((snapshot) => (
-                                <SnapshotCard
-                                    key={snapshot.id}
-                                    snapshotName={snapshot.name}
-                                    // images={[someImage, someImage2, someImage3, someImage4, someImage, someImage]}
-                                    onDeletePress={() => handleDeleteSnapshotPress(snapshot)}
-                                    onPress={() => handleSnapshotPress(snapshot)}
-                                />
-                            ))}
-                        </>
+                    {searchResults ? (
+                        // Search results view
+                        searchResults.length > 0 ? (
+                            <>
+                                {searchResults.map((item) => (
+                                    item.itemType === 'snapshot' ? (
+                                        <SnapshotCard
+                                            key={`snapshot-${item.id}`}
+                                            snapshotName={item.name}
+                                            onDeletePress={() => handleDeleteSnapshotPress(item)}
+                                            onPress={() => handleSnapshotPress(item)}
+                                            path={item.path}
+                                        />
+                                    ) : (
+                                        <FolderCard
+                                            key={`folder-${item.id}`}
+                                            folderName={item.name}
+                                            onEditPress={() => handleEditFolderPress(item)}
+                                            onDeletePress={() => handleDeleteFolderPress(item)}
+                                            onPress={() => handleFolderPress(item.id, item.name)}
+                                            path={item.path}
+                                        />
+                                    )
+                                ))}
+                            </>
+                        ) : (
+                            <View style={styles.noItemsContainer}>
+                                <Text style={styles.noItemsTitle}>No matches found</Text>
+                                <Text style={styles.noItemsText}>
+                                    Try different search terms or clear search to show all items
+                                </Text>
+                            </View>
+                        )
                     ) : (
-                        <View style={styles.noItemsContainer}>
-                            <Text style={styles.noItemsTitle}>No Items Yet</Text>
-                            <Text style={styles.noItemsText}>Get started by pressing the + button below to add your first item.</Text>
-                        </View>
+                        // Root Folders and Snapshots when no search is happening
+                        Array.isArray(folders) && Array.isArray(snapshots) &&
+                            (folders.length > 0 || snapshots.length > 0) ? (
+                            <>
+                                {folders.length > 0 && folders.map((folder) => (
+                                    <FolderCard
+                                        key={folder.id}
+                                        folderName={folder.name}
+                                        onEditPress={() => handleEditFolderPress(folder)}
+                                        onDeletePress={() => handleDeleteFolderPress(folder)}
+                                        onPress={() => handleFolderPress(folder.id, folder.name)}
+                                    />
+                                ))}
+                                {snapshots.length > 0 && snapshots.map((snapshot) => (
+                                    <SnapshotCard
+                                        key={snapshot.id}
+                                        snapshotName={snapshot.name}
+                                        onDeletePress={() => handleDeleteSnapshotPress(snapshot)}
+                                        onPress={() => handleSnapshotPress(snapshot)}
+                                    />
+                                ))}
+                            </>
+                        ) : (
+                            <View style={styles.noItemsContainer}>
+                                <Text style={styles.noItemsTitle}>No Items Yet</Text>
+                                <Text style={styles.noItemsText}>
+                                    Get started by pressing the + button below to add your first item.
+                                </Text>
+                            </View>
+                        )
                     )}
                 </>
             )}
@@ -488,16 +541,6 @@ const styles = StyleSheet.create({
     },
     modalButtonTextCancel: {
         color: '#3F4F5F'
-    },
-    flatListContainer: {
-        minWidth: '100%'
-    },
-    searchContainer: {
-        flexDirection: 'row'
-    },
-    searchBarIcon: {
-        marginTop: 18,
-        marginLeft: -30
     }
 });
 
