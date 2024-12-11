@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput, Pressable } from 'react-native';
+import { View, TextInput, Pressable, StyleSheet } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const SearchBar = ({ 
@@ -13,7 +13,7 @@ const SearchBar = ({
     const containerWidth = width < 420 ? 300 : width > 600 ? 500 : 350;
     
     return (
-        <View testID="search-container" style={styles.searchContainer}>
+        <View testID="search-container" style={[styles.searchContainer, {width: containerWidth}]}>
             <TextInput style={styles.searchInput} placeholder={placeholder} value={value} onChangeText={onChangeText} testID="search-input" selectionColor="#CDA7AF" />
             {value !== '' && (
                 <Pressable style={styles.clearButton} testID='clear-search-button' onPress={onClear}>
@@ -32,7 +32,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 30,
-        width: containerWidth,
         borderWidth: 1,
         borderColor: '#3F4F5F',
         borderRadius: 10,

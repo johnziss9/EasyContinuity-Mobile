@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import SearchBar from '../components/SearchBar';
 
 describe('SearchBar Component', () => {
@@ -95,7 +96,8 @@ describe('SearchBar Component', () => {
                 <SearchBar {...defaultProps} width={400} />
             );
             const container = getByTestId('search-container');
-            expect(container.props.style.width).toBe(300);
+            const containerStyles = StyleSheet.flatten(container.props.style);
+            expect(containerStyles.width).toBe(300);
         });
     });
 
@@ -105,7 +107,8 @@ describe('SearchBar Component', () => {
                 <SearchBar {...defaultProps} width={500} />
             );
             const container = getByTestId('search-container');
-            expect(container.props.style.width).toBe(350);
+            const containerStyles = StyleSheet.flatten(container.props.style);
+            expect(containerStyles.width).toBe(350);
         });
     });
 
@@ -115,7 +118,8 @@ describe('SearchBar Component', () => {
                 <SearchBar {...defaultProps} width={700} />
             );
             const container = getByTestId('search-container');
-            expect(container.props.style.width).toBe(500);
+            const containerStyles = StyleSheet.flatten(container.props.style);
+            expect(containerStyles.width).toBe(500);
         });
     });
 });

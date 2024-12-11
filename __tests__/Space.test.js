@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import Space from '../pages/Space';
 import { NavigationContainer } from '@react-navigation/native';
 
@@ -233,7 +233,7 @@ describe('Space Component', () => {
             expect(getByText('New Folder')).toBeTruthy();
         });
     });
-    
+
     it('should navigate to SnapshotGeneralInfo when add snapshot is pressed', async () => {
         const { getByTestId } = render(
             <NavigationContainer>
