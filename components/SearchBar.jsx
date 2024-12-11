@@ -15,15 +15,11 @@ const SearchBar = ({
     return (
         <View testID="search-container" style={styles.searchContainer}>
             <TextInput style={styles.searchInput} placeholder={placeholder} value={value} onChangeText={onChangeText} testID="search-input" selectionColor="#CDA7AF" />
-            
-            {/* Clear button */}
             {value !== '' && (
                 <Pressable style={styles.clearButton} testID='clear-search-button' onPress={onClear}>
                     <Ionicons name="close" size={20} color="#3F4F5F" />
                 </Pressable>
             )}
-            
-            {/* Search button */}
             <Pressable style={styles.searchButton} testID='search-button' onPress={onSearch} disabled={!value.trim()}>
                 <Ionicons name="search" size={20} color={value.trim() ? "#CDA7AF" : "#6F7F8F"} />
             </Pressable>
