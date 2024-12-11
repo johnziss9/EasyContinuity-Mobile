@@ -685,7 +685,216 @@ describe('Space Component', () => {
         });
     });
 
-    // TODO Add api errors tests for folders
-    // TODO Add api errors tests for fetching items
+    it('should handle search and display search results', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({  // Initial folders fetch
+                success: true,
+                data: [{ id: 1, name: 'Root Folder', parentId: null }]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({  // Initial snapshots fetch
+                success: true,
+                data: []
+            }))
+            .mockImplementationOnce(() => Promise.resolve({  // Search results
+                success: true,
+                data: [
+                    { id: 2, name: 'Test Folder', episode: null },
+                    { id: 3, name: 'Test Snapshot', episode: '1' }
+                ]
+            }));
+
+        const { getByTestId, getByText, queryByText } = render(
+            <NavigationContainer>
+                <Space />
+            </NavigationContainer>
+        );
+
+        // Wait for initial load
+        await waitFor(() => {
+            expect(getByText('Root Folder')).toBeTruthy();
+        });
+
+        // Perform search
+        fireEvent.changeText(getByTestId('search-input'), 'Test');
+        fireEvent.press(getByTestId('search-button'));
+
+        await waitFor(() => {
+            // Root items should be hidden
+            expect(queryByText('Root Folder')).toBeNull();
+            
+            // Search results should be visible
+            expect(getByText('Test Folder')).toBeTruthy();
+            expect(getByText('Test Snapshot')).toBeTruthy();
+
+            // Verify search API was called
+            expect(apiMock).toHaveBeenCalledWith(
+                `/space/1/search?query=Test`,
+                'GET'
+            );
+        });
+    });
+
+    it('should handle empty search results', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 1, name: 'Root Folder', parentId: null }]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []  // Empty search results
+            }));
+
+        const { getByTestId, getByText, queryByText } = render(
+            <NavigationContainer>
+                <Space />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(getByText('Root Folder')).toBeTruthy();
+        });
+
+        fireEvent.changeText(getByTestId('search-input'), 'NonExistent');
+        fireEvent.press(getByTestId('search-button'));
+
+        await waitFor(() => {
+            expect(queryByText('Root Folder')).toBeNull();
+            expect(getByText('No matches found')).toBeTruthy();
+            expect(getByText('Try different search terms or clear search to show all items')).toBeTruthy();
+        });
+    });
+
+    it('should clear search and return to root items view', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({  // Initial folders
+                success: true,
+                data: [{ id: 1, name: 'Root Folder', parentId: null }]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({  // Initial snapshots
+                success: true,
+                data: []
+            }))
+            .mockImplementationOnce(() => Promise.resolve({  // Search results
+                success: true,
+                data: [{ id: 2, name: 'Test Item', episode: '1' }]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({  // Refresh folders after clear
+                success: true,
+                data: [{ id: 1, name: 'Root Folder', parentId: null }]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({  // Refresh snapshots after clear
+                success: true,
+                data: []
+            }));
+
+        const { getByTestId, getByText, queryByText } = render(
+            <NavigationContainer>
+                <Space />
+            </NavigationContainer>
+        );
+
+        // Wait for initial load
+        await waitFor(() => {
+            expect(getByText('Root Folder')).toBeTruthy();
+        });
+
+        // Perform search
+        fireEvent.changeText(getByTestId('search-input'), 'Test');
+        fireEvent.press(getByTestId('search-button'));
+
+        await waitFor(() => {
+            expect(getByText('Test Item')).toBeTruthy();
+        });
+
+        // Clear search
+        fireEvent.press(getByTestId('clear-search-button'));
+
+        await waitFor(() => {
+            // Search results should be gone
+            expect(queryByText('Test Item')).toBeNull();
+            
+            // Root items should be back
+            expect(getByText('Root Folder')).toBeTruthy();
+            
+            // Search input should be empty
+            expect(getByTestId('search-input').props.value).toBe('');
+        });
+    });
+
+    it('should not make search API call with empty query', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 1, name: 'Root Folder', parentId: null }]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+
+        const { getByTestId } = render(
+            <NavigationContainer>
+                <Space />
+            </NavigationContainer>
+        );
+
+        fireEvent.changeText(getByTestId('search-input'), '   ');  // Only spaces
+        fireEvent.press(getByTestId('search-button'));
+
+        await waitFor(() => {
+            // Verify only initial API calls were made, no search call
+            expect(apiMock).toHaveBeenCalledTimes(2);
+        });
+    });
+
+    it('should handle search API error', async () => {
+        const apiMock = require('../api/api').default;
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 1, name: 'Root Folder', parentId: null }]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: false,
+                error: 'Search failed'
+            }));
+
+        const { getByTestId, getByText } = render(
+            <NavigationContainer>
+                <Space />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(getByText('Root Folder')).toBeTruthy();
+        });
+
+        fireEvent.changeText(getByTestId('search-input'), 'Test');
+        fireEvent.press(getByTestId('search-button'));
+
+        await waitFor(() => {
+            expect(consoleErrorSpy).toHaveBeenCalledWith('Search failed:', expect.any(Error));
+        });
+
+        consoleErrorSpy.mockRestore();
+    });
+
+    // TODO Add api errors tests except search
+    // TODO Add network errors tests 
 
 });
