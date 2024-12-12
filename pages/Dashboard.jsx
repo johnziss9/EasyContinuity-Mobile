@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, useWindowDimensions, ActivityIndicator } from 'react-native';
+import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, useWindowDimensions, ActivityIndicator, ScrollView } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SpaceCard from '../components/SpaceCard';
 import { SelectList } from 'react-native-dropdown-select-list'
@@ -278,26 +278,28 @@ const Dashboard = () => {
                 </View>
             </Modal>
 
-            {isLoading ? (
-                <ActivityIndicator size="large" color="#3F4F5F" />
-            ) : (
-                <>
-                    {Array.isArray(spaces) && spaces.length > 0 ? spaces.map((space) => (
-                        <SpaceCard 
-                            key={space.id} 
-                            spaceName={space.name} 
-                            onPress={() => handleSpacePress(space.id, space.name)}
-                            onEditPress={() => handleEditSpacePress(space)}
-                            onDeletePress={() => handleDeleteSpacePress(space)}
-                        />
-                    )) :
-                        <View style={styles.noSpacesContainer}>
-                            <Text style={styles.noSpacesTitle}>No Spaces Yet</Text>
-                            <Text style={styles.noSpacesText}>Get started by pressing the + button below to create your first space.</Text>
-                        </View>
-                    }
-                </>
-            )}
+            <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollViewContent}>
+                {isLoading ? (
+                    <ActivityIndicator size="large" color="#3F4F5F" />
+                ) : (
+                    <>
+                        {Array.isArray(spaces) && spaces.length > 0 ? spaces.map((space) => (
+                            <SpaceCard 
+                                key={space.id} 
+                                spaceName={space.name} 
+                                onPress={() => handleSpacePress(space.id, space.name)}
+                                onEditPress={() => handleEditSpacePress(space)}
+                                onDeletePress={() => handleDeleteSpacePress(space)}
+                            />
+                        )) :
+                            <View style={styles.noSpacesContainer}>
+                                <Text style={styles.noSpacesTitle}>No Spaces Yet</Text>
+                                <Text style={styles.noSpacesText}>Get started by pressing the + button below to create your first space.</Text>
+                            </View>
+                        }
+                    </>
+                )}
+            </ScrollView>
             <Pressable style={styles.addNewButton} testID='add-space-button' onPress={() => setShowAddNewSpaceModal(true)}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
             </Pressable>
@@ -396,6 +398,9 @@ const styles = StyleSheet.create({
         color: '#3F4F5F',
         fontSize: 18,
     },
+    scrollViewContent: {
+        width: '100%'
+    }
 });
 
 export default Dashboard;

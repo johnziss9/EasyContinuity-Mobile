@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useLayoutEffect } from 'react';
 import { BackHandler, Platform } from 'react-native';
-import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, useWindowDimensions, ActivityIndicator } from 'react-native';
+import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, useWindowDimensions, ActivityIndicator, ScrollView } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import handleHttpRequest from '../api/api';
@@ -452,39 +452,41 @@ const Folder = () => {
                 </Pressable>
             </View>
 
-            {isLoading ? (
-                <ActivityIndicator size="large" color="#3F4F5F" testID='activity-indicator' />
-            ) : (
-                <>
-                    {Array.isArray(folders) && Array.isArray(snapshots) && (folders.length > 0 || snapshots.length > 0) ? (
-                        <>
-                            {folders.length > 0 && folders.map((folder) => (
-                                <FolderCard
-                                    key={folder.id}
-                                    folderName={folder.name}
-                                    onEditPress={ () => handleEditFolderPress(folder) }
-                                    onDeletePress={() => handleDeleteFolderPress(folder)}
-                                    onPress={() => handleFolderPress(folder.id, folder.name)}
-                                />
-                            ))}
-                            {snapshots.length > 0 && snapshots.map((snapshot) => (
-                                <SnapshotCard
-                                    key={snapshot.id}
-                                    snapshotName={snapshot.name}
-                                    // images={[someImage, someImage2, someImage3, someImage4, someImage, someImage]}
-                                    onDeletePress={() => handleDeleteSnapshotPress(snapshot)}
-                                    onPress={() => handleSnapshotPress(snapshot)}
-                                />
-                            ))}
-                        </>
-                    ) : (
-                        <View style={styles.noItemsContainer}>
-                            <Text style={styles.noItemsTitle}>No Items In Folder Yet</Text>
-                            <Text style={styles.noItemsText}>Get started by pressing the + button below to add your first item.</Text>
-                        </View>
-                    )}
-                </>
-            )}
+            <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollViewContent}>
+                {isLoading ? (
+                    <ActivityIndicator size="large" color="#3F4F5F" testID='activity-indicator' />
+                ) : (
+                    <>
+                        {Array.isArray(folders) && Array.isArray(snapshots) && (folders.length > 0 || snapshots.length > 0) ? (
+                            <>
+                                {folders.length > 0 && folders.map((folder) => (
+                                    <FolderCard
+                                        key={folder.id}
+                                        folderName={folder.name}
+                                        onEditPress={ () => handleEditFolderPress(folder) }
+                                        onDeletePress={() => handleDeleteFolderPress(folder)}
+                                        onPress={() => handleFolderPress(folder.id, folder.name)}
+                                    />
+                                ))}
+                                {snapshots.length > 0 && snapshots.map((snapshot) => (
+                                    <SnapshotCard
+                                        key={snapshot.id}
+                                        snapshotName={snapshot.name}
+                                        // images={[someImage, someImage2, someImage3, someImage4, someImage, someImage]}
+                                        onDeletePress={() => handleDeleteSnapshotPress(snapshot)}
+                                        onPress={() => handleSnapshotPress(snapshot)}
+                                    />
+                                ))}
+                            </>
+                        ) : (
+                            <View style={styles.noItemsContainer}>
+                                <Text style={styles.noItemsTitle}>No Items In Folder Yet</Text>
+                                <Text style={styles.noItemsText}>Get started by pressing the + button below to add your first item.</Text>
+                            </View>
+                        )}
+                    </>
+                )}
+            </ScrollView>
             <Pressable style={styles.addNewButton} testID='add-item-button' onPress={() => setShowAddNewItemModal(true)}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
             </Pressable>
@@ -650,6 +652,9 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#3F4F5F',
         fontWeight: 'bold'
+    },
+    scrollViewContent: {
+        width: '100%'
     }
 });
 
