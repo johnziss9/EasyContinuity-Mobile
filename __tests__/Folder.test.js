@@ -635,4 +635,172 @@ describe('Folder Component', () => {
             expect(queryByText('Test Snapshot')).toBeNull();
         });
     });
+
+    it('should sort items by date newest first by default', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({  // Current folder fetch
+                success: true,
+                data: { id: 1, name: 'Current Folder', parentId: null }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({  // Nested folders fetch
+                success: true,
+                data: [
+                    { 
+                        id: 1, 
+                        name: 'Older Folder', 
+                        parentId: 1,
+                        createdOn: '2024-01-01T00:00:00Z'
+                    },
+                    { 
+                        id: 2, 
+                        name: 'Newer Folder', 
+                        parentId: 1,
+                        createdOn: '2024-01-03T00:00:00Z'
+                    }
+                ]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({  // Snapshots fetch
+                success: true,
+                data: [
+                    {
+                        id: 3,
+                        name: 'Older Snapshot',
+                        folderId: 1,
+                        createdOn: '2024-01-02T00:00:00Z'
+                    },
+                    {
+                        id: 4,
+                        name: 'Newer Snapshot',
+                        folderId: 1,
+                        createdOn: '2024-01-04T00:00:00Z'
+                    }
+                ]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({  // Space fetch
+                success: true,
+                data: { name: 'Test Space' }
+            }));
+    
+        const { getByText, getAllByText } = render(
+            <NavigationContainer>
+                <Folder />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            // Get all elements content
+            const items = getAllByText(/^(Newer|Older)/);
+            
+            // Verify order: Newer Folder, Older Folder, Newer Snapshot, Older Snapshot
+            expect(items[0]).toHaveTextContent('Newer Folder');
+            expect(items[1]).toHaveTextContent('Older Folder');
+            expect(items[2]).toHaveTextContent('Newer Snapshot');
+            expect(items[3]).toHaveTextContent('Older Snapshot');
+        });
+    });
+
+    it('should apply different sort options when selected', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({  // Current folder fetch
+                success: true,
+                data: { id: 1, name: 'Current Folder', parentId: null }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({  // Nested folders fetch
+                success: true,
+                data: [
+                    { 
+                        id: 1, 
+                        name: 'Beta Folder', 
+                        parentId: 1,
+                        createdOn: '2024-01-01T00:00:00Z'
+                    },
+                    { 
+                        id: 2, 
+                        name: 'Alpha Folder', 
+                        parentId: 1,
+                        createdOn: '2024-01-03T00:00:00Z'
+                    }
+                ]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({  // Snapshots fetch
+                success: true,
+                data: [
+                    {
+                        id: 3,
+                        name: 'Delta Snapshot',
+                        folderId: 1,
+                        createdOn: '2024-01-02T00:00:00Z'
+                    },
+                    {
+                        id: 4,
+                        name: 'Charlie Snapshot',
+                        folderId: 1,
+                        createdOn: '2024-01-04T00:00:00Z'
+                    }
+                ]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({  // Space fetch
+                success: true,
+                data: { name: 'Test Space' }
+            }));
+    
+        const { getByText, getAllByText, getByTestId } = render(
+            <NavigationContainer>
+                <Folder />
+            </NavigationContainer>
+        );
+    
+        // Wait for initial render
+        await waitFor(() => {
+            expect(getByText('Alpha Folder')).toBeTruthy();
+        });
+    
+        // Open sort modal
+        fireEvent.press(getByTestId('sort-button'));
+    
+        // Test Date: Oldest First
+        fireEvent.press(getByText('Date: Oldest First'));
+        await waitFor(() => {
+            const items = getAllByText(/^(Alpha|Beta|Charlie|Delta)/);
+            expect(items[0]).toHaveTextContent('Beta Folder');
+            expect(items[1]).toHaveTextContent('Alpha Folder');
+            expect(items[2]).toHaveTextContent('Delta Snapshot');
+            expect(items[3]).toHaveTextContent('Charlie Snapshot');
+        });
+    
+        // Test Name: A to Z
+        fireEvent.press(getByTestId('sort-button'));
+        fireEvent.press(getByText('Name: A to Z'));
+        await waitFor(() => {
+            const items = getAllByText(/^(Alpha|Beta|Charlie|Delta)/);
+            expect(items[0]).toHaveTextContent('Alpha Folder');
+            expect(items[1]).toHaveTextContent('Beta Folder');
+            expect(items[2]).toHaveTextContent('Charlie Snapshot');
+            expect(items[3]).toHaveTextContent('Delta Snapshot');
+        });
+    
+        // Test Name: Z to A
+        fireEvent.press(getByTestId('sort-button'));
+        fireEvent.press(getByText('Name: Z to A'));
+        await waitFor(() => {
+            const items = getAllByText(/^(Alpha|Beta|Charlie|Delta)/);
+            expect(items[0]).toHaveTextContent('Beta Folder');
+            expect(items[1]).toHaveTextContent('Alpha Folder');
+            expect(items[2]).toHaveTextContent('Delta Snapshot');
+            expect(items[3]).toHaveTextContent('Charlie Snapshot');
+        });
+    
+        // Test Date: Newest First (back to default)
+        fireEvent.press(getByTestId('sort-button'));
+        fireEvent.press(getByText('Date: Newest First'));
+        await waitFor(() => {
+            const items = getAllByText(/^(Alpha|Beta|Charlie|Delta)/);
+            expect(items[0]).toHaveTextContent('Alpha Folder');
+            expect(items[1]).toHaveTextContent('Beta Folder');
+            expect(items[2]).toHaveTextContent('Charlie Snapshot');
+            expect(items[3]).toHaveTextContent('Delta Snapshot');
+        });
+    });
 });
