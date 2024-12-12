@@ -499,8 +499,8 @@ const Space = () => {
                             </>
                         ) : (
                             <View style={styles.noItemsContainer}>
-                                <Text style={styles.noItemsTitle} testID="no-items-title">No matches found</Text>
-                                <Text style={styles.noItemsText} testID="no-items-text">
+                                <Text style={styles.noItemsTitle}>No matches found</Text>
+                                <Text style={styles.noItemsText}>
                                     Try different search terms or clear search to show all items
                                 </Text>
                             </View>
