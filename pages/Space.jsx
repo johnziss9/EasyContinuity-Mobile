@@ -17,6 +17,7 @@ const Space = () => {
 
     const [showAddNewItemModal, setShowAddNewItemModal] = useState(false);
     const [showAddNewFolderModal, setShowAddNewFolderModal] = useState(false);
+    const [showSortByModal, setShowSortByModal] = useState(false);
 
     const [folderName, setFolderName] = useState('');
     const [currentFolderId, setCurrentFolderId] = useState(0);
@@ -26,6 +27,14 @@ const Space = () => {
     const [snapshots, setSnapshots] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchResults, setSearchResults] = useState(null);
+    const [currentSort, setCurrentSort] = useState({ id: 1, label: 'Date: Newest First' });
+
+    const sortOptions = [
+        { id: 1, label: 'Date: Newest First' },
+        { id: 2, label: 'Date: Oldest First' },
+        { id: 3, label: 'Name: A to Z' },
+        { id: 4, label: 'Name: Z to A' }
+    ];
 
     useFocusEffect(
         React.useCallback(() => {
@@ -89,16 +98,53 @@ const Space = () => {
         setFolderName('');
     }
 
+    const handleSort = (option) => {
+        setCurrentSort(option);
+        setShowSortByModal(false);
+
+        let sortedFolders = [...folders];
+        let sortedSnapshots = [...snapshots];
+
+        switch (option.id) {
+            case 1: // Date: Newest First
+                sortedFolders.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
+                sortedSnapshots.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
+                break;
+            case 2: // Date: Oldest First
+                sortedFolders.sort((a, b) => new Date(a.createdOn) - new Date(b.createdOn));
+                sortedSnapshots.sort((a, b) => new Date(a.createdOn) - new Date(b.createdOn));
+                break;
+            case 3: // Name: A to Z
+                sortedFolders.sort((a, b) => a.name.localeCompare(b.name));
+                sortedSnapshots.sort((a, b) => a.name.localeCompare(b.name));
+                break;
+            case 4: // Name: Z to A
+                sortedFolders.sort((a, b) => b.name.localeCompare(a.name));
+                sortedSnapshots.sort((a, b) => b.name.localeCompare(a.name));
+                break;
+            default:
+                break;
+        }
+
+        setFolders(sortedFolders);
+        setSnapshots(sortedSnapshots);
+    };
+
     const handleSearch = async () => {
         // If the search string is empty then it exits the function to prevent API calls
         if (!searchQuery.trim()) return;
 
         setIsLoading(true);
+
         try {
-            const response = await handleHttpRequest(
-                `/space/${spaceId}/search?query=${encodeURIComponent(searchQuery)}`,
-                'GET'
-            );
+            const url = `/space/${spaceId}/search?query=${encodeURIComponent(searchQuery)}`;
+            const method = 'GET';
+
+            console.log(url);
+
+            const response = await handleHttpRequest(url, method);
+
+            console.log(response);
 
             if (!response.success) {
                 throw new Error(response.error);
@@ -111,6 +157,21 @@ const Space = () => {
                     ? 'snapshot'
                     : 'folder'
             }));
+
+            switch (currentSort.id) {
+                case 1: // Date: Newest First
+                    resultsWithType.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
+                    break;
+                case 2: // Date: Oldest First
+                    resultsWithType.sort((a, b) => new Date(a.createdOn) - new Date(b.createdOn));
+                    break;
+                case 3: // Name: A to Z
+                    resultsWithType.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 4: // Name: Z to A
+                    resultsWithType.sort((a, b) => b.name.localeCompare(a.name));
+                    break;
+            }
 
             setSearchResults(resultsWithType);
         } catch (error) {
@@ -265,8 +326,12 @@ const Space = () => {
             const rootFolders = foldersResponse.data.filter(folder => folder.parentId === null);
             const rootSnapshots = snapshotsResponse.data.filter(snapshot => snapshot.folderId === null);
 
-            setFolders(rootFolders);
-            setSnapshots(rootSnapshots);
+            // Applying default sorting when this function is called - Date Created Newest First
+            const sortedFolders = rootFolders.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
+            const sortedSnapshots = rootSnapshots.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
+
+            setFolders(sortedFolders);
+            setSnapshots(sortedSnapshots);
         } catch (error) {
             console.error('Error fetching items:', error);
             // TODO Replace with fail toast
@@ -348,6 +413,41 @@ const Space = () => {
                 </View>
             </Modal>
 
+            {/* Sort By Modal */}
+            <Modal
+                transparent={true}
+                animationType="fade"
+                visible={showSortByModal}
+                onRequestClose={() => setShowSortByModal(false)} // Android back button handling
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={[styles.modalText, { marginBottom: 10 }]} accessibilityLabel="Sort By:">Sort By:</Text>
+                        {sortOptions.map((option) => (
+                            <Pressable
+                                key={option.id}
+                                style={styles.sortOptionButton}
+                                onPress={() => handleSort(option)}
+                            >
+                                <View style={styles.sortRadioOption}>
+                                    <View style={styles.sortRadioOuter}>
+                                        {currentSort?.id === option.id && (
+                                            <View style={styles.sortRadioInner} />
+                                        )}
+                                    </View>
+                                    <Text style={[
+                                        styles.sortOptionText,
+                                        currentSort?.id === option.id && styles.selectedOptionText
+                                    ]}>
+                                        {option.label}
+                                    </Text>
+                                </View>
+                            </Pressable>
+                        ))}
+                    </View>
+                </View>
+            </Modal>
+
             <SearchBar
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -355,6 +455,18 @@ const Space = () => {
                 onClear={handleClearSearchBar}
                 width={width}
             />
+
+            <View style={styles.sortFilterContainer}>
+                <Pressable style={styles.sortFilterButton} testID='sort-button' onPress={() => setShowSortByModal(true)}>
+                    <Ionicons name="funnel-outline" size={14} color="#CDA7AF" />
+                    <Text style={styles.sortFilterText}>Sort</Text>
+                </Pressable>
+
+                <Pressable style={styles.sortFilterButton} testID='filter-button'>
+                    <Ionicons name="filter-outline" size={14} color="#CDA7AF" />
+                    <Text style={styles.sortFilterText}>Filter</Text>
+                </Pressable>
+            </View>
 
             {isLoading ? (
                 <ActivityIndicator size="large" color="#3F4F5F" testID='activity-indicator' />
@@ -481,7 +593,6 @@ const styles = StyleSheet.create({
     },
     modalText: {
         fontSize: 18,
-        marginBottom: 5,
         marginLeft: 5,
         color: '#3F4F5F',
         fontWeight: 'bold'
@@ -541,6 +652,58 @@ const styles = StyleSheet.create({
     },
     modalButtonTextCancel: {
         color: '#3F4F5F'
+    },
+    sortFilterContainer: {
+        flexDirection: 'row',
+        gap: 15,
+        marginBottom: 15
+    },
+    sortFilterButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        backgroundColor: '#3F4F5F',
+        paddingVertical: 3,
+        paddingHorizontal: 8,
+        borderRadius: 15,
+        width: 70,
+        justifyContent: 'center'
+    },
+    sortFilterText: {
+        color: '#CDA7AF',
+        fontSize: 13,
+        fontWeight: 'bold'
+    },
+    sortOptionButton: {
+        paddingVertical: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#3F4F5F',
+        paddingHorizontal: 20
+    },
+    sortRadioOption: {
+        flexDirection: 'row',
+        alignItems: 'center'
+    },
+    sortRadioOuter: {
+        height: 20,
+        width: 20,
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: '#3F4F5F',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 10
+    },
+    sortRadioInner: {
+        height: 10,
+        width: 10,
+        borderRadius: 5,
+        backgroundColor: '#CDA7AF'
+    },
+    sortOptionText: {
+        fontSize: 16,
+        color: '#3F4F5F',
+        fontWeight: 'bold'
     }
 });
 
