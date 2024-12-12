@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, useWindowDimensions, ActivityIndicator } from 'react-native';
+import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, useWindowDimensions, ActivityIndicator, ScrollView } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useFileBrowser from '../hooks/useFileBrowser';
@@ -468,77 +468,79 @@ const Space = () => {
                 </Pressable>
             </View>
 
-            {isLoading ? (
-                <ActivityIndicator size="large" color="#3F4F5F" testID='activity-indicator' />
-            ) : (
-                <>
-                    {searchResults ? (
-                        // Search results view
-                        searchResults.length > 0 ? (
-                            <>
-                                {searchResults.map((item) => (
-                                    item.itemType === 'snapshot' ? (
-                                        <SnapshotCard
-                                            key={`snapshot-${item.id}`}
-                                            snapshotName={item.name}
-                                            onDeletePress={() => handleDeleteSnapshotPress(item)}
-                                            onPress={() => handleSnapshotPress(item)}
-                                            path={item.path}
-                                        />
-                                    ) : (
+            <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollViewContent}>
+                {isLoading ? (
+                    <ActivityIndicator size="large" color="#3F4F5F" testID='activity-indicator' />
+                ) : (
+                    <>
+                        {searchResults ? (
+                            // Search results view
+                            searchResults.length > 0 ? (
+                                <>
+                                    {searchResults.map((item) => (
+                                        item.itemType === 'snapshot' ? (
+                                            <SnapshotCard
+                                                key={`snapshot-${item.id}`}
+                                                snapshotName={item.name}
+                                                onDeletePress={() => handleDeleteSnapshotPress(item)}
+                                                onPress={() => handleSnapshotPress(item)}
+                                                path={item.path}
+                                            />
+                                        ) : (
+                                            <FolderCard
+                                                key={`folder-${item.id}`}
+                                                folderName={item.name}
+                                                onEditPress={() => handleEditFolderPress(item)}
+                                                onDeletePress={() => handleDeleteFolderPress(item)}
+                                                onPress={() => handleFolderPress(item.id, item.name)}
+                                                path={item.path}
+                                            />
+                                        )
+                                    ))}
+                                </>
+                            ) : (
+                                <View style={styles.noItemsContainer}>
+                                    <Text style={styles.noItemsTitle}>No matches found</Text>
+                                    <Text style={styles.noItemsText}>
+                                        Try different search terms or clear search to show all items
+                                    </Text>
+                                </View>
+                            )
+                        ) : (
+                            // Root Folders and Snapshots when no search is happening
+                            Array.isArray(folders) && Array.isArray(snapshots) &&
+                                (folders.length > 0 || snapshots.length > 0) ? (
+                                <>
+                                    {folders.length > 0 && folders.map((folder) => (
                                         <FolderCard
-                                            key={`folder-${item.id}`}
-                                            folderName={item.name}
-                                            onEditPress={() => handleEditFolderPress(item)}
-                                            onDeletePress={() => handleDeleteFolderPress(item)}
-                                            onPress={() => handleFolderPress(item.id, item.name)}
-                                            path={item.path}
+                                            key={folder.id}
+                                            folderName={folder.name}
+                                            onEditPress={() => handleEditFolderPress(folder)}
+                                            onDeletePress={() => handleDeleteFolderPress(folder)}
+                                            onPress={() => handleFolderPress(folder.id, folder.name)}
                                         />
-                                    )
-                                ))}
-                            </>
-                        ) : (
-                            <View style={styles.noItemsContainer}>
-                                <Text style={styles.noItemsTitle}>No matches found</Text>
-                                <Text style={styles.noItemsText}>
-                                    Try different search terms or clear search to show all items
-                                </Text>
-                            </View>
-                        )
-                    ) : (
-                        // Root Folders and Snapshots when no search is happening
-                        Array.isArray(folders) && Array.isArray(snapshots) &&
-                            (folders.length > 0 || snapshots.length > 0) ? (
-                            <>
-                                {folders.length > 0 && folders.map((folder) => (
-                                    <FolderCard
-                                        key={folder.id}
-                                        folderName={folder.name}
-                                        onEditPress={() => handleEditFolderPress(folder)}
-                                        onDeletePress={() => handleDeleteFolderPress(folder)}
-                                        onPress={() => handleFolderPress(folder.id, folder.name)}
-                                    />
-                                ))}
-                                {snapshots.length > 0 && snapshots.map((snapshot) => (
-                                    <SnapshotCard
-                                        key={snapshot.id}
-                                        snapshotName={snapshot.name}
-                                        onDeletePress={() => handleDeleteSnapshotPress(snapshot)}
-                                        onPress={() => handleSnapshotPress(snapshot)}
-                                    />
-                                ))}
-                            </>
-                        ) : (
-                            <View style={styles.noItemsContainer}>
-                                <Text style={styles.noItemsTitle}>No Items Yet</Text>
-                                <Text style={styles.noItemsText}>
-                                    Get started by pressing the + button below to add your first item.
-                                </Text>
-                            </View>
-                        )
-                    )}
-                </>
-            )}
+                                    ))}
+                                    {snapshots.length > 0 && snapshots.map((snapshot) => (
+                                        <SnapshotCard
+                                            key={snapshot.id}
+                                            snapshotName={snapshot.name}
+                                            onDeletePress={() => handleDeleteSnapshotPress(snapshot)}
+                                            onPress={() => handleSnapshotPress(snapshot)}
+                                        />
+                                    ))}
+                                </>
+                            ) : (
+                                <View style={styles.noItemsContainer}>
+                                    <Text style={styles.noItemsTitle}>No Items Yet</Text>
+                                    <Text style={styles.noItemsText}>
+                                        Get started by pressing the + button below to add your first item.
+                                    </Text>
+                                </View>
+                            )
+                        )}
+                    </>
+                )}
+            </ScrollView>
 
             <Pressable style={styles.addNewButton} testID='add-item-button' onPress={() => setShowAddNewItemModal(true)}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
@@ -704,6 +706,9 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#3F4F5F',
         fontWeight: 'bold'
+    },
+    scrollViewContent: {
+        width: '100%'
     }
 });
 
