@@ -12,6 +12,7 @@ const Dashboard = () => {
 
     const [showAddNewSpaceModal, setShowAddNewSpaceModal] = useState(false);
     const [spaceNameField, setSpaceNameField] = React.useState('');
+    const [spaceDescription, setSpaceDescription] = React.useState('');
     const [spaceType, setSpaceType] = useState('');
     const [spaces, setSpaces] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -36,6 +37,7 @@ const Dashboard = () => {
 
     const handleModalCancelPress = () => {
         setSpaceNameField('');
+        setSpaceDescription('');
         setIsEditing(false);
         setShowAddNewSpaceModal(false);
     };
@@ -49,6 +51,7 @@ const Dashboard = () => {
         setShowAddNewSpaceModal(true);
         setCurrentSpaceId(space.id);
         setSpaceNameField(space.name);
+        setSpaceDescription(space.description);
         setSpaceType(space.type);
     }
 
@@ -94,6 +97,7 @@ const Dashboard = () => {
                 const body = {
                     name: spaceNameField,
                     type: spaceType,
+                    description: spaceDescription,
                     lastUpdatedOn: new Date().toISOString()
                     // TODO Include lastUpdatedBy
                 };
@@ -126,6 +130,7 @@ const Dashboard = () => {
                 const body = {
                     name: spaceNameField,
                     type: spaceType,
+                    description: spaceDescription,
                     createdOn: new Date().toISOString()
                     // TODO Include AddedBy
                 };
@@ -180,7 +185,6 @@ const Dashboard = () => {
     const dynamicStyles = {
         modalTextbox: {
             width: width < 600 ? '100%' : '61%',
-            height: 60,
             borderWidth: 1,
             borderColor: '#3F4F5F',
             borderRadius: 5,
@@ -196,7 +200,7 @@ const Dashboard = () => {
             borderColor: '#3F4F5F',
             borderRadius: 5,
             backgroundColor: 'rgba(205, 167, 175, 0.2)',
-            marginBottom: 5,
+            marginBottom: 10,
             alignItems: 'center',
             paddingHorizontal: 7
         },
@@ -219,15 +223,7 @@ const Dashboard = () => {
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalText} accessibilityLabel="Enter Space Name:">Enter Space Name:</Text>
-                        <TextInput
-                            style={dynamicStyles.modalTextbox}
-                            onChangeText={setSpaceNameField}
-                            value={spaceNameField}
-                            placeholder='Space Name'
-                            cursorColor={'#3F4F5F'}
-                            testID='space-name-text-input'
-                        />
+                        <Text style={styles.modalText} accessibilityLabel="Add Space:">Add Space:</Text>
                         {!isEditing ?
                             <SelectList
                                 setSelected={handleSpaceTypeSelect}
@@ -235,7 +231,6 @@ const Dashboard = () => {
                                 placeholder="Type"
                                 searchPlaceholder="Search..."
                                 save='key'
-                                style={styles.selectList}
                                 boxStyles={dynamicStyles.dropdownBox}
                                 inputStyles={styles.dropdownInput}
                                 dropdownStyles={dynamicStyles.dropdownList}
@@ -266,6 +261,24 @@ const Dashboard = () => {
                                 />
                             </View>      
                         }
+                        <TextInput
+                            style={[dynamicStyles.modalTextbox, {height: 60}]}
+                            onChangeText={setSpaceNameField}
+                            value={spaceNameField}
+                            placeholder='Name'
+                            cursorColor={'#3F4F5F'}
+                            testID='space-name-text-input'
+                        />
+                        <TextInput
+                            style={[dynamicStyles.modalTextbox, {height: 120, textAlignVertical: 'top'}]}
+                            onChangeText={setSpaceDescription}
+                            value={spaceDescription}
+                            placeholder='Description'
+                            cursorColor={'#3F4F5F'}
+                            multiline
+                            numberOfLines={4}
+                            testID='space-description-text-input'
+                        />
                         <View style={styles.modalButtonsContainer}>
                             <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} testID='add-space-cancel-button' onPress={handleModalCancelPress}>
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
@@ -287,6 +300,7 @@ const Dashboard = () => {
                             <SpaceCard 
                                 key={space.id} 
                                 spaceName={space.name} 
+                                description={space.description}
                                 onPress={() => handleSpacePress(space.id, space.name)}
                                 onEditPress={() => handleEditSpacePress(space)}
                                 onDeletePress={() => handleDeleteSpacePress(space)}

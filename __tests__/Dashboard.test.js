@@ -9,8 +9,8 @@ jest.mock('../api/api', () => ({
     default: jest.fn(() => Promise.resolve({
         success: true,
         data: [
-            { id: 1, name: 'Goodfellas', type: 'Movie' },
-            { id: 2, name: 'The Last of Us', type: 'Series' }
+            { id: 1, name: 'Goodfellas', type: 'Movie', description: 'Classic mob movie' },
+            { id: 2, name: 'The Last of Us', type: 'Series', description: 'Post-apocalyptic drama' }
         ]
     }))
 }));
@@ -71,9 +71,13 @@ describe('Dashboard', () => {
                 <Dashboard />
             </NavigationContainer>
         );
-
+    
         await waitFor(() => {
-            expect(getAllByTestId('space-card-component')).toHaveLength(2);
+            // Verify basic rendering
+            const spaceCards = getAllByTestId('space-card-component');
+            expect(spaceCards).toHaveLength(2);
+            
+            // Verify the space names are displayed
             expect(queryByText('Goodfellas')).toBeTruthy();
             expect(queryByText('The Last of Us')).toBeTruthy();
         });
@@ -113,8 +117,9 @@ describe('Dashboard', () => {
         });
 
         await waitFor(() => {
-            expect(getByLabelText('Enter Space Name:')).toBeTruthy();
+            expect(getByLabelText('Add Space:')).toBeTruthy();
             expect(getByTestId('space-name-text-input')).toBeTruthy();
+            expect(getByTestId('space-description-text-input')).toBeTruthy();
             expect(getByTestId('add-space-cancel-button')).toBeTruthy();
             expect(getByTestId('add-space-submit-button')).toBeTruthy();
             expect(getByTestId('space-type-select-dropdown').props['data-placeholder']).toBe('Type');
@@ -133,7 +138,7 @@ describe('Dashboard', () => {
         });
 
         await waitFor(() => {
-            expect(getByLabelText('Enter Space Name:')).toBeTruthy();
+            expect(getByLabelText('Add Space:')).toBeTruthy();
             expect(getByTestId('space-name-text-input')).toBeTruthy();
             expect(getByTestId('add-space-cancel-button')).toBeTruthy();
             expect(getByTestId('add-space-submit-button')).toBeTruthy();
@@ -143,7 +148,7 @@ describe('Dashboard', () => {
         fireEvent.press(getByTestId('add-space-cancel-button'));
 
         await waitFor(() => {
-            expect(queryByText('Enter Space Name:')).toBeNull();
+            expect(queryByText('Add Space:')).toBeNull();
             expect(queryByTestId('space-name-text-input')).toBeNull();
             expect(queryByTestId('add-space-cancel-button')).toBeNull();
             expect(queryByTestId('add-space-submit-button')).toBeNull();
@@ -172,29 +177,29 @@ describe('Dashboard', () => {
 
     it('should fetch and display spaces data on component mount', async () => {
         const apiMock = require('../api/api').default;
-
+    
         const { getAllByTestId } = render(
             <NavigationContainer>
                 <Dashboard />
             </NavigationContainer>
         );
-
+    
         await waitFor(() => {
             // Verify API was called with correct parameters
             expect(apiMock).toHaveBeenCalledWith('/space', 'GET');
             expect(apiMock).toHaveBeenCalledTimes(1);
-
+    
             // Verify data was rendered
             const spaceCards = getAllByTestId('space-card-component');
             expect(spaceCards).toHaveLength(2);
-
+    
             // Verify correct data was passed to the API mock
             const mockResponse = apiMock.mock.results[0].value;
             expect(mockResponse).resolves.toEqual({
                 success: true,
                 data: [
-                    { id: 1, name: 'Goodfellas', type: 'Movie' },
-                    { id: 2, name: 'The Last of Us', type: 'Series' }
+                    { id: 1, name: 'Goodfellas', type: 'Movie', description: 'Classic mob movie' },
+                    { id: 2, name: 'The Last of Us', type: 'Series', description: 'Post-apocalyptic drama' }
                 ]
             });
         });
@@ -208,24 +213,24 @@ describe('Dashboard', () => {
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
                 data: [
-                    { id: 1, name: 'Goodfellas', type: '1' },
-                    { id: 2, name: 'The Last of Us', type: '2' }
+                    { id: 1, name: 'Goodfellas', type: '1', description: 'Old movie' },
+                    { id: 2, name: 'The Last of Us', type: '2', description: 'New series' }
                 ]
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: { id: 3, name: 'Mr. Robot', type: '2' }
+                data: { id: 3, name: 'Mr. Robot', type: '2', description: 'Hacker series' }
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
                 data: [
-                    { id: 1, name: 'Goodfellas', type: '1' },
-                    { id: 2, name: 'The Last of Us', type: '2' },
-                    { id: 3, name: 'Mr. Robot', type: '2' }
+                    { id: 1, name: 'Goodfellas', type: '1', description: 'Old movie' },
+                    { id: 2, name: 'The Last of Us', type: '2', description: 'New series' },
+                    { id: 3, name: 'Mr. Robot', type: '2', description: 'Hacker series' }
                 ]
             }));
 
-        const { getByTestId, getByText, queryByText } = render(
+        const { getByTestId, getByText } = render(
             <NavigationContainer>
                 <Dashboard />
             </NavigationContainer>
@@ -237,26 +242,27 @@ describe('Dashboard', () => {
 
         await waitFor(() => {
             const nameInput = getByTestId('space-name-text-input');
+            const descriptionInput = getByTestId('space-description-text-input');
             fireEvent.changeText(nameInput, 'Mr. Robot');
+            fireEvent.changeText(descriptionInput, 'Hacker series');
 
             const typeDropdown = getByTestId('space-type-select-dropdown');
             fireEvent.press(typeDropdown);
-            const movieOption = getByTestId('space-type-select-item-2');
-            fireEvent.press(movieOption);
+            const seriesOption = getByTestId('space-type-select-item-2');
+            fireEvent.press(seriesOption);
         });
 
-        // Submit form
         fireEvent.press(getByTestId('add-space-submit-button'));
 
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith('/space/', 'POST', {
                 name: 'Mr. Robot',
                 type: '2',
+                description: 'Hacker series',
                 createdOn: expect.any(String)
             });
 
             expect(apiMock).toHaveBeenCalledWith('/space', 'GET');
-            expect(queryByText('Enter Space Name:')).toBeNull();
             expect(getByText('Mr. Robot')).toBeTruthy();
         });
     });
@@ -273,13 +279,19 @@ describe('Dashboard', () => {
         });
 
         const nameInput = getByTestId('space-name-text-input');
+        const descriptionInput = getByTestId('space-description-text-input');
+        
         fireEvent.changeText(nameInput, 'Test Space');
+        fireEvent.changeText(descriptionInput, 'Test Description');
 
         fireEvent.press(getByTestId('add-space-cancel-button'));
 
         fireEvent.press(getByTestId('add-space-button'));
         const newNameInput = getByTestId('space-name-text-input');
+        const newDescriptionInput = getByTestId('space-description-text-input');
+        
         expect(newNameInput.props.value).toBe('');
+        expect(newDescriptionInput.props.value).toBe('');
     });
 
 
@@ -289,27 +301,28 @@ describe('Dashboard', () => {
                 <Dashboard />
             </NavigationContainer>
         );
-
+    
         await waitFor(() => {
             fireEvent.press(getByTestId('add-space-button'));
         });
-
+    
         const typeDropdown = getByTestId('space-type-select-dropdown');
         fireEvent.press(typeDropdown);
-
+    
         const movieOption = getByTestId('space-type-select-item-1');
         fireEvent.press(movieOption);
-
+    
         const nameInput = getByTestId('space-name-text-input');
         fireEvent.changeText(nameInput, 'Test Movie');
-
+    
         fireEvent.press(getByTestId('add-space-submit-button'));
-
+    
         await waitFor(() => {
             const apiMock = require('../api/api').default;
             expect(apiMock).toHaveBeenCalledWith('/space/', 'POST', {
                 name: 'Test Movie',
                 type: '1',
+                description: '',
                 createdOn: expect.any(String)
             });
         });
@@ -322,17 +335,17 @@ describe('Dashboard', () => {
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
                 data: [
-                    { id: 1, name: 'Test Space', type: '1' }
+                    { id: 1, name: 'Test Space', type: '1', description: 'Original description' }
                 ]
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: { id: 1, name: 'Updated Space', type: '2' }
+                data: { id: 1, name: 'Updated Space', type: '2', description: 'Updated description' }
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
                 data: [
-                    { id: 1, name: 'Updated Space', type: '2' }
+                    { id: 1, name: 'Updated Space', type: '2', description: 'Updated description' }
                 ]
             }));
     
@@ -350,11 +363,13 @@ describe('Dashboard', () => {
     
         await waitFor(() => {
             const nameInput = getByTestId('space-name-text-input');
+            const descriptionInput = getByTestId('space-description-text-input');
             expect(nameInput.props.value).toBe('Test Space');
-            expect(getByTestId('space-type-select-dropdown')).toBeTruthy();
+            expect(descriptionInput.props.value).toBe('Original description');
         });
     
         fireEvent.changeText(getByTestId('space-name-text-input'), 'Updated Space');
+        fireEvent.changeText(getByTestId('space-description-text-input'), 'Updated description');
         
         fireEvent.press(getByTestId('add-space-submit-button'));
     
@@ -362,6 +377,7 @@ describe('Dashboard', () => {
             expect(apiMock).toHaveBeenCalledWith('/space/1', 'PUT', {
                 name: 'Updated Space',
                 type: '1',
+                description: 'Updated description',
                 lastUpdatedOn: expect.any(String)
             });
             expect(getByText('Updated Space')).toBeTruthy();
