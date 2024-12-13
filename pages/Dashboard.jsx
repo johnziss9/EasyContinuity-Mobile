@@ -182,6 +182,16 @@ const Dashboard = () => {
         }
     }
 
+    const getTextInputStyle = (value) => ({
+        fontWeight: value ? 'bold' : 'normal'
+    });
+
+    const getSelectListStyle = (value) => ({
+        fontSize: 18,
+        color: '#3F4F5F',
+        fontWeight: value ? 'bold' : 'normal'
+    });
+
     const dynamicStyles = {
         modalTextbox: {
             width: width < 600 ? '100%' : '61%',
@@ -232,7 +242,7 @@ const Dashboard = () => {
                                 searchPlaceholder="Search..."
                                 save='key'
                                 boxStyles={dynamicStyles.dropdownBox}
-                                inputStyles={styles.dropdownInput}
+                                inputStyles={getSelectListStyle(spaceType)}
                                 dropdownStyles={dynamicStyles.dropdownList}
                                 dropdownItemStyles={styles.dropdownListItem}
                                 dropdownTextStyles={styles.dropdownListText}
@@ -251,7 +261,7 @@ const Dashboard = () => {
                                         ...dynamicStyles.dropdownBox,
                                         backgroundColor: 'rgba(153, 153, 153, 0.3)'
                                     }}
-                                    inputStyles={styles.dropdownInput}
+                                    inputStyles={getSelectListStyle(spaceType)}
                                     dropdownStyles={dynamicStyles.dropdownList}
                                     dropdownItemStyles={styles.dropdownListItem}
                                     dropdownTextStyles={styles.dropdownListText}
@@ -262,7 +272,7 @@ const Dashboard = () => {
                             </View>      
                         }
                         <TextInput
-                            style={[dynamicStyles.modalTextbox, {height: 60}]}
+                            style={[dynamicStyles.modalTextbox, {height: 60}, getTextInputStyle(spaceNameField)]}
                             onChangeText={setSpaceNameField}
                             value={spaceNameField}
                             placeholder='Name'
@@ -270,7 +280,7 @@ const Dashboard = () => {
                             testID='space-name-text-input'
                         />
                         <TextInput
-                            style={[dynamicStyles.modalTextbox, {height: 120, textAlignVertical: 'top'}]}
+                            style={[dynamicStyles.modalTextbox, {height: 120, textAlignVertical: 'top'}, getTextInputStyle(spaceDescription)]}
                             onChangeText={setSpaceDescription}
                             value={spaceDescription}
                             placeholder='Description'
