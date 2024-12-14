@@ -7,15 +7,15 @@ const CharacterCard = ({ characterName, onEditPress, onDeletePress }) => {
         <View style={styles.cardContainer} testID='character-component'>
             <View style={styles.container}>
                 <View style={styles.characterContainer}>
-                    <Ionicons name="person-sharp" size={40} color="#CDA7AF" />
-                    <Text style={styles.text}>{characterName}</Text>
+                    <Ionicons name="person-sharp" size={35} color="#CDA7AF" />
+                    <Text numberOfLines={1} ellipsizeMode="tail" style={styles.text}>{characterName}</Text>
                 </View>
                 <View style={styles.buttonContainer}>
                     <TouchableOpacity onPress={onEditPress} testID="edit-character-button">
-                        <Ionicons name="create-outline" size={30} color="#CDA7AF" />
+                        <Ionicons name="create-outline" size={25} color="#CDA7AF" />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={onDeletePress} testID="delete-character-button">
-                        <Ionicons name="trash-outline" size={30} color="#CDA7AF" />
+                        <Ionicons name="trash-outline" size={25} color="#CDA7AF" />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: '#3F4F5F',
         width: '90%',
-        paddingHorizontal: 20,
+        paddingHorizontal: 13,
         height: 70,
         marginBottom: 20,
         borderRadius: 10,
@@ -46,12 +46,12 @@ const styles = StyleSheet.create({
     text: {
         color: '#E2CFC8',
         fontSize: 20,
-        maxWidth: 200,
+        maxWidth: 170,
         marginLeft: 10
     },
     buttonContainer: {
         flexDirection: 'row',
-        gap: 20,
+        gap: 15,
         alignItems: 'center'
     }
 });
