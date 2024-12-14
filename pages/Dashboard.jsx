@@ -183,13 +183,13 @@ const Dashboard = () => {
     }
 
     const getTextInputStyle = (value) => ({
-        fontWeight: value ? 500 : 'normal'
+        fontWeight: value ? 400 : 'normal'
     });
 
     const getSelectListStyle = (value) => ({
         fontSize: 18,
         color: '#3F4F5F',
-        fontWeight: value ? 500 : 'normal'
+        fontWeight: value ? 400 : 'normal'
     });
 
     const dynamicStyles = {
