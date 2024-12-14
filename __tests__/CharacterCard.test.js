@@ -40,6 +40,14 @@ describe('CharacterCard', () => {
         expect(icon).toBeTruthy();
     });
 
+    it('should have correct text truncation props', () => {
+        const { getByText } = render(<CharacterCard {...mockProps} />);
+        const textElement = getByText(mockProps.characterName);
+        
+        expect(textElement.props.numberOfLines).toBe(1);
+        expect(textElement.props.ellipsizeMode).toBe('tail');
+    });
+
     it('should truncate long character names', () => {
         const longNameProps = {
             ...mockProps,
@@ -47,6 +55,19 @@ describe('CharacterCard', () => {
         };
         const { getByText } = render(<CharacterCard {...longNameProps} />);
         const textElement = getByText(longNameProps.characterName);
-        expect(textElement.props.style).toMatchObject({ maxWidth: 200 });
+        expect(textElement.props.style).toMatchObject({ maxWidth: 170 });
+    });
+
+    it('should truncate text with ellipsis when name is too long', () => {
+        const longNameProps = {
+            ...mockProps,
+            characterName: 'This is a very long character name that should definitely be truncated with an ellipsis at the end'
+        };
+        const { getByText } = render(<CharacterCard {...longNameProps} />);
+        const textElement = getByText(longNameProps.characterName);
+        
+        expect(textElement.props.style).toMatchObject({ maxWidth: 170 });
+        expect(textElement.props.numberOfLines).toBe(1);
+        expect(textElement.props.ellipsizeMode).toBe('tail');
     });
 });
