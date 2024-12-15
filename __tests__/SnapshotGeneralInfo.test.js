@@ -1123,10 +1123,12 @@ describe('SnapshotGeneralInfo', () => {
         });
     
         apiMock
+            // 1. Initial space type call
             .mockImplementationOnce(() => Promise.resolve({ 
                 success: true, 
                 data: { id: 1, type: 2 } 
             }))
+            // 2. Initial characters load
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
                 data: [
@@ -1135,7 +1137,14 @@ describe('SnapshotGeneralInfo', () => {
                     { id: 4, name: 'Character 3' }
                 ]
             }))
+            // 3. Delete character call
             .mockImplementationOnce(() => Promise.resolve({ success: true }))
+            // 4. Get snapshots call
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []  // No snapshots with this character
+            }))
+            // 5. Final get characters call
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
                 data: [
@@ -1167,13 +1176,14 @@ describe('SnapshotGeneralInfo', () => {
         fireEvent.press(deleteButtons[0]);
     
         await waitFor(() => {
-            expect(apiMock).toHaveBeenCalledTimes(4);
+            expect(apiMock).toHaveBeenCalledTimes(5);  // Updated to expect 5 calls
             expect(apiMock).toHaveBeenNthCalledWith(3, '/character/2', 'PUT', expect.objectContaining({
                 name: 'Character 1',
                 isDeleted: true,
                 deletedOn: expect.any(String)
             }));
-            expect(apiMock).toHaveBeenNthCalledWith(4, '/character/space/1', 'GET');
+            expect(apiMock).toHaveBeenNthCalledWith(4, '/snapshot/space/1', 'GET');
+            expect(apiMock).toHaveBeenNthCalledWith(5, '/character/space/1', 'GET');
         });
     
         await waitFor(() => {
@@ -1183,6 +1193,75 @@ describe('SnapshotGeneralInfo', () => {
             expect(updatedCards).toHaveLength(2);
             expect(updatedCards[0]).toHaveTextContent('Character 2');
             expect(updatedCards[1]).toHaveTextContent('Character 3');
+        });
+    });
+
+    it('should update snapshots when character is deleted', async () => {
+        const apiMock = require('../api/api').default;
+        
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({ 
+                success: true, 
+                data: { id: 1, type: 2 } 
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 2, name: 'Character 1' }
+                ]
+            }))
+            // Delete character response
+            .mockImplementationOnce(() => Promise.resolve({ 
+                success: true 
+            }))
+            // Get snapshots response
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 1, character: 2, name: "Snapshot 1" },
+                    { id: 2, character: 3, name: "Snapshot 2" }
+                ]
+            }))
+            // Update snapshot response
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, character: null }
+            }))
+            // Get characters response
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+    
+        const { getByTestId, getAllByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            fireEvent.press(getByTestId('manage-characters-button'));
+            const deleteButtons = getAllByTestId('delete-character-button');
+            fireEvent.press(deleteButtons[0]);
+        });
+    
+        await waitFor(() => {
+            // Verify character deletion
+            expect(apiMock).toHaveBeenCalledWith('/character/2', 'PUT', expect.objectContaining({
+                isDeleted: true
+            }));
+    
+            // Verify snapshots fetch
+            expect(apiMock).toHaveBeenCalledWith('/snapshot/space/1', 'GET');
+    
+            // Verify snapshot update
+            expect(apiMock).toHaveBeenCalledWith('/snapshot/1', 'PUT', expect.objectContaining({
+                character: null,
+                forceNullCharacter: true
+            }));
+    
+            // Verify final characters fetch
+            expect(apiMock).toHaveBeenCalledWith('/character/space/1', 'GET');
         });
     });
 });

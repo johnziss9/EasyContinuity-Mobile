@@ -159,21 +159,54 @@ const SnapshotGeneralInfo = () => {
         // TODO Add modal for confirmation
 
         try {
-            const url = `/character/${character.key}`;
-            const method = 'PUT';
-            const body = {
+            const deleteUrl = `/character/${character.key}`;
+            const deleteMethod = 'PUT';
+            const deleteBody = {
                 name: character.value,
                 isDeleted: true,
                 deletedOn: new Date().toISOString()
                 // TODO Include deletedBy
             };
 
-            const response = await handleHttpRequest(url, method, body);
-
-            if (response.success) {
+            const deleteResponse = await handleHttpRequest(deleteUrl, deleteMethod, deleteBody);
+            
+            if (deleteResponse.success) {
                 // TODO Show success toast
-                // TODO Refresh data on screen
 
+                // API Call 1 - Get all snapshots
+                const snapshotsUrl = `/snapshot/space/${spaceId}`;
+                const snapshotsMethod = 'GET';
+
+                const snapshotsResponse = await handleHttpRequest(snapshotsUrl, snapshotsMethod);
+                
+                if (snapshotsResponse.success) {
+                    const snapshotsWithDeletedCharacter = snapshotsResponse.data.filter(snapshot => snapshot.character === parseInt(character.key));
+
+                    // API Call 2 - Update filtered snapshots character field to null
+                    for (const snapshot of snapshotsWithDeletedCharacter) {
+                        const updateUrl = `/snapshot/${snapshot.id}`;
+                        const updateMethod = 'PUT';
+                        const updateBody = {
+                            character: null,
+                            forceNullCharacter: true,
+                            lastUpdatedOn: new Date().toISOString()
+                            // TODO Include updatedBy
+                        };
+
+                        const updateResponse = await handleHttpRequest(updateUrl, updateMethod, updateBody);
+
+                        if (!updateResponse) {
+                            // TODO Replace error with fail toast
+                            throw new Error(updateResponse.error);
+                        }
+
+                    }
+                } else {
+                    // TODO Replace error with fail toast
+                    throw new Error(deleteResponse.error);
+                }
+
+                // API Call 3 - Update character list in the UI
                 // Making a call to the API this way as if I call handleGetAllCharacters won't update straight away due to ti being async
                 const getResponse = await handleHttpRequest(`/character/space/${spaceId}`, 'GET');
 

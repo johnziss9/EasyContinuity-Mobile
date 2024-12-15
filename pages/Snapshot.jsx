@@ -111,7 +111,7 @@ const Snapshot = ({ testImages = null }) => {
             handleGetSnapshotInfo();
 
             console.log('Current filesInfo:', filesInfo);
-        }, [filesInfo])
+        }, [])
     );
 
     const handleGetSpaceType = async () => {
@@ -163,12 +163,12 @@ const Snapshot = ({ testImages = null }) => {
 
             const response = await handleHttpRequest(url, method);
 
-            console.log('API Response:', response); 
-
             if (response.success) {
                 setSnapshot(response.data);
                 if (response.data.character) {
                     await handleGetCharacterName(response.data.character);
+                } else {
+                    setCharacterName('');
                 }
             } else {
                 // TODO Replace error with fail toast
