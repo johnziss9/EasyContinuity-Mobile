@@ -1264,4 +1264,64 @@ describe('SnapshotGeneralInfo', () => {
             expect(apiMock).toHaveBeenCalledWith('/character/space/1', 'GET');
         });
     });
+
+    it('should update snapshot with null character when character is cleared', async () => {
+        const apiMock = require('../api/api').default;
+        
+        // Mock route params for editing
+        jest.spyOn(require('@react-navigation/native'), 'useRoute').mockReturnValue({
+            params: {
+                spaceId: 1,
+                isNewSnapshot: false,
+                spaceName: 'Test Space',
+                snapshotId: 1,
+                snapshotName: 'Test Snapshot'
+            }
+        });
+    
+        apiMock
+            // Initial space type call
+            .mockImplementationOnce(() => Promise.resolve({ 
+                success: true, 
+                data: { id: 1, type: 2 } 
+            }))
+            // Initial characters load
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 2, name: 'Character 1' }]
+            }))
+            // Get snapshot call
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: {
+                    id: 1,
+                    name: 'Test Snapshot',
+                    character: 2
+                }
+            }));
+    
+        const { getByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+    
+        // Wait for initial load
+        await waitFor(() => {
+            expect(getByTestId('clear-character-button')).toBeTruthy();
+        });
+    
+        // Clear the character
+        fireEvent.press(getByTestId('clear-character-button'));
+    
+        // Submit the form
+        fireEvent.press(getByTestId('general-submit-button'));
+    
+        await waitFor(() => {
+            // Verify the PUT request was made with null character
+            expect(apiMock).toHaveBeenCalledWith('/snapshot/1', 'PUT', expect.objectContaining({
+                character: null
+            }));
+        });
+    });
 });
