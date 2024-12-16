@@ -292,6 +292,7 @@ const SnapshotGeneralInfo = () => {
                     scene: sceneNumber ? parseInt(sceneNumber) : null,
                     storyDay: storyDay ? parseInt(storyDay) : null,
                     character: selectedCharacterId,
+                    forceNullCharacter: selectedCharacterId === null,
                     notes: notes,
                     lastUpdatedOn: new Date().toISOString()
                     // TODO Include AddedBy
