@@ -18,10 +18,14 @@ const Folder = () => {
     const [currentFolderId, setCurrentFolderId] = useState(0);
     const [folderEditing, setFolderEditing] = useState(false);
     const [currentSort, setCurrentSort] = useState({ id: 1, label: 'Date: Newest First' });
+    const [folderToDelete, setFolderToDelete] = useState(null);
+    const [snapshotToDelete, setSnapshotToDelete] = useState(null);
 
     const [showAddNewItemModal, setShowAddNewItemModal] = useState(false);
     const [showAddNewFolderModal, setShowAddNewFolderModal] = useState(false);
     const [showSortByModal, setShowSortByModal] = useState(false);
+    const [showDeleteFolderModal, setShowDeleteFolderModal] = useState(false);
+    const [showDeleteSnapshotModal, setShowDeleteSnapshotModal] = useState(false);
 
     const { width } = useWindowDimensions();
     const route = useRoute();
@@ -94,6 +98,66 @@ const Folder = () => {
         setFolders(sortedFolders);
         setSnapshots(sortedSnapshots);
     };
+
+    const handleConfirmDeleteSnapshotPress = async (snapshot) => {
+        try {
+            const url = `/snapshot/${snapshot.id}`;
+            const method = 'PUT';
+            const body = {
+                name: snapshot.name,
+                isDeleted: true,
+                deletedOn: new Date().toISOString()
+                // TODO Include deletedBy
+            };
+
+            const response = await handleHttpRequest(url, method, body);
+
+            if (response.success) {
+                // TODO Show success toast
+                handleFetchAllFolderData();
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Deleting Snapshot:', error);
+
+            // TODO Replace error with fail toast
+            throw error;
+        } finally {
+            // TODO Show deletion confirmation
+        }
+    }
+
+    const handleConfirmDeleteFolderPress = async (folder) => {
+        try {
+            const url = `/folder/${folder.id}`;
+            const method = 'PUT';
+            const body = {
+                name: folder.name,
+                isDeleted: true,
+                deletedOn: new Date().toISOString()
+                // TODO Include deletedBy
+            };
+
+            const response = await handleHttpRequest(url, method, body);
+
+            if (response.success) {
+                // TODO Show success toast
+                handleFetchAllFolderData();
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Deleting Folder:', error);
+
+            // TODO Replace error with fail toast
+            throw error;
+        } finally {
+            // TODO Show deletion confirmation
+        }
+    }
 
     const handleFetchAllFolderData = async () => {
         try {
@@ -205,68 +269,14 @@ const Folder = () => {
         setFolderNameField('');
     }
     
-    const handleDeleteSnapshotPress = async (snapshot) => {
-        // TODO Add modal for confirmation
-
-        try {
-            const url = `/snapshot/${snapshot.id}`;
-            const method = 'PUT';
-            const body = {
-                name: snapshot.name,
-                isDeleted: true,
-                deletedOn: new Date().toISOString()
-                // TODO Include deletedBy
-            };
-
-            const response = await handleHttpRequest(url, method, body);
-
-            if (response.success) {
-                // TODO Show success toast
-                handleFetchAllFolderData();
-            } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
-            }
-        } catch (error) {
-            console.error('Error Deleting Snapshot:', error);
-
-            // TODO Replace error with fail toast
-            throw error;
-        } finally {
-            // TODO Show deletion confirmation
-        }
+    const handleDeleteSnapshotPress = (snapshot) => {
+        setSnapshotToDelete(snapshot);
+        setShowDeleteSnapshotModal(true);
     }
 
-    const handleDeleteFolderPress = async (folder) => {
-        // TODO Add modal for confirmation
-
-        try {
-            const url = `/folder/${folder.id}`;
-            const method = 'PUT';
-            const body = {
-                name: folder.name,
-                isDeleted: true,
-                deletedOn: new Date().toISOString()
-                // TODO Include deletedBy
-            };
-
-            const response = await handleHttpRequest(url, method, body);
-
-            if (response.success) {
-                // TODO Show success toast
-                handleFetchAllFolderData();
-            } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
-            }
-        } catch (error) {
-            console.error('Error Deleting Folder:', error);
-
-            // TODO Replace error with fail toast
-            throw error;
-        } finally {
-            // TODO Show deletion confirmation
-        }
+    const handleDeleteFolderPress = (folder) => {
+        setFolderToDelete(folder);
+        setShowDeleteFolderModal(true);
     }
 
     const handleCreateOrEditFolder = async () => {
@@ -351,6 +361,66 @@ const Folder = () => {
 
     return (
         <View style={styles.container}>
+
+            {/* Delete Snapshot confirmation modal */}
+            <Modal
+                transparent={true}
+                animationType="fade"
+                visible={showDeleteSnapshotModal}
+                onRequestClose={() => setShowDeleteSnapshotModal(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalText}>Delete Snapshot?</Text>
+                        <View style={styles.modalButtonsContainer}>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} testID='delete-snapshot-cancel-button' onPress={() => setShowDeleteSnapshotModal(false)}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.modalButtonSave]}
+                                testID='delete-snapshot-confirm-button'
+                                onPress={() => {
+                                    setShowDeleteSnapshotModal(false);
+                                    handleConfirmDeleteSnapshotPress(snapshotToDelete);
+                                    setSnapshotToDelete(null); 
+                                }}
+                            >
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>Delete</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Delete Folder confirmation modal */}
+            <Modal
+                transparent={true}
+                animationType="fade"
+                visible={showDeleteFolderModal}
+                onRequestClose={() => setShowDeleteFolderModal(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalText}>Delete Folder?</Text>
+                        <View style={styles.modalButtonsContainer}>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} testID='delete-folder-cancel-button' onPress={() => setShowDeleteFolderModal(false)}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.modalButtonSave]}
+                                testID='delete-folder-confirm-button'
+                                onPress={() => {
+                                    setShowDeleteFolderModal(false);
+                                    handleConfirmDeleteFolderPress(folderToDelete);
+                                    setFolderToDelete(null); 
+                                }}
+                            >
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>Delete</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
 
             {/* Add New Item Modal */}
             <Modal

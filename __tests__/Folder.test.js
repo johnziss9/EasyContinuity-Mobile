@@ -527,6 +527,10 @@ describe('Folder Component', () => {
     });
 
     it('should successfully delete a folder', async () => {
+        // Mock the date
+        const mockDate = new Date('2024-12-17T07:19:09.984Z');
+        jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
+    
         const apiMock = require('../api/api').default;
         apiMock
             .mockImplementationOnce(() => Promise.resolve({
@@ -543,7 +547,11 @@ describe('Folder Component', () => {
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: { success: true }
+                data: { name: 'Test Space' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { success: true }  // Delete response
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
@@ -551,37 +559,43 @@ describe('Folder Component', () => {
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: []
+                data: []  // Refreshed folders
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: []
+                data: []  // Refreshed snapshots
             }));
-
-        const { getByText, getAllByTestId, queryByText } = render(
+    
+        const { getByText, getAllByTestId, queryByText, getByTestId } = render(
             <NavigationContainer>
                 <Folder />
             </NavigationContainer>
         );
-
+    
         await waitFor(() => {
             expect(getByText('Test Folder')).toBeTruthy();
         });
-
+    
         const deleteButtons = getAllByTestId('delete-folder-button');
         fireEvent.press(deleteButtons[0]);
-
+    
+        expect(getByText('Delete Folder?')).toBeTruthy();
+    
+        fireEvent.press(getByTestId('delete-folder-confirm-button'));
+    
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith('/folder/2', 'PUT', {
                 name: 'Test Folder',
                 isDeleted: true,
-                deletedOn: expect.any(String)
+                deletedOn: mockDate.toISOString()
             });
             expect(queryByText('Test Folder')).toBeNull();
         });
+    
+        jest.restoreAllMocks();
     });
-
-    it('should successfully delete a snapshot', async () => {
+    
+    it('should cancel folder deletion when cancel is pressed', async () => {
         const apiMock = require('../api/api').default;
         apiMock
             .mockImplementationOnce(() => Promise.resolve({
@@ -590,7 +604,55 @@ describe('Folder Component', () => {
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
+                data: [{ id: 2, name: 'Test Folder', parentId: 1 }]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
                 data: []
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { name: 'Test Space' }
+            }));
+    
+        const { getByText, getAllByTestId, queryByText, getByTestId } = render(
+            <NavigationContainer>
+                <Folder />
+            </NavigationContainer>
+        );
+    
+        await waitFor(() => {
+            expect(getByText('Test Folder')).toBeTruthy();
+        });
+    
+        const deleteButtons = getAllByTestId('delete-folder-button');
+        fireEvent.press(deleteButtons[0]);
+    
+        expect(getByText('Delete Folder?')).toBeTruthy();
+    
+        fireEvent.press(getByTestId('delete-folder-cancel-button'));
+    
+        await waitFor(() => {
+            expect(queryByText('Delete Folder?')).toBeNull();
+            expect(getByText('Test Folder')).toBeTruthy();
+            expect(apiMock).toHaveBeenCalledTimes(4);
+        });
+    });
+
+    it('should successfully delete a snapshot', async () => {
+        // Mock the date
+        const mockDate = new Date('2024-12-17T07:19:09.984Z');
+        jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
+     
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Current Folder', parentId: null }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []  // No nested folders
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
@@ -598,7 +660,11 @@ describe('Folder Component', () => {
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: { success: true }
+                data: { name: 'Test Space' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { success: true }  // Delete response
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
@@ -606,35 +672,83 @@ describe('Folder Component', () => {
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: []
+                data: []  // Refreshed folders
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: []
+                data: []  // Refreshed snapshots
             }));
-    
+        
         const { getByText, getByTestId, queryByText } = render(
             <NavigationContainer>
                 <Folder />
             </NavigationContainer>
         );
-    
+        
         await waitFor(() => {
             expect(getByText('Test Snapshot')).toBeTruthy();
         });
-    
-        const deleteButton = getByTestId('delete-snapshot-button');
-        fireEvent.press(deleteButton);
-    
+        
+        fireEvent.press(getByTestId('delete-snapshot-button'));
+     
+        expect(getByText('Delete Snapshot?')).toBeTruthy();
+     
+        fireEvent.press(getByTestId('delete-snapshot-confirm-button'));
+        
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith('/snapshot/2', 'PUT', {
                 name: 'Test Snapshot',
                 isDeleted: true,
-                deletedOn: expect.any(String)
+                deletedOn: mockDate.toISOString()
             });
             expect(queryByText('Test Snapshot')).toBeNull();
         });
-    });
+     
+        jest.restoreAllMocks();
+     });
+     
+     it('should cancel snapshot deletion when cancel is pressed', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Current Folder', parentId: null }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []  // No nested folders
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 2, name: 'Test Snapshot', folderId: 1 }]
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { name: 'Test Space' }
+            }));
+     
+        const { getByText, getByTestId, queryByText } = render(
+            <NavigationContainer>
+                <Folder />
+            </NavigationContainer>
+        );
+     
+        await waitFor(() => {
+            expect(getByText('Test Snapshot')).toBeTruthy();
+        });
+     
+        fireEvent.press(getByTestId('delete-snapshot-button'));
+     
+        expect(getByText('Delete Snapshot?')).toBeTruthy();
+     
+        fireEvent.press(getByTestId('delete-snapshot-cancel-button'));
+     
+        await waitFor(() => {
+            expect(queryByText('Delete Snapshot?')).toBeNull();
+            expect(getByText('Test Snapshot')).toBeTruthy();
+            expect(apiMock).toHaveBeenCalledTimes(4);
+        });
+     });
 
     it('should sort items by date newest first by default', async () => {
         const apiMock = require('../api/api').default;
