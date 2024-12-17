@@ -22,8 +22,6 @@ const SnapshotGeneralInfo = () => {
     const [selectedCharacterId, setSelectedCharacterId] = useState(null);
     const [selectListKey, setSelectListKey] = useState(0);
     const [selectedValue, setSelectedValue] = useState('');
-    const [showAddCharacterModal, setShowAddCharacterModal] = useState(false);
-    const [showManageCharactersModal, setShowManageCharactersModal] = useState(false);
     const [characterName, setCharacterName] = useState("");
     const [characters, setCharacters] = useState([]);
     const [characterId, setCharacterId] = useState(null);
@@ -31,6 +29,11 @@ const SnapshotGeneralInfo = () => {
     const [spaceType, setSpaceType] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [characterToDelete, setCharacterToDelete] = useState(null);
+
+    const [showAddCharacterModal, setShowAddCharacterModal] = useState(false);
+    const [showManageCharactersModal, setShowManageCharactersModal] = useState(false);
+    const [showDeleteCharacterModal, setShowDeleteCharacterModal] = useState(false);
 
     useEffect(() => {
         handleGetSpaceType();
@@ -93,71 +96,7 @@ const SnapshotGeneralInfo = () => {
         setCharacterName(character.value);
     };
 
-    const dynamicStyles = {
-        container: {
-            paddingLeft: width > 600 ? 15 : 5,
-            flex: 1,
-            backgroundColor: '#E2CFC8',
-            paddingTop: 30
-        }
-    };
-
-    const handleGetSpaceType = async () => {
-        try {
-            const url = `/space/${spaceId}`;
-            const method = 'GET';
-
-            const response = await handleHttpRequest(url, method);
-
-            if (response.success) {
-                setSpaceType(response.data.type);
-            } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
-            }
-        } catch (error) {
-            console.error('Error Getting Space Type:', error);
-
-            // TODO Replace error with fail toast
-            throw error;
-        }
-    }
-
-    const handleFetchSnapshot = async () => {
-        try {
-            const url = `/snapshot/${snapshotId}`;
-            const method = 'GET';
-
-            const response = await handleHttpRequest(url, method);
-
-            if (response.success) {
-                setSnapshot(response.data);
-            } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
-            }
-        } catch (error) {
-            console.error('Error Getting Snapshot:', error);
-
-            // TODO Replace error with fail toast
-            throw error;
-        }
-    }
-
-    const handleCancelAddOrEditCharacter = () => {
-        handleClear();
-
-        setShowAddCharacterModal(false);
-        setCharacterName('');
-
-        if (isEditing) {
-            setShowManageCharactersModal(true);
-        }
-    }
-
-    const handleDeleteCharacterPress = async (character) => {
-        // TODO Add modal for confirmation
-
+    const handleConfirmDeleteCharacterPress = async (character) => {
         try {
             const deleteUrl = `/character/${character.key}`;
             const deleteMethod = 'PUT';
@@ -236,6 +175,73 @@ const SnapshotGeneralInfo = () => {
         } finally {
             // TODO Show deletion confirmation
         }
+    }
+
+    const dynamicStyles = {
+        container: {
+            paddingLeft: width > 600 ? 15 : 5,
+            flex: 1,
+            backgroundColor: '#E2CFC8',
+            paddingTop: 30
+        }
+    };
+
+    const handleGetSpaceType = async () => {
+        try {
+            const url = `/space/${spaceId}`;
+            const method = 'GET';
+
+            const response = await handleHttpRequest(url, method);
+
+            if (response.success) {
+                setSpaceType(response.data.type);
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Getting Space Type:', error);
+
+            // TODO Replace error with fail toast
+            throw error;
+        }
+    }
+
+    const handleFetchSnapshot = async () => {
+        try {
+            const url = `/snapshot/${snapshotId}`;
+            const method = 'GET';
+
+            const response = await handleHttpRequest(url, method);
+
+            if (response.success) {
+                setSnapshot(response.data);
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Getting Snapshot:', error);
+
+            // TODO Replace error with fail toast
+            throw error;
+        }
+    }
+
+    const handleCancelAddOrEditCharacter = () => {
+        handleClear();
+
+        setShowAddCharacterModal(false);
+        setCharacterName('');
+
+        if (isEditing) {
+            setShowManageCharactersModal(true);
+        }
+    }
+
+    const handleDeleteCharacterPress = (character) => {
+        setCharacterToDelete(character);
+        setShowDeleteCharacterModal(true);
     }
 
     const handleCreateOrEditSnapshot = async () => {
@@ -417,6 +423,36 @@ const SnapshotGeneralInfo = () => {
 
     return (
         <View style={dynamicStyles.container}>
+
+            {/* Delete confirmation modal */}
+            <Modal
+                transparent={true}
+                animationType="fade"
+                visible={showDeleteCharacterModal}
+                onRequestClose={() => setShowDeleteCharacterModal(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalText}>Delete Space?</Text>
+                        <View style={styles.modalDeleteCharacterButtonsContainer}>
+                            <TouchableOpacity style={[styles.modalDeleteCharacterButton, styles.modalButtonCancel]} testID='delete-character-cancel-button' onPress={() => setShowDeleteCharacterModal(false)}>
+                                <Text style={[styles.buttonText, styles.buttonTextCancel]}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalDeleteCharacterButton, styles.modalButtonSave]}
+                                testID='delete-character-confirm-button'
+                                onPress={() => {
+                                    setShowDeleteCharacterModal(false);
+                                    handleConfirmDeleteCharacterPress(characterToDelete);
+                                    setCharacterToDelete(null); 
+                                }}
+                            >
+                                <Text style={[styles.buttonText, styles.buttonTextSave]}>Delete</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
 
             {/* Manage Characters Modal */}
             <Modal
@@ -741,6 +777,29 @@ const styles = StyleSheet.create({
     },
     buttonTextCancel: {
         color: '#3F4F5F'
+    },
+    modalButtonSave: {
+        backgroundColor: '#3F4F5F',
+    },
+    modalButtonCancel: {
+        borderWidth: 2,
+        borderColor: '#3F4F5F'
+    },
+    modalButtonTextSave: {
+        color: '#E2CFC8'
+    },
+    modalButtonTextCancel: {
+        color: '#3F4F5F'
+    },
+    modalDeleteCharacterButtonsContainer: {
+        alignItems: 'center'
+    },
+    modalDeleteCharacterButton: {
+        borderRadius: 5,
+        width: '70%',
+        height: 60,
+        justifyContent: 'center',
+        margin: 10
     },
     characterLabel: {
         flexDirection: 'row',

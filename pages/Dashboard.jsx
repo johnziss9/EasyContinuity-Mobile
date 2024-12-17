@@ -11,6 +11,8 @@ const Dashboard = () => {
     const { width } = useWindowDimensions();
 
     const [showAddNewSpaceModal, setShowAddNewSpaceModal] = useState(false);
+    const [showDeleteSpaceModal, setShowDeleteSpaceModal] = useState(false);
+
     const [spaceNameField, setSpaceNameField] = React.useState('');
     const [spaceDescription, setSpaceDescription] = React.useState('');
     const [spaceType, setSpaceType] = useState('');
@@ -18,6 +20,7 @@ const Dashboard = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [currentSpaceId, setCurrentSpaceId] = useState(null);
+    const [spaceToDelete, setSpaceToDelete] = useState(null);
 
     const spaceTypes = [
         { key: '1', value: 'Movie' },
@@ -55,9 +58,7 @@ const Dashboard = () => {
         setSpaceType(space.type);
     }
 
-    const handleDeleteSpacePress = async (space) => {
-        // TODO Add modal for confirmation
-
+    const handleConfirmDeleteSpacePress = async (space) => {
         try {
             const url = `/space/${space.id}`;
             const method = 'PUT';
@@ -89,6 +90,11 @@ const Dashboard = () => {
         }
     }
 
+    const handleDeleteSpacePress = (space) => {
+        setSpaceToDelete(space);
+        setShowDeleteSpaceModal(true);
+    }
+
     const handleSaveSpace = async () => {
         if (isEditing) {
             try {
@@ -101,9 +107,9 @@ const Dashboard = () => {
                     lastUpdatedOn: new Date().toISOString()
                     // TODO Include lastUpdatedBy
                 };
-    
+
                 const response = await handleHttpRequest(url, method, body);
-    
+
                 if (response.success) {
                     // TODO Show success toast
                     // TODO Refresh data on screen
@@ -114,7 +120,7 @@ const Dashboard = () => {
                 }
             } catch (error) {
                 console.error('Error Updating Space:', error);
-    
+
                 // TODO Replace error with fail toast
                 throw error;
             } finally {
@@ -134,9 +140,9 @@ const Dashboard = () => {
                     createdOn: new Date().toISOString()
                     // TODO Include AddedBy
                 };
-    
+
                 const response = await handleHttpRequest(url, method, body);
-    
+
                 if (response.success) {
                     // TODO Show success toast
                     // TODO Refresh data on screen
@@ -147,7 +153,7 @@ const Dashboard = () => {
                 }
             } catch (error) {
                 console.error('Error Creating Space:', error);
-    
+
                 // TODO Replace error with fail toast
                 throw error;
             } finally {
@@ -225,6 +231,38 @@ const Dashboard = () => {
 
     return (
         <View style={styles.container}>
+
+            {/* Delete confirmation modal */}
+            <Modal
+                transparent={true}
+                animationType="fade"
+                visible={showDeleteSpaceModal}
+                onRequestClose={() => setShowDeleteSpaceModal(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalText}>Delete Space?</Text>
+                        <View style={styles.modalButtonsContainer}>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} testID='delete-space-cancel-button' onPress={() => setShowDeleteSpaceModal(false)}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.modalButtonSave]}
+                                testID='delete-space-confirm-button'
+                                onPress={() => {
+                                    setShowDeleteSpaceModal(false);
+                                    handleConfirmDeleteSpacePress(spaceToDelete);
+                                    setSpaceToDelete(null); 
+                                }}
+                            >
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>Delete</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Add space modal */}
             <Modal
                 transparent={true}
                 animationType="fade"
@@ -269,10 +307,10 @@ const Dashboard = () => {
                                     testID="space-type-select"
                                     pointerEvents="none"
                                 />
-                            </View>      
+                            </View>
                         }
                         <TextInput
-                            style={[dynamicStyles.modalTextbox, {height: 60}, getTextInputStyle(spaceNameField)]}
+                            style={[dynamicStyles.modalTextbox, { height: 60 }, getTextInputStyle(spaceNameField)]}
                             onChangeText={setSpaceNameField}
                             value={spaceNameField}
                             placeholder='Name'
@@ -280,7 +318,7 @@ const Dashboard = () => {
                             testID='space-name-text-input'
                         />
                         <TextInput
-                            style={[dynamicStyles.modalTextbox, {height: 120, textAlignVertical: 'top'}, getTextInputStyle(spaceDescription)]}
+                            style={[dynamicStyles.modalTextbox, { height: 120, textAlignVertical: 'top' }, getTextInputStyle(spaceDescription)]}
                             onChangeText={setSpaceDescription}
                             value={spaceDescription}
                             placeholder='Description'
@@ -307,9 +345,9 @@ const Dashboard = () => {
                 ) : (
                     <>
                         {Array.isArray(spaces) && spaces.length > 0 ? spaces.map((space) => (
-                            <SpaceCard 
-                                key={space.id} 
-                                spaceName={space.name} 
+                            <SpaceCard
+                                key={space.id}
+                                spaceName={space.name}
                                 description={space.description}
                                 onPress={() => handleSpacePress(space.id, space.name)}
                                 onEditPress={() => handleEditSpacePress(space)}
