@@ -848,7 +848,7 @@ describe('SnapshotGeneralInfo', () => {
             fireEvent.press(deleteButtons[0]);
         });
     
-        expect(getByText('Delete Space?')).toBeTruthy();
+        expect(getByText('Delete Character?')).toBeTruthy();
     
         fireEvent.press(getByTestId('delete-character-confirm-button'));
     
@@ -887,12 +887,12 @@ describe('SnapshotGeneralInfo', () => {
             fireEvent.press(deleteButtons[0]);
         });
     
-        expect(getByText('Delete Space?')).toBeTruthy();
+        expect(getByText('Delete Character?')).toBeTruthy();
     
         fireEvent.press(getByTestId('delete-character-cancel-button'));
     
         await waitFor(() => {
-            expect(queryByText('Delete Space?')).toBeNull();
+            expect(queryByText('Delete Character?')).toBeNull();
             expect(getByText('Character 1')).toBeTruthy();
             expect(apiMock).toHaveBeenCalledTimes(2);
         });
@@ -1504,7 +1504,7 @@ describe('SnapshotGeneralInfo', () => {
         fireEvent.press(deleteButtons[0]);
     
         await waitFor(() => {
-            expect(getByText('Delete Space?')).toBeTruthy();
+            expect(getByText('Delete Character?')).toBeTruthy();
         });
     
         fireEvent.press(getByTestId('delete-character-confirm-button'));

@@ -433,7 +433,7 @@ const SnapshotGeneralInfo = () => {
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalText}>Delete Space?</Text>
+                        <Text style={styles.modalText}>Delete Character?</Text>
                         <View style={styles.modalDeleteCharacterButtonsContainer}>
                             <TouchableOpacity style={[styles.modalDeleteCharacterButton, styles.modalButtonCancel]} testID='delete-character-cancel-button' onPress={() => setShowDeleteCharacterModal(false)}>
                                 <Text style={[styles.buttonText, styles.buttonTextCancel]}>Cancel</Text>
