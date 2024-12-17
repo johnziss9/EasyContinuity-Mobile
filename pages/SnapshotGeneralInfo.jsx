@@ -30,10 +30,13 @@ const SnapshotGeneralInfo = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [characterToDelete, setCharacterToDelete] = useState(null);
+    const [characterAdded, setCharacterAdded] = useState(null);
 
     const [showAddCharacterModal, setShowAddCharacterModal] = useState(false);
     const [showManageCharactersModal, setShowManageCharactersModal] = useState(false);
     const [showDeleteCharacterModal, setShowDeleteCharacterModal] = useState(false);
+    const [showAddedSnapshotModal, setShowAddedSnapshotModal] = useState(false);
+    const [showAddedCharacterModal, setShowAddedCharacterModal] = useState(false);
 
     useEffect(() => {
         handleGetSpaceType();
@@ -55,6 +58,14 @@ const SnapshotGeneralInfo = () => {
         }
     }, [snapshot, isNewSnapshot]);
 
+    const handleAddedCharacterConfirmation = async () => {
+        await handleGetAllCharacters();
+
+        // Setting these two so the new added character is selected on the SelectList
+        setSelectedCharacterId(characterAdded);
+        setSelectListKey(prev => prev + 1); 
+    };
+
     const handleClear = () => {
         setSelectedCharacterId(null);
         setSelectedValue('');
@@ -72,7 +83,7 @@ const SnapshotGeneralInfo = () => {
         // TODO Add validation if user selected first value and then cancels the snapshot shouldn't save
     };
 
-    const handleCancelPress = () => {
+    const handleNavigationOnConfirmOrCancel = () => {
         if (isNewSnapshot && !folderId) {
             navigation.navigate('Space', { spaceId: spaceId, spaceName: spaceName });
         } else if (isNewSnapshot) {
@@ -81,7 +92,7 @@ const SnapshotGeneralInfo = () => {
         } else {
             navigation.navigate('Snapshot', { spaceId: spaceId, spaceName: spaceName, snapshotId, snapshotName });
         }
-    };
+    }
 
     const handleCloseManageCharacters = () => {
         setShowManageCharactersModal(false);
@@ -265,16 +276,7 @@ const SnapshotGeneralInfo = () => {
                 const response = await handleHttpRequest(url, method, body);
 
                 if (response.success) {
-                    // TODO Show success modal and navigate on okay
-
-                    if (isNewSnapshot && !folderId) {
-                        navigation.navigate('Space', { spaceId: spaceId, spaceName: spaceName });
-                    } else if (isNewSnapshot) {
-                        // If it's a new snapshot and we have a folderId, go back to the folder view
-                        navigation.navigate('Folder', { spaceId: spaceId, spaceName: spaceName, folderId: folderId, folderName: folderName });
-                    } else {
-                        navigation.navigate('Snapshot', { spaceId: spaceId, spaceName: spaceName, snapshotId, snapshotName });
-                    }
+                    setShowAddedSnapshotModal(true);
                 } else {
                     // TODO Replace error with fail toast
                     throw new Error(response.error);
@@ -337,12 +339,8 @@ const SnapshotGeneralInfo = () => {
                 const response = await handleHttpRequest(url, method, body);
 
                 if (response.success) {
-                    // TODO Show success toast
-                    await handleGetAllCharacters();
-
-                    // Setting these two so the new added character is selected on the SelectList
-                    setSelectedCharacterId(response.data.id);
-                    setSelectListKey(prev => prev + 1); 
+                    setShowAddedCharacterModal(true);
+                    setCharacterAdded(response.data.id);
                 } else {
                     // TODO Replace error with fail toast
                     throw new Error(response.error);
@@ -423,6 +421,58 @@ const SnapshotGeneralInfo = () => {
 
     return (
         <View style={dynamicStyles.container}>
+
+            {/* Added Character confirmation modal */}
+            <Modal
+                transparent={true}
+                animationType="fade"
+                visible={showAddedCharacterModal}
+                onRequestClose={() => setShowAddedCharacterModal(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalText}>Character Added Successfully</Text>
+                        <View style={styles.modalButtonsContainer}>
+                            <TouchableOpacity
+                                style={[styles.modalDeleteCharacterButton, styles.modalButtonSave]}
+                                testID='added-character-confirm-button'
+                                onPress={() => {
+                                    setShowAddedCharacterModal(false);
+                                    handleAddedCharacterConfirmation();
+                                }}
+                            >
+                                <Text style={[styles.buttonText, styles.buttonTextSave]}>OK</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+            
+            {/* Added Snapshot confirmation modal */}
+            <Modal
+                transparent={true}
+                animationType="fade"
+                visible={showAddedSnapshotModal}
+                onRequestClose={() => setShowAddedSnapshotModal(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalText}>Snapshot Added Successfully</Text>
+                        <View style={styles.modalButtonsContainer}>
+                            <TouchableOpacity
+                                style={[styles.modalDeleteCharacterButton, styles.modalButtonSave]}
+                                testID='added-snapshot-confirm-button'
+                                onPress={() => {
+                                    setShowAddedSnapshotModal(false);
+                                    handleNavigationOnConfirmOrCancel();
+                                }}
+                            >
+                                <Text style={[styles.buttonText, styles.buttonTextSave]}>OK</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
 
             {/* Delete confirmation modal */}
             <Modal
@@ -610,7 +660,7 @@ const SnapshotGeneralInfo = () => {
                     testID='snapshot-notes-text-input'
                 />
                 <View style={styles.formButtonsContainer}>
-                    <TouchableOpacity style={[styles.formButton, styles.buttonCancel]} onPress={handleCancelPress} testID='general-cancel-button'>
+                    <TouchableOpacity style={[styles.formButton, styles.buttonCancel]} onPress={handleNavigationOnConfirmOrCancel} testID='general-cancel-button'>
                         <Text style={[styles.buttonText, styles.buttonTextCancel]}>Cancel</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.formButton, styles.buttonSave]} onPress={handleCreateOrEditSnapshot} testID='general-submit-button'>
