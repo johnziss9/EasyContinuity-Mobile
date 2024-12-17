@@ -12,6 +12,7 @@ const Dashboard = () => {
 
     const [showAddNewSpaceModal, setShowAddNewSpaceModal] = useState(false);
     const [showDeleteSpaceModal, setShowDeleteSpaceModal] = useState(false);
+    const [showAddedSpaceModal, setShowAddedSpaceModal] = useState(false);
 
     const [spaceNameField, setSpaceNameField] = React.useState('');
     const [spaceDescription, setSpaceDescription] = React.useState('');
@@ -112,7 +113,6 @@ const Dashboard = () => {
 
                 if (response.success) {
                     // TODO Show success toast
-                    // TODO Refresh data on screen
                     handleGetAllSpaces();
                 } else {
                     // TODO Replace error with fail toast
@@ -144,9 +144,7 @@ const Dashboard = () => {
                 const response = await handleHttpRequest(url, method, body);
 
                 if (response.success) {
-                    // TODO Show success toast
-                    // TODO Refresh data on screen
-                    handleGetAllSpaces();
+                    setShowAddedSpaceModal(true);
                 } else {
                     // TODO Replace error with fail toast
                     throw new Error(response.error);
@@ -232,7 +230,33 @@ const Dashboard = () => {
     return (
         <View style={styles.container}>
 
-            {/* Delete confirmation modal */}
+            {/* Added space confirmation modal */}
+            <Modal
+                transparent={true}
+                animationType="fade"
+                visible={showAddedSpaceModal}
+                onRequestClose={() => setShowAddedSpaceModal(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalText}>Space Added Successfully</Text>
+                        <View style={styles.modalButtonsContainer}>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.modalButtonSave]}
+                                testID='added-space-confirm-button'
+                                onPress={() => {
+                                    setShowAddedSpaceModal(false);
+                                    handleGetAllSpaces();
+                                }}
+                            >
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>Delete</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Delete space confirmation modal */}
             <Modal
                 transparent={true}
                 animationType="fade"
@@ -255,7 +279,7 @@ const Dashboard = () => {
                                     setSpaceToDelete(null); 
                                 }}
                             >
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>Delete</Text>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>OK</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

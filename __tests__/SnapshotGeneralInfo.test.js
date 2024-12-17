@@ -220,28 +220,32 @@ describe('SnapshotGeneralInfo', () => {
 
     it('should create new character through modal', async () => {
         const apiMock = require('../api/api').default;
-
+    
+        apiMock.mockReset();
+        
         apiMock
-            .mockImplementationOnce(() => Promise.resolve({
+            .mockImplementationOnce(() => Promise.resolve({  // Space type call
                 success: true,
                 data: {
                     id: 1,
                     type: 2
                 }
             }))
-
-            .mockImplementationOnce(() => Promise.resolve({
+            .mockImplementationOnce(() => Promise.resolve({  // Initial characters call
                 success: true,
                 data: [
                     { id: 2, name: 'Character 1' },
                     { id: 3, name: 'Character 2' }
                 ]
             }))
-            .mockImplementationOnce(() => Promise.resolve({
+            .mockImplementationOnce(() => Promise.resolve({  // Create character call
                 success: true,
-                data: { id: 4, name: 'New Test Character' }
+                data: { 
+                    id: 4, 
+                    name: 'New Test Character' 
+                }
             }))
-            .mockImplementationOnce(() => Promise.resolve({
+            .mockImplementation(() => Promise.resolve({  // Subsequent character list calls
                 success: true,
                 data: [
                     { id: 2, name: 'Character 1' },
@@ -249,51 +253,65 @@ describe('SnapshotGeneralInfo', () => {
                     { id: 4, name: 'New Test Character' }
                 ]
             }));
-
-        const { getByTestId, queryByText } = render(
+    
+        const { getByTestId, queryByText, getByText } = render(
             <NavigationContainer>
                 <SnapshotGeneralInfo />
             </NavigationContainer>
         );
-
+    
         await waitFor(() => {
             const addNewOption = getByTestId('character-select-option-1');
             fireEvent.press(addNewOption);
         });
-
+    
         const nameInput = getByTestId('character-name-text-input');
         fireEvent.changeText(nameInput, 'New Test Character');
         fireEvent.press(getByTestId('add-new-character-submit-button'));
-
+    
         await waitFor(() => {
-            expect(apiMock).toHaveBeenNthCalledWith(3, '/character/', 'POST', {
+            expect(getByText('Character Added Successfully')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByTestId('added-character-confirm-button'));
+    
+        await waitFor(() => {
+            expect(apiMock).toHaveBeenCalledWith('/character/', 'POST', {
                 name: 'New Test Character',
                 spaceId: 1,
                 createdOn: expect.any(String)
             });
+    
             expect(queryByText('Add New Character:')).toBeNull();
+            
+            // Verify character is selected in dropdown
+            expect(apiMock).toHaveBeenCalledWith('/character/space/1', 'GET');
         });
     });
 
     it('should successfully create a new snapshot', async () => {
         const apiMock = require('../api/api').default;
-
+    
+        // Reset the mock to start fresh
+        apiMock.mockReset();
+    
+        // Set up specific mock implementations
         apiMock
-            .mockImplementationOnce(() => Promise.resolve({
+            .mockImplementationOnce(() => Promise.resolve({  // Space type call
                 success: true,
                 data: {
                     id: 1,
                     type: 2
                 }
             }))
-            .mockImplementationOnce(() => Promise.resolve({
+            .mockImplementationOnce(() => Promise.resolve({  // Initial characters call
                 success: true,
                 data: [
                     { id: 2, name: 'Character 1' },
                     { id: 3, name: 'Character 2' }
                 ]
             }))
-            .mockImplementationOnce(() => Promise.resolve({
+            .mockImplementationOnce(() => Promise.resolve({  // Create snapshot call
                 success: true,
                 data: {
                     id: 1,
@@ -305,29 +323,42 @@ describe('SnapshotGeneralInfo', () => {
                     character: 2,
                     notes: 'Test notes'
                 }
+            }))
+            .mockImplementation(() => Promise.resolve({  // All subsequent calls (for character lists etc)
+                success: true,
+                data: [
+                    { id: 2, name: 'Character 1' },
+                    { id: 3, name: 'Character 2' }
+                ]
             }));
-
-        const { getByTestId } = render(
+    
+        const { getByTestId, getByText } = render(
             <NavigationContainer>
                 <SnapshotGeneralInfo />
             </NavigationContainer>
         );
-
+    
         await waitFor(() => {
             fireEvent.changeText(getByTestId('snapshot-name-text-input'), 'New Test Snapshot');
             fireEvent.changeText(getByTestId('episode-number-text-input'), '1');
             fireEvent.changeText(getByTestId('scene-number-text-input'), '2');
             fireEvent.changeText(getByTestId('story-day-text-input'), '3');
             fireEvent.changeText(getByTestId('snapshot-notes-text-input'), 'Test notes');
-
+    
             const characterOption = getByTestId('character-select-option-2');
             fireEvent.press(characterOption);
         });
-
+    
         fireEvent.press(getByTestId('general-submit-button'));
-
+    
         await waitFor(() => {
-            expect(apiMock).toHaveBeenNthCalledWith(3, '/snapshot/', 'POST', {
+            expect(getByText('Snapshot Added Successfully')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByTestId('added-snapshot-confirm-button'));
+    
+        await waitFor(() => {
+            expect(apiMock).toHaveBeenCalledWith('/snapshot/', 'POST', {
                 name: 'New Test Snapshot',
                 spaceId: 1,
                 folderId: undefined,
@@ -338,6 +369,7 @@ describe('SnapshotGeneralInfo', () => {
                 notes: 'Test notes',
                 createdOn: expect.any(String)
             });
+    
             expect(mockNavigate).toHaveBeenCalledWith('Space', {
                 spaceId: 1,
                 spaceName: 'Test Space',

@@ -26,6 +26,7 @@ const Folder = () => {
     const [showSortByModal, setShowSortByModal] = useState(false);
     const [showDeleteFolderModal, setShowDeleteFolderModal] = useState(false);
     const [showDeleteSnapshotModal, setShowDeleteSnapshotModal] = useState(false);
+    const [showAddedFolderModal, setShowAddedFolderModal] = useState(false);
 
     const { width } = useWindowDimensions();
     const route = useRoute();
@@ -325,8 +326,7 @@ const Folder = () => {
                 const response = await handleHttpRequest(url, method, body);
 
                 if (response.success) {
-                    // TODO Show success toast
-                    handleFetchAllFolderData();
+                    setShowAddedFolderModal(true);
                 } else {
                     // TODO Replace error with fail toast
                     throw new Error(response.error);
@@ -361,6 +361,32 @@ const Folder = () => {
 
     return (
         <View style={styles.container}>
+
+            {/* Added Folder confirmation modal */}
+            <Modal
+                transparent={true}
+                animationType="fade"
+                visible={showAddedFolderModal}
+                onRequestClose={() => setShowAddedFolderModal(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalText}>Folder Added Successfully</Text>
+                        <View style={styles.modalButtonsContainer}>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.modalButtonSave]}
+                                testID='added-folder-confirm-button'
+                                onPress={() => {
+                                    setShowAddedFolderModal(false);
+                                    handleFetchAllFolderData();
+                                }}
+                            >
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>OK</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
 
             {/* Delete Snapshot confirmation modal */}
             <Modal
