@@ -446,18 +446,26 @@ describe('Dashboard', () => {
      });
 
      it('should handle deleting a space correctly', async () => {
+        // Mock the date
+        const mockDate = new Date('2024-12-17T07:19:09.984Z');
+        jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
+    
         const apiMock = require('../api/api').default;
+        
+        const mockSpace = {
+            id: 1,
+            name: 'Space to Delete',
+            type: '1'
+        };
         
         apiMock
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: [
-                    { id: 1, name: 'Space to Delete', type: '1' }
-                ]
+                data: [mockSpace]
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: { id: 1, name: 'Space to Delete', type: '1', isDeleted: true }
+                data: { ...mockSpace, isDeleted: true }
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
@@ -475,28 +483,70 @@ describe('Dashboard', () => {
         });
      
         fireEvent.press(getByTestId('delete-space-button'));
+        expect(getByText('Delete Space?')).toBeTruthy();
+        fireEvent.press(getByTestId('delete-space-confirm-button'));
      
         await waitFor(() => {
-            expect(apiMock).toHaveBeenCalledWith('/space/1', 'PUT', {
+            expect(apiMock).toHaveBeenNthCalledWith(2, '/space/1', 'PUT', {
                 name: 'Space to Delete',
                 type: '1',
                 isDeleted: true,
-                deletedOn: expect.any(String)
+                deletedOn: mockDate.toISOString()
             });
      
             expect(queryByText('Space to Delete')).toBeNull();
-     
             expect(getByText('No Spaces Yet')).toBeTruthy();
-            expect(getByText('Get started by pressing the + button below to create your first space.')).toBeTruthy();
         });
      
         expect(apiMock).toHaveBeenCalledTimes(3);
+    
+        // Clean up
+        jest.restoreAllMocks();
+    });
+
+    it('should cancel space deletion when cancel is pressed', async () => {
+        // Mock the date
+        const mockDate = new Date('2024-12-17T07:19:09.984Z');
+        jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
         
-        const apiCalls = apiMock.mock.calls;
-        expect(apiCalls[0]).toEqual(['/space', 'GET']);
-        expect(apiCalls[1][0]).toBe('/space/1');
-        expect(apiCalls[1][1]).toBe('PUT');
-        expect(apiCalls[2]).toEqual(['/space', 'GET']);
+        const apiMock = require('../api/api').default;
+        
+        const mockSpace = {
+            id: 1,
+            name: 'Space to Not Delete',
+            type: '1'  
+        };
+     
+        apiMock.mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: [mockSpace]
+        }));
+     
+        const { getByTestId, queryByText, getByText } = render(
+            <NavigationContainer>
+                <Dashboard />
+            </NavigationContainer>
+        );
+     
+        await waitFor(() => {
+            expect(getByText('Space to Not Delete')).toBeTruthy();
+        });
+     
+        fireEvent.press(getByTestId('delete-space-button'));
+     
+        await waitFor(() => {
+            expect(getByText('Delete Space?')).toBeTruthy();
+        });
+     
+        fireEvent.press(getByTestId('delete-space-cancel-button'));
+     
+        await waitFor(() => {
+            expect(queryByText('Delete Space?')).toBeNull();
+            expect(getByText('Space to Not Delete')).toBeTruthy();
+            expect(apiMock).toHaveBeenCalledTimes(1);
+        });
+     
+        jest.restoreAllMocks();
      });
      
      // TODO Add a test for modals
