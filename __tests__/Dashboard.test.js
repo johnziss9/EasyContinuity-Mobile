@@ -205,10 +205,9 @@ describe('Dashboard', () => {
         });
     });
 
-    // TODO this needs to be modified to fetch folders by space id
     it('should successfully create a new space', async () => {
         const apiMock = require('../api/api').default;
-
+    
         apiMock
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
@@ -229,31 +228,37 @@ describe('Dashboard', () => {
                     { id: 3, name: 'Mr. Robot', type: '2', description: 'Hacker series' }
                 ]
             }));
-
+    
         const { getByTestId, getByText } = render(
             <NavigationContainer>
                 <Dashboard />
             </NavigationContainer>
         );
-
+    
         await waitFor(() => {
             fireEvent.press(getByTestId('add-space-button'));
         });
-
+    
         await waitFor(() => {
             const nameInput = getByTestId('space-name-text-input');
             const descriptionInput = getByTestId('space-description-text-input');
             fireEvent.changeText(nameInput, 'Mr. Robot');
             fireEvent.changeText(descriptionInput, 'Hacker series');
-
+    
             const typeDropdown = getByTestId('space-type-select-dropdown');
             fireEvent.press(typeDropdown);
             const seriesOption = getByTestId('space-type-select-item-2');
             fireEvent.press(seriesOption);
         });
-
+    
         fireEvent.press(getByTestId('add-space-submit-button'));
-
+    
+        // Wait for and handle the confirmation modal
+        await waitFor(() => {
+            expect(getByText('Space Added Successfully')).toBeTruthy();
+            fireEvent.press(getByTestId('added-space-confirm-button'));
+        });
+    
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith('/space/', 'POST', {
                 name: 'Mr. Robot',
@@ -261,7 +266,7 @@ describe('Dashboard', () => {
                 description: 'Hacker series',
                 createdOn: expect.any(String)
             });
-
+    
             expect(apiMock).toHaveBeenCalledWith('/space', 'GET');
             expect(getByText('Mr. Robot')).toBeTruthy();
         });
@@ -548,6 +553,4 @@ describe('Dashboard', () => {
      
         jest.restoreAllMocks();
      });
-     
-     // TODO Add a test for modals
 })
