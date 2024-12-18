@@ -273,7 +273,7 @@ describe('Dashboard', () => {
     });
 
     it('should clear form inputs when modal is cancelled', async () => {
-        const { getByTestId, queryByTestId } = render(
+        const { getByTestId } = render(
             <NavigationContainer>
                 <Dashboard />
             </NavigationContainer>
