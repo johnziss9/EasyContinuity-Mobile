@@ -173,21 +173,26 @@ describe('Folder Component', () => {
                 success: true,
                 data: { id: 2, name: 'New Nested Folder' }
             }));
-
-        const { getByTestId, getByPlaceholderText } = render(
+    
+        const { getByTestId, getByPlaceholderText, getByText } = render(
             <NavigationContainer>
                 <Folder />
             </NavigationContainer>
         );
-
+    
         fireEvent.press(getByTestId('add-item-button'));
         fireEvent.press(getByTestId('add-new-folder-button'));
-
+    
         const nameInput = getByPlaceholderText('Folder Name');
         fireEvent.changeText(nameInput, 'New Nested Folder');
-
         fireEvent.press(getByTestId('add-folder-submit-button'));
-
+    
+        await waitFor(() => {
+            expect(getByText('Folder Added Successfully')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByTestId('added-folder-confirm-button'));
+    
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith('/folder/', 'POST', {
                 name: 'New Nested Folder',
@@ -196,6 +201,9 @@ describe('Folder Component', () => {
                 createdOn: expect.any(String)
             });
         });
+    
+        // Should initiate refresh after confirmation
+        expect(apiMock).toHaveBeenCalledWith('/folder/1', 'GET');
     });
 
     it('should show no items message when folder is empty', async () => {
@@ -251,22 +259,32 @@ describe('Folder Component', () => {
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
+                data: { name: 'Test Space' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
                 data: { id: 3, name: 'New Folder' }
             }));
-
-        const { getByTestId, getByPlaceholderText, queryByText } = render(
+    
+        const { getByTestId, getByPlaceholderText, queryByText, getByText } = render(
             <NavigationContainer>
                 <Folder />
             </NavigationContainer>
         );
-
+    
         fireEvent.press(getByTestId('add-item-button'));
         fireEvent.press(getByTestId('add-new-folder-button'));
-
+    
         const nameInput = getByPlaceholderText('Folder Name');
         fireEvent.changeText(nameInput, 'New Folder');
         fireEvent.press(getByTestId('add-folder-submit-button'));
-
+    
+        await waitFor(() => {
+            expect(getByText('Folder Added Successfully')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByTestId('added-folder-confirm-button'));
+    
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith('/folder/', 'POST', {
                 name: 'New Folder',

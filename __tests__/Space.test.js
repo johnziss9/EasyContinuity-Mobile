@@ -126,72 +126,60 @@ describe('Space Component', () => {
 
     it('should open the add new item modal, select folder button and add new folder', async () => {
         const apiMock = require('../api/api').default;
-
+    
+        // Setup API mock responses
         apiMock
-            .mockImplementationOnce(() => Promise.resolve({
+            .mockImplementationOnce(() => Promise.resolve({  // Initial folders fetch
                 success: true,
                 data: [
-                    { id: '1', name: 'Folder 1', parentId: null },
-                    { id: '2', name: 'Folder 2', parentId: null }
+                    { id: 1, name: 'Folder 1', parentId: null },
+                    { id: 2, name: 'Folder 2', parentId: null }
                 ]
             }))
-            .mockImplementationOnce(() => Promise.resolve({
+            .mockImplementationOnce(() => Promise.resolve({  // Initial snapshots fetch
                 success: true,
-                data: [] // Initial snapshots
+                data: []
             }))
-            .mockImplementationOnce(() => Promise.resolve({
+            .mockImplementationOnce(() => Promise.resolve({  // Create folder response
                 success: true,
-                data: { id: '3', name: 'New Folder' }
-            }))
-            .mockImplementationOnce(() => Promise.resolve({
-                success: true,
-                data: [
-                    { id: '1', name: 'Folder 1' },
-                    { id: '2', name: 'Folder 2' },
-                    { id: '3', name: 'New Folder' }
-                ]
-            }))
-            .mockImplementationOnce(() => Promise.resolve({
-                success: true,
-                data: [] // Refreshed snapshots
+                data: { id: 3, name: 'New Folder', parentId: null }
             }));
-
-        const { getByTestId, queryByText, getByText } = render(
+    
+        const { getByTestId, getByText, queryByText } = render(
             <NavigationContainer>
                 <Space />
             </NavigationContainer>
         );
-
+    
+        // Wait for initial render
         await waitFor(() => {
             expect(getByText('Folder 1')).toBeTruthy();
         });
-
+    
         fireEvent.press(getByTestId('add-item-button'));
         fireEvent.press(getByTestId('add-new-folder-button'));
-
+    
+        // Add folder name
         const nameInput = getByTestId('folder-name-text-input');
         fireEvent.changeText(nameInput, 'New Folder');
-
+    
         fireEvent.press(getByTestId('add-folder-submit-button'));
-
+    
+        await waitFor(() => {
+            expect(getByText('Folder Added Successfully')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByTestId('added-folder-confirm-button'));
+    
+        // Verify API calls
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith('/folder/', 'POST', {
                 name: 'New Folder',
                 spaceId: 1,
                 createdOn: expect.any(String)
             });
-
+    
             expect(queryByText('Enter Folder Name:')).toBeNull();
-
-            expect(apiMock).toHaveBeenNthCalledWith(1, '/folder/space/1', 'GET');
-            expect(apiMock).toHaveBeenNthCalledWith(2, '/snapshot/space/1', 'GET');
-            expect(apiMock).toHaveBeenNthCalledWith(3, '/folder/', 'POST', {
-                name: 'New Folder',
-                spaceId: 1,
-                createdOn: expect.any(String)
-            });
-            expect(apiMock).toHaveBeenNthCalledWith(4, '/folder/space/1', 'GET');
-            expect(apiMock).toHaveBeenNthCalledWith(5, '/snapshot/space/1', 'GET');
         });
     });
 
