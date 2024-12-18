@@ -249,7 +249,7 @@ const Dashboard = () => {
                                     handleGetAllSpaces();
                                 }}
                             >
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>Delete</Text>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>OK</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
