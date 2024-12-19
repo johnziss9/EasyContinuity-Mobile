@@ -273,7 +273,7 @@ describe('SnapshotGeneralInfo', () => {
             expect(getByText('Character Added Successfully')).toBeTruthy();
         });
     
-        fireEvent.press(getByTestId('added-character-confirm-button'));
+        fireEvent.press(getByTestId('addition-confirm-button'));
     
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith('/character/', 'POST', {
@@ -355,7 +355,7 @@ describe('SnapshotGeneralInfo', () => {
             expect(getByText('Snapshot Added Successfully')).toBeTruthy();
         });
     
-        fireEvent.press(getByTestId('added-snapshot-confirm-button'));
+        fireEvent.press(getByTestId('addition-confirm-button'));
     
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith('/snapshot/', 'POST', {
@@ -390,10 +390,8 @@ describe('SnapshotGeneralInfo', () => {
             fireEvent.press(addNewOption);
         });
 
-        // Enter character name
         fireEvent.changeText(getByTestId('character-name-text-input'), 'Test Character');
 
-        // Press cancel
         fireEvent.press(getByTestId('add-new-character-cancel-button'));
 
         await waitFor(() => {
@@ -794,6 +792,13 @@ describe('SnapshotGeneralInfo', () => {
         fireEvent.changeText(input, 'Updated Character');
         fireEvent.press(getByTestId('add-new-character-submit-button'));
     
+        // Wait for confirmation modal
+        await waitFor(() => {
+            expect(getByText('Character Updated Successfully')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByTestId('addition-confirm-button'));
+    
         await waitFor(() => {
             // Verify the PUT request was made
             expect(apiMock).toHaveBeenCalledWith('/character/2', 'PUT', expect.objectContaining({
@@ -801,12 +806,8 @@ describe('SnapshotGeneralInfo', () => {
                 lastUpdatedOn: expect.any(String)
             }));
     
-            expect(queryByText('Update Character:')).toBeNull();
-            
             expect(getByText('Manage Characters (2):')).toBeTruthy();
-        });
-    
-        await waitFor(() => {
+            
             const characterElements = getAllByTestId('character-component');
             expect(characterElements).toHaveLength(2);
         });
@@ -1040,12 +1041,45 @@ describe('SnapshotGeneralInfo', () => {
 
     it('should show clear button only when character is selected', async () => {
         const apiMock = require('../api/api').default;
-        apiMock
-            .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
-            .mockImplementationOnce(() => Promise.resolve({
+        
+        apiMock.mockReset();
+        
+        // Setup consistent mock responses
+        apiMock.mockImplementation((url) => {
+            // Space type call
+            if (url === '/space/1') {
+                return Promise.resolve({
+                    success: true,
+                    data: { 
+                        id: 1, 
+                        type: 2,
+                        name: "Test Space",
+                        description: "Some Description",
+                        createdBy: 0,
+                        createdOn: "2024-11-25T12:47:32.438Z"
+                    }
+                });
+            }
+            // Characters list call
+            if (url === '/character/space/1') {
+                return Promise.resolve({
+                    success: true,
+                    data: [
+                        { 
+                            id: 2, 
+                            name: 'Character 1',
+                            spaceId: 1,
+                            createdOn: "2024-11-25T12:47:32.438Z"
+                        }
+                    ]
+                });
+            }
+            // Default response
+            return Promise.resolve({
                 success: true,
-                data: [{ id: 2, name: 'Character 1' }]
-            }));
+                data: null
+            });
+        });
     
         const { getByTestId, queryByTestId } = render(
             <NavigationContainer>
@@ -1055,71 +1089,59 @@ describe('SnapshotGeneralInfo', () => {
     
         expect(queryByTestId('clear-character-button')).toBeNull();
     
+        // Wait for SelectList to be ready
         await waitFor(() => {
-            fireEvent.press(getByTestId('character-select-option-2'));
+            expect(getByTestId('character-select')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByTestId('character-select-option-2'));
+    
+        await waitFor(() => {
             expect(getByTestId('clear-character-button')).toBeTruthy();
         });
     });
 
     it('should clear selected character when clear button is pressed', async () => {
         const apiMock = require('../api/api').default;
-    
-    apiMock
-        // First API call - get space type
-        .mockImplementationOnce(() => Promise.resolve({
-            success: true,
-            data: {
-                id: 1,
-                type: 2
+        
+        apiMock.mockReset();
+        
+        // Setup consistent mock responses
+        apiMock.mockImplementation((url) => {
+            // Space type call
+            if (url === '/space/1') {
+                return Promise.resolve({
+                    success: true,
+                    data: { 
+                        id: 1, 
+                        type: 2,
+                        name: "Test Space",
+                        description: "Some Description",
+                        createdBy: 0,
+                        createdOn: "2024-11-25T12:47:32.438Z"
+                    }
+                });
             }
-        }))
-        // Second API call - get initial characters list
-        .mockImplementationOnce(() => Promise.resolve({
-            success: true,
-            data: [
-                { id: 2, name: 'Character 1' }
-            ]
-        }))
-        // Third API call - update character
-        .mockImplementationOnce(() => Promise.resolve({
-            success: true,
-            data: {
-                id: 2,
-                name: 'Updated Character'
+            // Characters list call
+            if (url === '/character/space/1') {
+                return Promise.resolve({
+                    success: true,
+                    data: [
+                        { 
+                            id: 2, 
+                            name: 'Character 1',
+                            spaceId: 1,
+                            createdOn: "2024-11-25T12:47:32.438Z"
+                        }
+                    ]
+                });
             }
-        }))
-        // Fourth API call - get updated characters list
-        .mockImplementationOnce(() => Promise.resolve({
-            success: true,
-            data: [
-                { id: 2, name: 'Updated Character' }
-            ]
-        }));
-
-    const { getByTestId, queryByTestId } = render(
-        <NavigationContainer>
-            <SnapshotGeneralInfo />
-        </NavigationContainer>
-    );
-    
-        await waitFor(() => {
-            fireEvent.press(getByTestId('character-select-option-2'));
-            expect(getByTestId('clear-character-button')).toBeTruthy();
-    
-            fireEvent.press(getByTestId('clear-character-button'));
-            
-            expect(queryByTestId('clear-character-button')).toBeNull();
-        });
-    });
-
-    it('should clear selection when add character modal is cancelled', async () => {
-        const apiMock = require('../api/api').default;
-        apiMock
-            .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
-            .mockImplementationOnce(() => Promise.resolve({
+            // Default response
+            return Promise.resolve({
                 success: true,
-                data: [{ id: 2, name: 'Character 1' }]
-            }));
+                data: null
+            });
+        });
     
         const { getByTestId, queryByTestId } = render(
             <NavigationContainer>
@@ -1127,10 +1149,89 @@ describe('SnapshotGeneralInfo', () => {
             </NavigationContainer>
         );
     
+        // Wait for data to load and SelectList to be ready
         await waitFor(() => {
-            fireEvent.press(getByTestId('character-select-option-1'));
+            expect(getByTestId('character-select')).toBeTruthy();
         });
     
+        // Initially, clear button should not be present
+        expect(queryByTestId('clear-character-button')).toBeNull();
+    
+        fireEvent.press(getByTestId('character-select-option-2'));
+    
+        // Wait for clear button to appear
+        await waitFor(() => {
+            expect(getByTestId('clear-character-button')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByTestId('clear-character-button'));
+        
+        await waitFor(() => {
+            expect(queryByTestId('clear-character-button')).toBeNull();
+        });
+    });
+
+    it('should clear selection when add character modal is cancelled', async () => {
+        const apiMock = require('../api/api').default;
+        
+        apiMock.mockReset();
+        
+        // Setup consistent mock responses
+        apiMock.mockImplementation((url) => {
+            // Space type call
+            if (url === '/space/1') {
+                return Promise.resolve({
+                    success: true,
+                    data: { 
+                        id: 1, 
+                        type: 2,
+                        name: "Test Space",
+                        description: "Some Description",
+                        createdBy: 0,
+                        createdOn: "2024-11-25T12:47:32.438Z"
+                    }
+                });
+            }
+            // Characters list call
+            if (url === '/character/space/1') {
+                return Promise.resolve({
+                    success: true,
+                    data: [
+                        { 
+                            id: 2, 
+                            name: 'Character 1',
+                            spaceId: 1,
+                            createdOn: "2024-11-25T12:47:32.438Z"
+                        }
+                    ]
+                });
+            }
+            // Default response
+            return Promise.resolve({
+                success: true,
+                data: null
+            });
+        });
+    
+        const { getByTestId, queryByTestId } = render(
+            <NavigationContainer>
+                <SnapshotGeneralInfo />
+            </NavigationContainer>
+        );
+    
+        // Wait for data to load
+        await waitFor(() => {
+            expect(getByTestId('character-select')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByTestId('character-select-option-1'));
+    
+        // Wait for modal to open
+        await waitFor(() => {
+            expect(getByTestId('add-new-character-cancel-button')).toBeTruthy();
+        });
+    
+        // Press cancel button
         fireEvent.press(getByTestId('add-new-character-cancel-button'));
     
         expect(queryByTestId('clear-character-button')).toBeNull();
@@ -1138,11 +1239,32 @@ describe('SnapshotGeneralInfo', () => {
 
     it('should return to manage characters modal when edit is cancelled', async () => {
         const apiMock = require('../api/api').default;
+        
+        apiMock.mockReset();
+    
+        // Set up mock implementations with proper structure
         apiMock
-            .mockImplementationOnce(() => Promise.resolve({ success: true, data: { id: 1, type: 2 } }))
+            .mockImplementationOnce(() => Promise.resolve({ 
+                success: true, 
+                data: { 
+                    id: 1, 
+                    type: 2,
+                    name: "Test Space",
+                    description: "Some Description",
+                    createdBy: 0,
+                    createdOn: "2024-11-25T12:47:32.438Z"
+                } 
+            }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
-                data: [{ id: 2, name: 'Character 1' }]
+                data: [
+                    { 
+                        id: 2, 
+                        name: 'Character 1',
+                        spaceId: 1,
+                        createdOn: "2024-11-25T12:47:32.438Z"
+                    }
+                ]
             }));
     
         const { getByTestId, getAllByTestId, getByText } = render(
@@ -1151,12 +1273,14 @@ describe('SnapshotGeneralInfo', () => {
             </NavigationContainer>
         );
     
+        // Wait for initial data load and button to appear
         await waitFor(() => {
             expect(getByTestId('manage-characters-button')).toBeTruthy();
         });
     
         fireEvent.press(getByTestId('manage-characters-button'));
     
+        // Wait for modal and edit button
         await waitFor(() => {
             const editButtons = getAllByTestId('edit-character-button');
             fireEvent.press(editButtons[0]);
@@ -1164,10 +1288,11 @@ describe('SnapshotGeneralInfo', () => {
     
         fireEvent.press(getByTestId('add-new-character-cancel-button'));
     
+        // Verify we're back to manage characters modal
         await waitFor(() => {
             expect(getByText('Manage Characters (1):')).toBeTruthy();
         });
-    });    
+    });   
 
     it('should navigate to snapshot with correct params when cancel pressed while editing', async () => {
         const mockNavigate = jest.fn();
@@ -1181,49 +1306,69 @@ describe('SnapshotGeneralInfo', () => {
                 isNewSnapshot: false,
                 spaceName: 'Test Space',
                 snapshotId: 123,
-                snapshotName: 'Test Snapshot'
+                snapshotName: 'Test Snapshot',
+                folderId: null,
+                folderName: null
             }
         });
     
         const apiMock = require('../api/api').default;
         
-        apiMock
+        apiMock.mockReset();
+        
+        // Setup consistent mock responses for all API calls
+        apiMock.mockImplementation((url) => {
             // Space type call
-            .mockResolvedValueOnce({
-                data: {
-                    id: 1,
-                    type: "1",
-                    name: "Test Space",
-                    description: "Some Description",
-                    createdBy: 0,
-                    createdOn: "2024-11-25T12:47:32.438Z",
-                    lastUpdatedBy: null,
-                    lastUpdatedOn: "2024-12-13T09:29:13.48Z",
-                    deletedBy: null,
-                    deletedOn: null,
-                    isDeleted: false
-                },
-                status: 200,
-                success: true
-            })
+            if (url === '/space/1') {
+                return Promise.resolve({
+                    success: true,
+                    data: {
+                        id: 1,
+                        type: "1",
+                        name: "Test Space"
+                    }
+                });
+            }
             // Characters list call
-            .mockResolvedValueOnce({
-                data: [
-                    { id: 2, name: 'Character 1' }
-                ],
-                status: 200,
-                success: true
+            if (url === '/character/space/1') {
+                return Promise.resolve({
+                    success: true,
+                    data: [
+                        { id: 2, name: 'Character 1' }
+                    ]
+                });
+            }
+            // Snapshot data call
+            if (url === '/snapshot/123') {
+                return Promise.resolve({
+                    success: true,
+                    data: {
+                        id: 123,
+                        name: 'Test Snapshot',
+                        spaceId: 1,
+                        character: null
+                    }
+                });
+            }
+            // Default response for any other API calls
+            return Promise.resolve({
+                success: true,
+                data: null
             });
+        });
     
-        const { getByTestId } = render(
+        const { getByTestId, getByText } = render(
             <NavigationContainer>
                 <SnapshotGeneralInfo />
             </NavigationContainer>
         );
     
+        // Wait for snapshot data to be loaded - look for the header text
         await waitFor(() => {
-            fireEvent.press(getByTestId('general-cancel-button'));
+            expect(getByText('Edit Snapshot')).toBeTruthy();
         });
+    
+        fireEvent.press(getByTestId('general-cancel-button'));
     
         expect(mockNavigate).toHaveBeenCalledWith('Snapshot', {
             spaceId: 1,

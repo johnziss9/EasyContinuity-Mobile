@@ -472,17 +472,23 @@ describe('Folder Component', () => {
     
         fireEvent.press(getByTestId('add-folder-submit-button'));
     
+        // Wait for and handle the confirmation modal
+        await waitFor(() => {
+            expect(getByText('Folder Updated Successfully')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByTestId('added-folder-confirm-button'));
+    
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith('/folder/2', 'PUT', expect.objectContaining({
                 name: 'Updated Folder',
                 lastUpdatedOn: expect.any(String)
             }));
-        });
-    
-        await waitFor(() => {
+            
             expect(getByText('Updated Folder')).toBeTruthy();
         });
     
+        // Verify API call sequence
         expect(apiMock).toHaveBeenNthCalledWith(1, '/folder/1', 'GET');
         expect(apiMock).toHaveBeenNthCalledWith(2, '/folder/parent/1', 'GET');
         expect(apiMock).toHaveBeenNthCalledWith(3, '/snapshot/folder/1', 'GET');
@@ -491,7 +497,6 @@ describe('Folder Component', () => {
             name: 'Updated Folder',
             lastUpdatedOn: expect.any(String)
         }));
-
         expect(apiMock).toHaveBeenNthCalledWith(6, '/folder/1', 'GET');
         expect(apiMock).toHaveBeenNthCalledWith(7, '/folder/parent/1', 'GET');
         expect(apiMock).toHaveBeenNthCalledWith(8, '/snapshot/folder/1', 'GET');
