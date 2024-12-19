@@ -354,18 +354,20 @@ describe('Dashboard', () => {
                 ]
             }));
     
-        const { getByTestId, getByText } = render(
+        const { getByTestId, getByText, findByText } = render(
             <NavigationContainer>
                 <Dashboard />
             </NavigationContainer>
         );
     
+        // Wait for initial render
         await waitFor(() => {
             expect(getByText('Test Space')).toBeTruthy();
         });
     
         fireEvent.press(getByTestId('edit-space-button'));
     
+        // Verify initial form values
         await waitFor(() => {
             const nameInput = getByTestId('space-name-text-input');
             const descriptionInput = getByTestId('space-description-text-input');
@@ -378,6 +380,13 @@ describe('Dashboard', () => {
         
         fireEvent.press(getByTestId('add-space-submit-button'));
     
+        await waitFor(() => {
+            expect(getByText('Space Updated Successfully')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByTestId('added-space-confirm-button'));
+    
+        // Verify the space was updated
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith('/space/1', 'PUT', {
                 name: 'Updated Space',
