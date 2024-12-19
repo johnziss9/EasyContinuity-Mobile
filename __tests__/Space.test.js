@@ -401,30 +401,38 @@ describe('Space Component', () => {
                 success: true,
                 data: []
             }));
-
+    
         const { getByText, getAllByTestId, getByPlaceholderText, getByTestId } = render(
             <NavigationContainer>
                 <Space />
             </NavigationContainer>
         );
-
+    
         await waitFor(() => {
             expect(getByText('Test Folder')).toBeTruthy();
         });
-
+    
         const editButtons = getAllByTestId('edit-folder-button');
         fireEvent.press(editButtons[0]);
-
+    
         const nameInput = getByPlaceholderText('Folder Name');
         fireEvent.changeText(nameInput, 'Updated Folder');
-
+    
         fireEvent.press(getByTestId('add-folder-submit-button'));
-
+    
+        // Wait for and handle the confirmation modal
+        await waitFor(() => {
+            expect(getByText('Folder Updated Successfully')).toBeTruthy();
+        });
+    
+        fireEvent.press(getByTestId('added-folder-confirm-button'));
+    
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith('/folder/1', 'PUT', {
                 name: 'Updated Folder',
                 lastUpdatedOn: expect.any(String)
             });
+    
             expect(getByText('Updated Folder')).toBeTruthy();
         });
     });
