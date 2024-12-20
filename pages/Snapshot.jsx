@@ -25,6 +25,8 @@ const Snapshot = ({ testImages = null }) => {
     });
 
     const [showImageModal, setShowImageModal] = useState(false);
+    const [showDeleteSnapshotModal, setShowDeleteSnapshotModal] = useState(false);
+
     const [selectedImages, setSelectedImages] = useState([]);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [snapshot, setSnapshot] = useState({});
@@ -113,6 +115,39 @@ const Snapshot = ({ testImages = null }) => {
             console.log('Current filesInfo:', filesInfo);
         }, [])
     );
+
+    const handleConfirmDeleteSnapshotPress = async () => {
+        try {
+            const url = `/snapshot/${snapshotId}`;
+            const method = 'PUT';
+            const body = {
+                name: snapshotName,
+                isDeleted: true,
+                deletedOn: new Date().toISOString()
+                // TODO Include deletedBy
+            };
+
+            const response = await handleHttpRequest(url, method, body);
+
+            if (response.success) {
+                // TODO Show success toast
+                if (!folderId)
+                    navigation.navigate('Space', { spaceId: spaceId, spaceName: spaceName });
+                else
+                    navigation.navigate('Folder', { spaceId: spaceId, spaceName: spaceName, folderId: folderId, folderName: folderName });
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Deleting Snapshot:', error);
+
+            // TODO Replace error with fail toast
+            throw error;
+        } finally {
+            // TODO Show deletion confirmation
+        }
+    }
 
     const handleGetSpaceType = async () => {
         try {
@@ -227,6 +262,36 @@ const Snapshot = ({ testImages = null }) => {
     return (
         <View style={styles.container}>
 
+            {/* Delete Snapshot confirmation modal */}
+            <Modal
+                transparent={true}
+                animationType="fade"
+                visible={showDeleteSnapshotModal}
+                onRequestClose={() => setShowDeleteSnapshotModal(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalText}>Delete Snapshot?</Text>
+                        <View style={styles.modalButtonsContainer}>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} testID='delete-snapshot-cancel-button' onPress={() => setShowDeleteSnapshotModal(false)}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.modalButtonSave]}
+                                testID='delete-snapshot-confirm-button'
+                                onPress={() => {
+                                    setShowDeleteSnapshotModal(false);
+                                    handleConfirmDeleteSnapshotPress();
+                                    // setSnapshotToDelete(null); 
+                                }}
+                            >
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>Delete</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
             {/* View Image Modal */}
             <Modal
                 transparent={true}
@@ -297,6 +362,12 @@ const Snapshot = ({ testImages = null }) => {
                     ["Products:", snapshot.products],
                     ["Hair Notes:", snapshot.hairNotes]
                 ], handleEditHairPress, 'edit-hair-button')}
+
+                <View>
+                    <TouchableOpacity style={styles.deleteSnapshotButton} onPress={() => setShowDeleteSnapshotModal()} testID='delete-snapshot-button'>
+                        <Text style={styles.deleteSnapshotButtonText}>Delete Snapshot</Text>
+                    </TouchableOpacity>
+                </View>
             </ScrollView>
         </View>
     );
@@ -372,6 +443,46 @@ const styles = StyleSheet.create({
         top: '50%',
         zIndex: 1,
     },
+    modalContent: {
+        width: '85%',
+        padding: 20,
+        backgroundColor: '#E2CFC8',
+        borderRadius: 10
+    },
+    modalText: {
+        fontSize: 18,
+        marginBottom: 5,
+        marginLeft: 5,
+        color: '#3F4F5F',
+        fontWeight: 'bold'
+    },
+    modalButtonsContainer: {
+        alignItems: 'center'
+    },
+    modalButton: {
+        borderRadius: 5,
+        width: '70%',
+        height: 60,
+        justifyContent: 'center',
+        margin: 10
+    },
+    modalButtonText: {
+        fontSize: 18,
+        textAlign: 'center'
+    },
+    modalButtonSave: {
+        backgroundColor: '#3F4F5F',
+    },
+    modalButtonCancel: {
+        borderWidth: 2,
+        borderColor: '#3F4F5F'
+    },
+    modalButtonTextSave: {
+        color: '#E2CFC8'
+    },
+    modalButtonTextCancel: {
+        color: '#3F4F5F'
+    },
     imageSection: {
         marginBottom: 10,
     },
@@ -380,6 +491,19 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         marginBottom: 10,
         paddingHorizontal: 15
+    },
+    deleteSnapshotButton: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 10,
+        height: 40,
+        marginBottom: 30,
+        backgroundColor: '#3F4F5F',
+    },
+    deleteSnapshotButtonText: {
+        color: '#E2CFC8',
+        fontSize: 17,
+        fontWeight: 'bold',
     }
 });
 
