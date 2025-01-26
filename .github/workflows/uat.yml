@@ -38,7 +38,7 @@ jobs:
         script: |
           cd EasyContinuity-API
           docker compose -f docker-compose.staging.yml down
-          docker compose -f docker-compose.uat.yml --env-file .env.dev up --build -d
+          docker compose -f docker-compose.uat.yml up --build -d
           cd ..
           cd EasyContinuity-Mobile
           git checkout main
