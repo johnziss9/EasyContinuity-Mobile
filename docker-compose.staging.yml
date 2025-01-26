@@ -1,15 +1,16 @@
 version: '3'
 services:
-  easy-continuity-preprod:
+  easy-continuity-staging:
     build: 
       context: .
-      dockerfile: Dockerfile.preprod
+      dockerfile: Dockerfile.staging
     ports:
       - "8082:8081"
       - "19001:19000"
       - "19003:19002"
     environment: 
-      - NODE_ENV=preprod
+      - NODE_ENV=staging
       - REACT_NATIVE_PACKAGER_HOSTNAME=${LINODE_IP}
+      - NDPOINT_URL=http://${LINODE_IP}:5003
     command: npx expo start --web --lan --port 19001
     network_mode: "host"

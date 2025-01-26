@@ -1,10 +1,10 @@
-name: Manual Merge to Preprod
+name: Manual Merge to Staging
 
 on:
   workflow_dispatch:
     inputs:
       confirm:
-        description: 'Type "yes" to confirm merge to preprod'
+        description: 'Type "yes" to confirm merge to staging'
         required: true
 
 jobs:
@@ -40,13 +40,13 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         script: |
           cd EasyContinuity-API
-          docker compose -f docker-compose.dev.yml down
-          docker compose -f docker-compose.preprod.yml --env-file .env.preprod up --build -d
+          docker compose -f docker-compose.uat.yml down
+          docker compose -f docker-compose.staging.yml up --build -d
           cd ..
           cd EasyContinuity-Mobile
           git checkout dev
           git pull origin dev
           git checkout preprod
           git merge dev
-          docker compose -f docker-compose.dev.yml down
-          docker compose -f docker-compose.preprod.yml up -d --build
+          docker compose -f docker-compose.uat.yml down
+          docker compose -f docker-compose.staging.yml up -d --build
