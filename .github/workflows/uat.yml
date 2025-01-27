@@ -1,4 +1,4 @@
-name: Merge and Deploy
+name: Merge PR and Deploy to UAT
 
 on:
   push:
@@ -37,13 +37,13 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         script: |
           cd EasyContinuity-API
-          docker compose -f docker-compose.preprod.yml down
-          docker compose -f docker-compose.dev.yml --env-file .env.dev up --build -d
+          docker compose -f docker-compose.staging.yml down
+          docker compose -f docker-compose.uat.yml up --build -d
           cd ..
           cd EasyContinuity-Mobile
           git checkout main
           git pull origin main
           git checkout dev
           git merge main
-          docker compose -f docker-compose.preprod.yml down
-          docker compose -f docker-compose.dev.yml up -d --build
+          docker compose -f docker-compose.staging.yml down
+          docker compose -f docker-compose.uat.yml up -d --build
