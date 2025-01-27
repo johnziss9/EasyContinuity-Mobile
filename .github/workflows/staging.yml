@@ -39,6 +39,10 @@ jobs:
         key: ${{ secrets.LINODE_SSH_PRIVATE_KEY }}
         port: ${{ secrets.SSH_PORT }}
         script: |
+          cd EasyContinuity-API
+          docker compose -f docker-compose.uat.yml down
+          docker compose -f docker-compose.staging.yml up --build -d
+          cd ..
           cd EasyContinuity-Mobile
           git checkout dev
           git pull origin dev
