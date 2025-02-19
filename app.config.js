@@ -15,7 +15,11 @@ export default {
             adaptiveIcon: {
                 foregroundImage: "./assets/logo-design.png",
                 backgroundColor: "#ffffff"
-            }
+            },
+            permissions: [
+                "READ_EXTERNAL_STORAGE",
+                "WRITE_EXTERNAL_STORAGE"
+            ]
         },
         web: {
             favicon: "./assets/logo-design.png"

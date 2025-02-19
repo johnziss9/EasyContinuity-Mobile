@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 
-const handleHttpRequest = async (url, method, body) => {
+const handleHttpRequest = async (url, method, body, customHeaders = {}) => {
 
     try {
         const baseUrl = Constants.expoConfig.extra.apiUrl;
@@ -16,26 +16,40 @@ const handleHttpRequest = async (url, method, body) => {
             method,
             headers: {
                 'Content-Type': 'application/json',
-                // ...(token && { 'Authorization': `Bearer ${token}` }) // Uncomment when implementing auth
+                ...customHeaders
             }
+            // ...(token && { 'Authorization': `Bearer ${token}` })
         };
     
         if (method !== 'GET' && body) {
-            options.body = JSON.stringify(body);
+            options.body = body instanceof FormData ? body : JSON.stringify(body);
+
+            // Remove Content-Type for FormData
+            if (body instanceof FormData) {
+                delete options.headers['Content-Type'];
+            }
         }
 
         const response = await fetch(`${baseUrl}${url}`, options);
-        const data = await response.json();
+
+        let responseData;
+        const contentType = response.headers.get('content-type');
+
+        if (contentType && contentType.includes('application/json')) {
+            responseData = await response.json();
+        } else {
+            responseData = await response.text();
+        }
 
         if (response.ok) {
-            return { success: true, data, status: response.status };
+            return { success: true, data: responseData, status: response.status };
         } else {
             // Include error data from server 
-            return { success: false, error: data.message || 'Request failed', status: response.status, data};
+            return { success: false, error: responseData.message || 'Request failed', status: response.status, data: responseData};
         }
     } catch (error) {
-        console.error('Request failed:', { url, method, error: error?.message });
-        
+        console.error('Network request failed:', error);
+
         return { success: false, error: error?.message || 'Network error', isNetworkError: true };
     }
 };
