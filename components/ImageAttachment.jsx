@@ -94,7 +94,9 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
             if (folderId) formData.append('folderId', folderId);
 
             selectedFiles.forEach((file, index) => {
-                const cleanFileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+                const cleanFileName = file.name
+                    .replace(/[^a-zA-Z0-9.]/g, '_')  // Replace special chars with underscore
+                    .replace(/_+/g, '_');            // Replace multiple underscores with single one
 
                 formData.append('files', {
                     uri: file.source.uri,
