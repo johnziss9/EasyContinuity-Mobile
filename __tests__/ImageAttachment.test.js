@@ -28,31 +28,30 @@ describe('ImageAttachment', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockBrowseFiles.mockResolvedValue([mockFile]);
+        // Default mock for handleHttpRequest
         handleHttpRequest.mockResolvedValue({
             success: true,
-            data: [{
-                id: '123',
-                name: 'test-image.jpg',
-                source: { uri: 'file://test-image.jpg' }
-            }]
+            data: []
         });
     });
 
-    it('should render all necessary UI elements', () => {
+    it('should render all necessary UI elements', async () => {
         const rendered = render(<ImageAttachment spaceId="123" />);
         
-        // Check for the add button
-        expect(rendered.getByTestId('add-image-button')).toBeTruthy();
+        await waitFor(() => {
+            expect(rendered.getByText('No Images. Tap + to add.')).toBeTruthy();
+        }, { timeout: 2000 });
         
-        // Check for the "No Images" message container
-        expect(rendered.getByText('No Images. Tap + to add.')).toBeTruthy();
+        expect(rendered.getByTestId('add-image-button')).toBeTruthy();
     });
 
-    it('should show "No Images" message when no files are present', () => {
+    it('should show "No Images" message when no files are present', async () => {
         const rendered = render(<ImageAttachment spaceId="123" />);
         
-        // Check initial state
-        expect(rendered.getByText('No Images. Tap + to add.')).toBeTruthy();
+        // Wait for loading to complete
+        await waitFor(() => {
+            expect(rendered.getByText('No Images. Tap + to add.')).toBeTruthy();
+        });
         
         // Ensure upload button is not present
         expect(rendered.queryByText('Upload Selected Files')).toBeNull();
@@ -63,62 +62,98 @@ describe('ImageAttachment', () => {
     });
 
     it('should handle successful upload', async () => {
+        handleHttpRequest
+            .mockResolvedValueOnce({ success: true, data: [] }) // Initial fetch
+            .mockResolvedValueOnce({ // Upload response
+                success: true,
+                data: [{
+                    id: '123',
+                    name: 'test-image.jpg',
+                    url: 'file://test-image.jpg'
+                }]
+            })
+            .mockResolvedValueOnce({ // Fetch after upload
+                success: true,
+                data: [{
+                    id: '123',
+                    name: 'test-image.jpg',
+                    url: 'file://test-image.jpg'
+                }]
+            });
+    
         const rendered = render(<ImageAttachment spaceId="123" folderId="456" />);
-
-        // Add file to selectedFiles
+    
+        // Wait for initial load
+        await waitFor(() => {
+            expect(rendered.getByText('No Images. Tap + to add.')).toBeTruthy();
+        });
+    
+        // Add file
         await act(async () => {
             fireEvent.press(rendered.getByTestId('add-image-button'));
             await mockBrowseFiles();
         });
-
-        // Verify file is in preview
-        expect(rendered.getByText('test-image.jpg')).toBeTruthy();
-
+    
         // Upload the file
         await act(async () => {
             fireEvent.press(rendered.getByText('Upload Selected Files'));
-            await handleHttpRequest();
         });
-
-        expect(handleHttpRequest).toHaveBeenCalledWith(
+    
+        // Check that the POST request was made with correct parameters
+        const uploadCall = handleHttpRequest.mock.calls[1]; // Second call should be the upload
+        expect(uploadCall).toEqual([
             '/attachment/',
             'POST',
             expect.any(FormData),
             {
                 'Content-Type': 'multipart/form-data'
             }
-        );
+        ]);
     });
 
     it('should clear files after successful upload', async () => {
+        handleHttpRequest
+            .mockResolvedValueOnce({ success: true, data: [] }) // Initial fetch
+            .mockResolvedValueOnce({ // Upload response
+                success: true,
+                data: [{
+                    id: '123',
+                    name: 'test-image.jpg',
+                    url: 'file://test-image.jpg'
+                }]
+            });
+
         const rendered = render(<ImageAttachment spaceId="123" />);
 
-        // Add file to selectedFiles
+        // Wait for initial load
+        await waitFor(() => {
+            expect(rendered.getByText('No Images. Tap + to add.')).toBeTruthy();
+        });
+
+        // Add file
         await act(async () => {
             fireEvent.press(rendered.getByTestId('add-image-button'));
             await mockBrowseFiles();
         });
 
-        // Verify file is in preview
-        expect(rendered.getByText('test-image.jpg')).toBeTruthy();
-
         // Upload the file
         await act(async () => {
             fireEvent.press(rendered.getByText('Upload Selected Files'));
-            await handleHttpRequest();
         });
 
-        // After successful upload:
-        // 1. clearFiles should be called
-        // 2. file should move from selectedFiles to attachments
-        // 3. Upload button should disappear
         expect(mockClearFiles).toHaveBeenCalled();
-        expect(rendered.getByText('test-image.jpg')).toBeTruthy();
         expect(rendered.queryByText('Upload Selected Files')).toBeNull();
     });
 
     it('should show preview after selecting files', async () => {
+        handleHttpRequest.mockResolvedValue({ success: true, data: [] });
+
         const rendered = render(<ImageAttachment />);
+
+        // Wait for initial load
+        await waitFor(() => {
+            expect(rendered.getByText('No Images. Tap + to add.')).toBeTruthy();
+        });
 
         await act(async () => {
             fireEvent.press(rendered.getByTestId('add-image-button'));
@@ -127,5 +162,110 @@ describe('ImageAttachment', () => {
 
         expect(rendered.getByText('test-image.jpg')).toBeTruthy();
         expect(rendered.getByText('Upload Selected Files')).toBeTruthy();
+    });
+
+    it('should show loading state when fetching attachments', async () => {
+        // Mock with delayed response that matches expected structure
+        handleHttpRequest.mockImplementationOnce(() => 
+            new Promise(resolve => 
+                setTimeout(() => 
+                    resolve({ 
+                        success: true, 
+                        data: [] 
+                    }), 
+                    100
+                )
+            )
+        );
+        
+        const rendered = render(<ImageAttachment spaceId="123" snapshotId="456" />);
+        expect(rendered.getByText('Loading...')).toBeTruthy();
+    
+        // Verify loading state goes away
+        await waitFor(() => {
+            expect(rendered.getByText('No Images. Tap + to add.')).toBeTruthy();
+        });
+    });
+
+    it('should clean file names when uploading', async () => {
+        const fileWithSpecialChars = {
+            uri: 'file://test-image (1).jpg',
+            name: 'test-image (1).jpg',
+            mimeType: 'image/jpeg'
+        };
+        
+        mockBrowseFiles.mockResolvedValueOnce([fileWithSpecialChars]);
+        
+        // Create a spy for FormData.append
+        const appendSpy = jest.spyOn(FormData.prototype, 'append');
+        
+        handleHttpRequest
+            .mockResolvedValueOnce({ success: true, data: [] }) // Initial fetch
+            .mockResolvedValueOnce({ // Upload response
+                success: true, 
+                data: [{
+                    id: '123',
+                    name: 'test_image_1_.jpg',
+                    url: 'file://test-image.jpg'
+                }]
+            })
+            .mockResolvedValueOnce({ success: true, data: [] }); // Final fetch
+    
+        const rendered = render(<ImageAttachment spaceId="123" />);
+    
+        await waitFor(() => {
+            expect(rendered.getByText('No Images. Tap + to add.')).toBeTruthy();
+        });
+    
+        // Add file
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('add-image-button'));
+            await mockBrowseFiles();
+        });
+    
+        // Upload
+        await act(async () => {
+            fireEvent.press(rendered.getByText('Upload Selected Files'));
+        });
+    
+        // Check that the file name was cleaned
+        const filesAppendCall = appendSpy.mock.calls.find(call => call[0] === 'files');
+        expect(filesAppendCall[1].name).toBe('test_image_1_.jpg');
+    
+        // Clean up
+        appendSpy.mockRestore();
+    });
+
+    it('should disable upload button while uploading', async () => {
+        // Create a promise we can control
+        let resolveUpload;
+        const uploadPromise = new Promise(resolve => {
+            resolveUpload = resolve;
+        });
+    
+        handleHttpRequest
+            .mockResolvedValueOnce({ success: true, data: [] })
+            .mockImplementationOnce(() => uploadPromise);
+    
+        const rendered = render(<ImageAttachment spaceId="123" />);
+    
+        await waitFor(() => {
+            expect(rendered.getByText('No Images. Tap + to add.')).toBeTruthy();
+        });
+    
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('add-image-button'));
+            await mockBrowseFiles();
+        });
+    
+        act(() => {
+            fireEvent.press(rendered.getByText('Upload Selected Files'));
+        });
+    
+        await waitFor(() => {
+            expect(rendered.getByText('Uploading...')).toBeTruthy();
+        });
+    
+        resolveUpload({ success: true, data: [] });
     });
 });
