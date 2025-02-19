@@ -14,12 +14,20 @@ const handleHttpRequest = async (url, method, body, customHeaders = {}) => {
         
         const options = {
             method,
-            headers: customHeaders
+            headers: {
+                'Content-Type': 'application/json',
+                ...customHeaders
+            }
             // ...(token && { 'Authorization': `Bearer ${token}` })
         };
     
         if (method !== 'GET' && body) {
-            options.body = body;
+            options.body = body instanceof FormData ? body : JSON.stringify(body);
+
+            // Remove Content-Type for FormData
+            if (body instanceof FormData) {
+                delete options.headers['Content-Type'];
+            }
         }
 
         const response = await fetch(`${baseUrl}${url}`, options);
