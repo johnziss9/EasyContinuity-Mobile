@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Image, View, Text, TouchableOpacity, TextInput, FlatList, Pressable } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useFileBrowser from '../hooks/useFileBrowser';
@@ -11,16 +11,62 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
 
     const [attachments, setAttachments] = useState([]);
     const [selectedFiles, setSelectedFiles] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isUploading, setIsUploading] = useState(false);
+
+    useEffect(() => {
+        fetchAttachments();
+    }, [snapshotId]);
+
+    const fetchAttachments = async () => {
+        try {
+            setIsLoading(true);
+            const url = `/attachment/snapshot/${snapshotId}`;
+            const response = await handleHttpRequest(url, 'GET');
+
+            if (response.success && response.data) {
+
+                // Transform the response data to match our attachment structure
+                const transformedAttachments = response.data.map(attachment => ({
+                    id: attachment.id,
+                    name: attachment.name,
+                    source: { uri: attachment.url },
+                    isEdit: false,
+                    editName: '',
+                    isPreview: false,
+                    mimeType: attachment.mimeType,
+                    path: attachment.path,
+                    size: attachment.size,
+                    isStored: attachment.isStored,
+                    addedOn: attachment.addedOn
+                }));
+
+                setAttachments(transformedAttachments);
+            } else {
+                console.error('Failed to fetch attachments:', response.error);
+                // TODO: Show error toast to user
+            }
+        } catch (error) {
+            console.error('Error fetching attachments:', {
+                message: error.message,
+                stack: error.stack,
+                error: error.toString()
+            });
+            // TODO: Show error toast to user
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleAddAttachment = async () => {
         const result = await browseFiles();
-                
+
         // Files are directly in the array from browseFiles
         if (!result || !Array.isArray(result) || result.length === 0) {
             console.log("No files selected or invalid structure");
             return;
         }
-    
+
         // Create preview objects from the files array directly
         const previews = result.map(file => ({
             id: Math.random().toString(),
@@ -31,12 +77,14 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
             isPreview: true,
             mimeType: file.mimeType
         }));
-    
+
         setSelectedFiles(previews);
     };
 
     const handleUpload = async () => {
-        if (selectedFiles.length === 0) return;
+        if (selectedFiles.length === 0 || isUploading) return;
+
+        setIsUploading(true);
 
         try {
             const formData = new FormData();
@@ -46,18 +94,22 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
             if (folderId) formData.append('folderId', folderId);
 
             selectedFiles.forEach((file, index) => {
+                const cleanFileName = file.name
+                    .replace(/[^a-zA-Z0-9.]/g, '_')  // Replace special chars with underscore
+                    .replace(/_+/g, '_');            // Replace multiple underscores with single one
+
                 formData.append('files', {
                     uri: file.source.uri,
                     type: file.mimeType,
-                    name: file.name
+                    name: cleanFileName
                 });
             });
 
             const url = '/attachment/';
             const method = 'POST';
             const response = await handleHttpRequest(
-                url, 
-                method, 
+                url,
+                method,
                 formData,
                 {
                     'Content-Type': 'multipart/form-data',
@@ -65,16 +117,19 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
             );
 
             if (response.success) {
-                setAttachments(prev => [...prev, ...response.data]);
                 setSelectedFiles([]);
                 clearFiles();
+
+                await fetchAttachments();
             } else {
                 console.error('Upload failed:', response.error);
                 // TODO: Show error toast to user
             }
         } catch (error) {
-            console.error('Upload error:', {message: error.message, stack: error.stack, error: error.toString()});
+            console.error('Upload error:', { message: error.message, stack: error.stack, error: error.toString() });
             // TODO: Show error toast to user
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -118,7 +173,7 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                     <>
                         <Text style={styles.text}>{item.name}</Text>
                         {item.isPreview && <Text style={styles.previewText}>Preview</Text>}
-                    </>                    
+                    </>
                 ) : (
                     <TextInput
                         style={styles.textbox}
@@ -151,11 +206,23 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                 data={[...selectedFiles, ...attachments]}
                 renderItem={renderItem}
                 keyExtractor={(item) => item.id}
-                ListEmptyComponent={<Text style={styles.noImagesText}>No Images. Tap + to add.</Text>}
+                ListEmptyComponent={
+                    isLoading ? (
+                        <Text style={styles.noImagesText}>Loading...</Text>
+                    ) : (
+                        <Text style={styles.noImagesText}>No Images. Tap + to add.</Text>
+                    )
+                }
             />
             {selectedFiles.length > 0 && (
-                <TouchableOpacity style={styles.uploadButton} onPress={handleUpload}>
-                    <Text style={styles.uploadButtonText}>Upload Selected Files</Text>
+                <TouchableOpacity
+                    style={[styles.uploadButton, isUploading && styles.uploadButtonDisabled]}
+                    onPress={handleUpload}
+                    disabled={isUploading}
+                >
+                    <Text style={styles.uploadButtonText}>
+                        {isUploading ? 'Uploading...' : 'Upload Selected Files'}
+                    </Text>
                 </TouchableOpacity>
             )}
             <Pressable style={styles.addNewButton} testID='add-image-button' onPress={handleAddAttachment}>
@@ -240,6 +307,9 @@ const styles = StyleSheet.create({
         marginVertical: 10,
         alignItems: 'center',
         zIndex: 1
+    },
+    uploadButtonDisabled: {
+        opacity: 0.7
     },
     uploadButtonText: {
         color: '#CDA7AF',
