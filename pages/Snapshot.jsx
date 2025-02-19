@@ -78,7 +78,7 @@ const Snapshot = ({ testImages = null }) => {
     };
 
     const handleEditImagesPress = () => {
-        navigation.navigate('SnapshotImagesManage', { isNewSnapshot: false });
+        navigation.navigate('SnapshotImagesManage', { spaceId, folderId, snapshotId });
     };
 
     const handleEditGeneralPress = () => {

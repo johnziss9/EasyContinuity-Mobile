@@ -165,18 +165,35 @@ describe('Snapshot', () => {
 
     it('should navigate to SnapshotImagesManage when edit images is pressed', () => {
         const mockNavigate = jest.fn();
-
-        jest.spyOn(require('@react-navigation/native'), 'useNavigation').mockReturnValue({ navigate: mockNavigate });
-
+    
+        // Mock route params
+        jest.spyOn(require('@react-navigation/native'), 'useRoute').mockReturnValue({
+            params: {
+                spaceId: 1,
+                spaceName: 'Test Space',
+                folderId: 1,
+                folderName: 'Test Folder',
+                snapshotId: 1,
+                snapshotName: 'Test Snapshot'
+            }
+        });
+    
+        jest.spyOn(require('@react-navigation/native'), 'useNavigation')
+            .mockReturnValue({ navigate: mockNavigate });
+    
         const { getByTestId } = render(
             <NavigationContainer>
                 <Snapshot />
             </NavigationContainer>
         );
-
+    
         fireEvent.press(getByTestId('edit-images-button'));
-
-        expect(mockNavigate).toHaveBeenCalledWith('SnapshotImagesManage', { isNewSnapshot: false });
+    
+        expect(mockNavigate).toHaveBeenCalledWith('SnapshotImagesManage', {
+            spaceId: 1,
+            folderId: 1,
+            snapshotId: 1
+        });
     });
 
     it('should navigate to correct screens when edit buttons are pressed', () => {
