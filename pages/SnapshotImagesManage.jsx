@@ -1,15 +1,18 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import ImageAttachment from '../components/ImageAttachment';
+import { useRoute } from '@react-navigation/native';
 
 const SnapshotImagesManage = () => {
+    const route = useRoute();
+    const { spaceId, folderId, snapshotId } = route.params;
 
     return (
         <View style={styles.container} testID="safe-area-view">
                 <View style={styles.headerContainer} testID="header-container">
                     <Text testID="header-text" style={styles.header}>Manage Images</Text>
                 </View>
-                <ImageAttachment />
+                <ImageAttachment spaceId={spaceId} folderId={folderId} snapshotId={snapshotId} />
         </View>
     );
 }
