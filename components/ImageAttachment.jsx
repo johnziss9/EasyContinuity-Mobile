@@ -224,6 +224,7 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                     <TouchableOpacity 
                         style={styles.modalCloseButton} 
                         onPress={() => setShowImageModal(false)}
+                        testID="modal-close-button"
                     >
                         <Ionicons name="close" size={30} color="#FFF" />
                     </TouchableOpacity>
@@ -232,6 +233,7 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                             source={selectedImage.source}
                             style={styles.modalViewImage}
                             resizeMode="contain"
+                            testID="modal-image"
                         />
                     )}
                 </View>
