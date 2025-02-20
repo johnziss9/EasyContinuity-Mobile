@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Image, View, Text, TouchableOpacity, TextInput, FlatList, Pressable } from 'react-native';
+import { StyleSheet, Image, View, Text, TouchableOpacity, TextInput, FlatList, Pressable, Modal } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useFileBrowser from '../hooks/useFileBrowser';
 import handleHttpRequest from '../api/api';
@@ -13,6 +13,8 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
+    const [showImageModal, setShowImageModal] = useState(false);
+    const [selectedImage, setSelectedImage] = useState(null);
 
     useEffect(() => {
         fetchAttachments();
@@ -133,6 +135,11 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
         }
     };
 
+    const handleViewImage = (image) => {
+        setSelectedImage(image);
+        setShowImageModal(true);
+    };
+
     const handleEditImageName = (id) => {
         setAttachments(prevAttachments =>
             prevAttachments.map(att =>
@@ -186,6 +193,9 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
             </View>
             {!item.isEdit ?
                 <>
+                    <TouchableOpacity style={styles.viewButton} onPress={() => handleViewImage(item)} testID="view-image-button">
+                        <Ionicons name="eye-outline" size={30} color="#CDA7AF" />
+                    </TouchableOpacity>
                     <TouchableOpacity style={styles.editButton} onPress={() => handleEditImageName(item.id)} testID="edit-image-button">
                         <Ionicons name="create-outline" size={30} color="#CDA7AF" />
                     </TouchableOpacity>
@@ -202,6 +212,31 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
 
     return (
         <View style={styles.container}>
+            {/* Image View Modal */}
+            <Modal
+                transparent={true}
+                animationType="fade"
+                visible={showImageModal}
+                onRequestClose={() => setShowImageModal(false)}
+                testID="image-modal"
+            >
+                <View style={styles.modalContainer}>
+                    <TouchableOpacity 
+                        style={styles.modalCloseButton} 
+                        onPress={() => setShowImageModal(false)}
+                    >
+                        <Ionicons name="close" size={30} color="#FFF" />
+                    </TouchableOpacity>
+                    {selectedImage && (
+                        <Image
+                            source={selectedImage.source}
+                            style={styles.modalViewImage}
+                            resizeMode="contain"
+                        />
+                    )}
+                </View>
+            </Modal>
+
             <FlatList
                 data={[...selectedFiles, ...attachments]}
                 renderItem={renderItem}
@@ -280,6 +315,11 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(205, 167, 175, 1)',
         color: '#3F4F5F'
     },
+    viewButton: {
+        position: 'absolute',
+        bottom: 18,
+        right: 120
+    },
     editButton: {
         position: 'absolute',
         bottom: 20,
@@ -315,6 +355,22 @@ const styles = StyleSheet.create({
         color: '#CDA7AF',
         fontSize: 16,
         fontWeight: 'bold'
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    },
+    modalViewImage: {
+        width: '95%',
+        height: '95%',
+    },
+    modalCloseButton: {
+        position: 'absolute',
+        top: 40,
+        right: 20,
+        zIndex: 1,
     }
 });
 
