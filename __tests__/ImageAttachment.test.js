@@ -269,3 +269,87 @@ describe('ImageAttachment', () => {
         resolveUpload({ success: true, data: [] });
     });
 });
+
+// Add these tests to the existing ImageAttachment.test.js file
+
+describe('Image View Modal', () => {
+    const mockAttachment = {
+        id: '123',
+        name: 'test-image.jpg',
+        source: { uri: 'file://test-image.jpg' },
+        url: 'file://test-image.jpg',
+        isEdit: false,
+        editName: '',
+        isPreview: false,
+        mimeType: 'image/jpeg'
+    };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        handleHttpRequest.mockResolvedValue({
+            success: true,
+            data: [mockAttachment]
+        });
+    });
+
+    it('should open modal when view button is pressed', async () => {
+        const rendered = render(<ImageAttachment spaceId="123" />);
+
+        // Wait for the attachment to load
+        await waitFor(() => {
+            expect(rendered.getByTestId('view-image-button')).toBeTruthy();
+        });
+
+        fireEvent.press(rendered.getByTestId('view-image-button'));
+
+        const modal = rendered.getByTestId('image-modal');
+        expect(modal.props.visible).toBe(true);
+
+        const modalImage = rendered.getByTestId('modal-image');
+        expect(modalImage.props.source).toEqual({ uri: 'file://test-image.jpg' });
+    });
+
+    it('should close modal when close button is pressed', async () => {
+        const rendered = render(<ImageAttachment spaceId="123" />);
+        
+        // Wait for the attachment to load
+        await waitFor(() => {
+            expect(rendered.getByTestId('view-image-button')).toBeTruthy();
+        });
+        
+        fireEvent.press(rendered.getByTestId('view-image-button'));
+        
+        const modalImage = rendered.getByTestId('modal-image');
+        expect(modalImage).toBeTruthy();
+        expect(modalImage.props.source).toEqual({ uri: 'file://test-image.jpg' });
+        
+        fireEvent.press(rendered.getByTestId('modal-close-button'));
+        
+        await waitFor(() => {
+            expect(rendered.queryByTestId('modal-image')).toBeNull();
+        });
+    });
+
+    it('should close modal when clicking outside (Android back button)', async () => {
+        const rendered = render(<ImageAttachment spaceId="123" />);
+        
+        // Wait for the attachment to load
+        await waitFor(() => {
+            expect(rendered.getByTestId('view-image-button')).toBeTruthy();
+        });
+        
+        fireEvent.press(rendered.getByTestId('view-image-button'));
+        
+        const modalImage = rendered.getByTestId('modal-image');
+        expect(modalImage).toBeTruthy();
+        
+        // Simulate Android back button
+        act(() => {
+            rendered.getByTestId('image-modal').props.onRequestClose();
+        });
+        
+        await waitFor(() => {
+            expect(rendered.queryByTestId('modal-image')).toBeNull();
+        });
+    });
+});
