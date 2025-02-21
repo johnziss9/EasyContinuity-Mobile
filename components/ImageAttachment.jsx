@@ -3,8 +3,13 @@ import { StyleSheet, Image, View, Text, TouchableOpacity, TextInput, FlatList, P
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useFileBrowser from '../hooks/useFileBrowser';
 import handleHttpRequest from '../api/api';
+import { useRoute } from '@react-navigation/native';
+
 
 const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
+    const route = useRoute();
+    const { shouldOpenFileBrowser } = route.params || {};
+
     const { browseFiles, clearFiles } = useFileBrowser({
         fileTypes: ['image/jpeg', 'image/jpg', 'image/png']
     });
@@ -19,6 +24,12 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
     useEffect(() => {
         fetchAttachments();
     }, [snapshotId]);
+
+    useEffect(() => {
+        if (shouldOpenFileBrowser) {
+            handleAddAttachment();
+        }
+    }, []); 
 
     const fetchAttachments = async () => {
         try {

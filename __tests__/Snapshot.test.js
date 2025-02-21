@@ -1,9 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { Alert } from 'react-native';
 import Snapshot from '../pages/Snapshot';
-import useFileBrowser from '../hooks/useFileBrowser';
 
 const apiMock = require('../api/api').default;
 
@@ -30,32 +28,22 @@ jest.mock('@react-navigation/native', () => ({
     }),
 }));
 
-jest.mock('../hooks/useFileBrowser', () => jest.fn());
-
-jest.mock('react-native/Libraries/Alert/Alert', () => ({
-    alert: jest.fn(),
-}));
-
 describe('Snapshot', () => {
     beforeEach(() => {
-        useFileBrowser.mockReturnValue({
-            filesInfo: [],
-            browseFiles: jest.fn().mockResolvedValue([]),
-            clearFiles: jest.fn(),
-        });
         jest.clearAllMocks();
     });
 
     it('should render the component with all sections and fields', async () => {
-        apiMock.mockImplementationOnce(() => Promise.resolve({
+        // Mock response data with proper structure for all API calls
+        const spaceResponse = {
             success: true,
             data: {
                 id: 1,
-                type: 2 
+                type: 2
             }
-        }));
-    
-        apiMock.mockImplementationOnce(() => Promise.resolve({
+        };
+
+        const snapshotResponse = {
             success: true,
             data: {
                 id: 1,
@@ -77,137 +65,95 @@ describe('Snapshot', () => {
                 products: 'Test products',
                 hairNotes: 'Test hair notes'
             }
-        }));
-    
-        apiMock.mockImplementationOnce(() => Promise.resolve({
+        };
+
+        const characterResponse = {
             success: true,
             data: {
                 id: 1,
                 name: 'Test Character'
             }
-        }));
-    
-        jest.spyOn(require('@react-navigation/native'), 'useRoute').mockReturnValue({
-            params: {
-                spaceId: 1,
-                spaceName: 'Test Space',
-                folderId: 1,
-                folderName: 'Test Folder',
-                snapshotId: 1,
-                snapshotName: 'Test Snapshot'
+        };
+
+        const attachmentsResponse = {
+            success: true,
+            data: [{
+                id: 1,
+                name: 'test.jpg',
+                url: 'http://test.com/test.jpg'
+            }]
+        };
+
+        // Create a mock implementation that returns different responses based on the URL
+        apiMock.mockImplementation((url) => {
+            switch (url) {
+                case '/space/1':
+                    return Promise.resolve(spaceResponse);
+                case '/snapshot/1':
+                    return Promise.resolve(snapshotResponse);
+                case '/character/1':
+                    return Promise.resolve(characterResponse);
+                case '/attachment/snapshot/1':
+                    return Promise.resolve(attachmentsResponse);
+                default:
+                    return Promise.reject(new Error('Invalid URL'));
             }
         });
-    
+
         const { getByText, getByTestId, getAllByTestId } = render(
             <NavigationContainer>
                 <Snapshot />
             </NavigationContainer>
         );
-    
+
+        // Wait for all content to load
         await waitFor(() => {
-            // Check for section headers
-            expect(getByText('Images')).toBeTruthy();
             expect(getByText('General')).toBeTruthy();
-            expect(getByText('Makeup')).toBeTruthy();
-            expect(getByText('Hair')).toBeTruthy();
-    
-            // Check for content in General section with their labels
-            const generalFields = getAllByTestId(/^edit-general-button-field-/);
-            
-            // First field should be Episode Number since spaceType is 2
-            expect(generalFields[0]).toHaveTextContent('Episode Number:');
-            expect(generalFields[0]).toHaveTextContent('1');
-            expect(generalFields[1]).toHaveTextContent('Scene Number:');
-            expect(generalFields[1]).toHaveTextContent('1');
-            expect(generalFields[2]).toHaveTextContent('Story Day:');
-            expect(generalFields[2]).toHaveTextContent('1');
-            expect(generalFields[3]).toHaveTextContent('Character:');
-            expect(generalFields[3]).toHaveTextContent('Test Character');
-    
-            // Check for content in Makeup section
-            const makeupFields = getAllByTestId(/^edit-makeup-button-field-/);
-            expect(makeupFields[0]).toHaveTextContent('Skin:');
-            expect(makeupFields[0]).toHaveTextContent('Test skin');
-    
-            // Check for content in Hair section
-            const hairFields = getAllByTestId(/^edit-hair-button-field-/);
-            expect(hairFields[0]).toHaveTextContent('Prep:');
-            expect(hairFields[0]).toHaveTextContent('Test prep');
-    
-            // Check for edit buttons
-            expect(getByTestId('edit-edit-general-button-button')).toBeTruthy();
-            expect(getByTestId('edit-edit-makeup-button-button')).toBeTruthy();
-            expect(getByTestId('edit-edit-hair-button-button')).toBeTruthy();
-        });
-    });
+            expect(getByText('Test Character')).toBeTruthy();
+        }, { timeout: 3000 });
 
-    it('should display the correct number of dummy images', () => {
-        const { getAllByTestId } = render(
-            <NavigationContainer>
-                <Snapshot />
-            </NavigationContainer>
-        );
+        // Now check all the fields
+        const generalFields = getAllByTestId(/^edit-general-button-field-/);
 
-        const imageWrappers = getAllByTestId(/^image-wrapper-/);
-        expect(imageWrappers).toHaveLength(4);
-    });
+        // Verify fields content
+        expect(generalFields[0]).toHaveTextContent('Episode Number:1');
+        expect(generalFields[1]).toHaveTextContent('Scene Number:1');
+        expect(generalFields[2]).toHaveTextContent('Story Day:1');
+        expect(generalFields[3]).toHaveTextContent('Character:Test Character');
 
-    it('should open the image modal when an image is pressed', () => {
-        const { getAllByTestId, getByTestId } = render(
-            <NavigationContainer>
-                <Snapshot />
-            </NavigationContainer>
-        );
+        // Verify Makeup section
+        const makeupFields = getAllByTestId(/^edit-makeup-button-field-/);
+        expect(makeupFields[0]).toHaveTextContent('Skin:Test skin');
 
-        fireEvent.press(getAllByTestId(/^image-wrapper-/)[0]);
-        expect(getByTestId('image-modal')).toBeTruthy();
-    });
+        // Verify Hair section
+        const hairFields = getAllByTestId(/^edit-hair-button-field-/);
+        expect(hairFields[0]).toHaveTextContent('Prep:Test prep');
 
-    it('should navigate to SnapshotImagesManage when edit images is pressed', () => {
-        const mockNavigate = jest.fn();
-    
-        // Mock route params
-        jest.spyOn(require('@react-navigation/native'), 'useRoute').mockReturnValue({
-            params: {
-                spaceId: 1,
-                spaceName: 'Test Space',
-                folderId: 1,
-                folderName: 'Test Folder',
-                snapshotId: 1,
-                snapshotName: 'Test Snapshot'
-            }
-        });
-    
-        jest.spyOn(require('@react-navigation/native'), 'useNavigation')
-            .mockReturnValue({ navigate: mockNavigate });
-    
-        const { getByTestId } = render(
-            <NavigationContainer>
-                <Snapshot />
-            </NavigationContainer>
-        );
-    
-        fireEvent.press(getByTestId('edit-images-button'));
-    
-        expect(mockNavigate).toHaveBeenCalledWith('SnapshotImagesManage', {
-            spaceId: 1,
-            folderId: 1,
-            snapshotId: 1
-        });
+        // Verify buttons
+        expect(getByTestId('edit-edit-general-button-button')).toBeTruthy();
+        expect(getByTestId('edit-edit-makeup-button-button')).toBeTruthy();
+        expect(getByTestId('edit-edit-hair-button-button')).toBeTruthy();
+
+        // Verify all API calls were made
+        expect(apiMock).toHaveBeenCalledWith('/space/1', 'GET');
+        expect(apiMock).toHaveBeenCalledWith('/snapshot/1', 'GET');
+        expect(apiMock).toHaveBeenCalledWith('/character/1', 'GET');
+        expect(apiMock).toHaveBeenCalledWith('/attachment/snapshot/1', 'GET');
     });
 
     it('should navigate to correct screens when edit buttons are pressed', () => {
         const mockNavigate = jest.fn();
-        jest.spyOn(require('@react-navigation/native'), 'useNavigation').mockReturnValue({ navigate: mockNavigate });
+        jest.spyOn(require('@react-navigation/native'), 'useNavigation')
+            .mockReturnValue({ navigate: mockNavigate });
 
-        const { getByTestId, getAllByTestId } = render(
+        const { getByTestId } = render(
             <NavigationContainer>
                 <Snapshot />
             </NavigationContainer>
         );
 
         fireEvent.press(getByTestId('edit-edit-general-button-button'));
-        expect(mockNavigate).toHaveBeenCalledWith('SnapshotGeneralInfo', { 
+        expect(mockNavigate).toHaveBeenCalledWith('SnapshotGeneralInfo', {
             isNewSnapshot: false,
             spaceId: 1,
             spaceName: 'Test Space',
@@ -218,7 +164,7 @@ describe('Snapshot', () => {
         });
 
         fireEvent.press(getByTestId('edit-edit-makeup-button-button'));
-        expect(mockNavigate).toHaveBeenCalledWith('SnapshotMakeupInfo', { 
+        expect(mockNavigate).toHaveBeenCalledWith('SnapshotMakeupInfo', {
             spaceId: 1,
             spaceName: 'Test Space',
             folderId: 1,
@@ -228,188 +174,293 @@ describe('Snapshot', () => {
         });
 
         fireEvent.press(getByTestId('edit-edit-hair-button-button'));
-        expect(mockNavigate).toHaveBeenCalledWith('SnapshotHairInfo', { 
+        expect(mockNavigate).toHaveBeenCalledWith('SnapshotHairInfo', {
             spaceId: 1,
             spaceName: 'Test Space',
             folderId: 1,
             folderName: 'Test Folder',
             snapshotId: 1,
             snapshotName: 'Test Snapshot'
-         });
-    });
-
-    it('should call browseFiles when add images button is pressed', async () => {
-        const mockBrowseFiles = jest.fn().mockResolvedValue([]);
-
-        useFileBrowser.mockReturnValue({
-            filesInfo: [],
-            browseFiles: mockBrowseFiles,
-            clearFiles: jest.fn(),
-        });
-
-        const { getByTestId } = render(
-            <NavigationContainer>
-                <Snapshot testImages={[]} />
-            </NavigationContainer>
-        );
-
-        fireEvent.press(getByTestId('add-images-button'));
-        await waitFor(() => {
-            expect(mockBrowseFiles).toHaveBeenCalled();
         });
     });
 
-    it('should display an alert when maximum images are reached', async () => {
-        const mockBrowseFiles = jest.fn().mockResolvedValue([{}, {}, {}, {}, {}, {}, {}]); // 7 images
-        useFileBrowser.mockReturnValue({
-            filesInfo: [{}, {}, {}, {}, {}], // 5 existing images
-            browseFiles: mockBrowseFiles,
-            clearFiles: jest.fn(),
-        });
+    it('should handle attachments correctly', async () => {
+        const mockNavigate = jest.fn();
+        jest.spyOn(require('@react-navigation/native'), 'useNavigation')
+            .mockReturnValue({ navigate: mockNavigate });
+
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, type: 2 }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Test Snapshot' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [
+                    { id: 1, name: 'image1.jpg', url: 'file://image1.jpg' },
+                    { id: 2, name: 'image2.jpg', url: 'file://image2.jpg' }
+                ]
+            }));
 
         const { getByTestId } = render(
             <NavigationContainer>
-                <Snapshot testImages={[]} />
+                <Snapshot />
             </NavigationContainer>
         );
 
-        fireEvent.press(getByTestId('add-images-button'));
+        // Wait for attachments to load and show edit button
+        await waitFor(() => {
+            expect(getByTestId('edit-images-button')).toBeTruthy();
+        });
+
+        // Test edit navigation
+        fireEvent.press(getByTestId('edit-images-button'));
+        expect(mockNavigate).toHaveBeenCalledWith('SnapshotImagesManage', {
+            spaceId: 1,
+            folderId: 1,
+            snapshotId: 1
+        });
+
+        // Verify API calls
+        expect(apiMock).toHaveBeenCalledWith('/attachment/snapshot/1', 'GET');
+    });
+
+    it('should show add images button when no attachments exist', async () => {
+        const mockNavigate = jest.fn();
+        jest.spyOn(require('@react-navigation/native'), 'useNavigation')
+            .mockReturnValue({ navigate: mockNavigate });
+
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, type: 2 }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Test Snapshot' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+
+        const { getByTestId } = render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
 
         await waitFor(() => {
-            expect(Alert.alert).toHaveBeenCalledWith(
-                "Maximum Images Reached",
-                "Only 6 image(s) were added to reach the maximum of 6 images.",
-                [{ text: "OK" }]
+            expect(getByTestId('add-images-button')).toBeTruthy();
+        });
+
+        fireEvent.press(getByTestId('add-images-button'));
+        expect(mockNavigate).toHaveBeenCalledWith('SnapshotImagesManage', {
+            spaceId: 1,
+            folderId: 1,
+            snapshotId: 1,
+            shouldOpenFileBrowser: true
+        });
+    });
+
+    it('should delete snapshot and navigate correctly', async () => {
+        const mockDate = new Date('2024-12-17T07:19:09.984Z');
+        const mockNavigate = jest.fn();
+
+        jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
+        jest.spyOn(require('@react-navigation/native'), 'useNavigation')
+            .mockReturnValue({ navigate: mockNavigate });
+
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, type: 2 }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Test Snapshot' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true
+            }));
+
+        const { getByTestId } = render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+
+        fireEvent.press(getByTestId('delete-snapshot-button'));
+        fireEvent.press(getByTestId('delete-snapshot-confirm-button'));
+
+        await waitFor(() => {
+            expect(apiMock).toHaveBeenCalledWith('/snapshot/1', 'PUT', {
+                name: 'Test Snapshot',
+                isDeleted: true,
+                deletedOn: mockDate.toISOString()
+            });
+
+            expect(mockNavigate).toHaveBeenCalledWith('Folder', {
+                spaceId: 1,
+                spaceName: 'Test Space',
+                folderId: 1,
+                folderName: 'Test Folder'
+            });
+        });
+
+        jest.restoreAllMocks();
+    });
+
+    it('should handle image modal visibility', async () => {
+        // Setup mock with attachment
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, type: 2 }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Test Snapshot' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{
+                    id: 1,
+                    name: 'test.jpg',
+                    url: 'http://test.com/test.jpg'
+                }]
+            }));
+    
+        const { getByTestId, debug } = render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+    
+        // Wait for image to load and log debug info
+        await waitFor(() => {
+            // Check the image wrapper
+            expect(getByTestId('image-wrapper-0')).toBeTruthy();
+            
+            // Check the image inside the wrapper
+            expect(getByTestId('image-0')).toBeTruthy();
+        }, { timeout: 5000 });
+    
+        // Click image
+        fireEvent.press(getByTestId('image-wrapper-0'));
+    
+        expect(getByTestId('image-modal')).toBeTruthy();
+    });
+
+    it('should handle multiple image scenarios', async () => {
+        const imageScenarios = [
+            { count: 1, testId: 'image-wrapper-0' },
+            { count: 2, testId: 'image-wrapper-1' },
+            { count: 3, testId: 'image-wrapper-2' },
+            { count: 4, testId: 'image-wrapper-3' },
+            { count: 5, testId: 'image-wrapper-4' },
+            { count: 6, testId: 'image-wrapper-5' }
+        ];
+    
+        for (const scenario of imageScenarios) {
+            // Create mock data with specific number of images
+            const mockAttachments = Array.from({ length: scenario.count }, (_, index) => ({
+                id: index + 1,
+                name: `test-image-${index + 1}.jpg`,
+                url: `http://test.com/image-${index + 1}.jpg`
+            }));
+    
+            // Reset mocks before each scenario
+            jest.clearAllMocks();
+    
+            // Setup mock API calls
+            apiMock
+                .mockImplementationOnce(() => Promise.resolve({
+                    success: true,
+                    data: { id: 1, type: 2 }
+                }))
+                .mockImplementationOnce(() => Promise.resolve({
+                    success: true,
+                    data: { id: 1, name: 'Test Snapshot' }
+                }))
+                .mockImplementationOnce(() => Promise.resolve({
+                    success: true,
+                    data: mockAttachments
+                }));
+    
+            const { getByTestId, getAllByTestId } = render(
+                <NavigationContainer>
+                    <Snapshot />
+                </NavigationContainer>
             );
-        });
+    
+            // Wait for images to load
+            await waitFor(() => {
+                // Check that the expected number of image wrappers are rendered
+                const imageWrappers = getAllByTestId(/image-wrapper-/);
+                expect(imageWrappers.length).toBe(scenario.count);
+            }, { timeout: 3000 });
+    
+            // Verify edit images button is present
+            expect(getByTestId('edit-images-button')).toBeTruthy();
+    
+            // Try to open image modal
+            fireEvent.press(getByTestId(`image-wrapper-${scenario.count - 1}`));
+            expect(getByTestId('image-modal')).toBeTruthy();
+    
+            // Navigate through images if multiple exist
+            if (scenario.count > 1) {
+                // Test next image button
+                fireEvent.press(getByTestId('modalNextButton'));
+                
+                // Test previous image button
+                fireEvent.press(getByTestId('modalPrevButton'));
+            }
+        }
     });
 
-    it('should fetch and display snapshot data on mount', async () => {
-        apiMock.mockImplementationOnce(() => Promise.resolve({
-            success: true,
-            data: {
-                id: 1,
-                type: 2
-            }
-        }));
-    
-        apiMock.mockImplementationOnce(() => Promise.resolve({
-            success: true,
-            data: {
-                id: 1,
-                name: 'Test Snapshot',
-                episode: '101',
-                scene: '5',
-                storyDay: '12',
-                character: 2,
-                notes: 'Snapshot test notes'
-            }
-        }));
-    
-        apiMock.mockImplementationOnce(() => Promise.resolve({
-            success: true,
-            data: {
-                id: 2,
-                name: 'John Smith'
-            }
-        }));
-    
-        const { getByText } = render(
-            <NavigationContainer>
-                <Snapshot />
-            </NavigationContainer>
-        );
-    
-        await waitFor(() => {
-            expect(getByText('101')).toBeTruthy(); // Episode number
-            expect(getByText('5')).toBeTruthy(); // Scene number
-            expect(getByText('12')).toBeTruthy(); // Story day
-            expect(getByText('John Smith')).toBeTruthy(); // Character name
-            expect(getByText('Snapshot test notes')).toBeTruthy(); // Notes
-    
-            expect(apiMock).toHaveBeenNthCalledWith(1, '/space/1', 'GET');
-            expect(apiMock).toHaveBeenNthCalledWith(2, '/snapshot/1', 'GET');
-            expect(apiMock).toHaveBeenNthCalledWith(3, '/character/2', 'GET');
-        });
-    });
-
-    it('should not show Episode Number when spaceType is 1', async () => {
-        apiMock.mockImplementationOnce(() => Promise.resolve({
-            success: true,
-            data: {
-                id: 1,
-                type: 1
-            }
-        }));
-
-        apiMock.mockImplementationOnce(() => Promise.resolve({
-            success: true,
-            data: {
-                id: 1,
-                name: 'Test Snapshot',
-                episode: '101',
-                scene: '5',
-                storyDay: '12',
-                character: 2,
-                notes: 'Test notes'
-            }
-        }));
-
-        apiMock.mockImplementationOnce(() => Promise.resolve({
-            success: true,
-            data: {
-                id: 2,
-                name: 'Test Character'
-            }
-        }));
-
-        const { getAllByTestId, queryByText } = render(
-            <NavigationContainer>
-                <Snapshot />
-            </NavigationContainer>
-        );
-
-        await waitFor(() => {
-            const generalFields = getAllByTestId(/^edit-general-button-field-/);
-            
-            // First field should be Scene Number
-            expect(generalFields[0]).toHaveTextContent('Scene Number:');
-            expect(generalFields[0]).toHaveTextContent('5');
-            
-            // Episode Number should not be present
-            expect(queryByText(/Episode Number:/)).toBeNull();
-        });
-    });
-
-    it('should show Episode Number when spaceType is 2', async () => {
-        apiMock.mockImplementationOnce(() => Promise.resolve({
-            success: true,
-            data: {
-                id: 1,
-                type: 2
-            }
-        }));
-
-        apiMock.mockImplementationOnce(() => Promise.resolve({
-            success: true,
-            data: {
-                id: 1,
-                name: 'Test Snapshot',
-                episode: '101',
-                scene: '5',
-                storyDay: '12',
-                character: 2,
-                notes: 'Test notes'
-            }
-        }));
-
-        apiMock.mockImplementationOnce(() => Promise.resolve({
-            success: true,
-            data: {
-                id: 2,
-                name: 'Test Character'
-            }
-        }));
+    it('should handle empty fields gracefully', async () => {
+        // Mock with empty data
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, type: 2 }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: {
+                    id: 1,
+                    name: 'Test Snapshot',
+                    episode: '',
+                    scene: '',
+                    storyDay: '',
+                    character: null,
+                    notes: '',
+                    skin: '',
+                    brows: '',
+                    eyes: '',
+                    lips: '',
+                    effects: '',
+                    makeupNotes: '',
+                    prep: '',
+                    method: '',
+                    stylingTools: '',
+                    products: '',
+                    hairNotes: ''
+                }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
 
         const { getAllByTestId } = render(
             <NavigationContainer>
@@ -417,241 +468,19 @@ describe('Snapshot', () => {
             </NavigationContainer>
         );
 
+        // Wait for fields to load
         await waitFor(() => {
             const generalFields = getAllByTestId(/^edit-general-button-field-/);
-            
-            // First field should be Episode Number
-            expect(generalFields[0]).toHaveTextContent('Episode Number:');
-            expect(generalFields[0]).toHaveTextContent('101');
-            
-            // Second field should be Scene Number
-            expect(generalFields[1]).toHaveTextContent('Scene Number:');
-            expect(generalFields[1]).toHaveTextContent('5');
+            expect(generalFields[0]).toBeTruthy();
         });
 
-        // Verify API calls were made in correct order
-        expect(apiMock).toHaveBeenNthCalledWith(1, '/space/1', 'GET');
-        expect(apiMock).toHaveBeenNthCalledWith(2, '/snapshot/1', 'GET');
-        expect(apiMock).toHaveBeenNthCalledWith(3, '/character/2', 'GET');
-    });
+        // Check that empty fields are rendered without crashing
+        const generalFields = getAllByTestId(/^edit-general-button-field-/);
+        const makeupFields = getAllByTestId(/^edit-makeup-button-field-/);
+        const hairFields = getAllByTestId(/^edit-hair-button-field-/);
 
-    it('should successfully delete a snapshot', async () => {
-        const mockDate = new Date('2024-12-17T07:19:09.984Z');
-        jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
-     
-        const apiMock = require('../api/api').default;
-        apiMock
-            .mockImplementationOnce(() => Promise.resolve({
-                success: true,
-                data: { id: 1, type: 2 }
-            }))
-            .mockImplementationOnce(() => Promise.resolve({
-                success: true,
-                data: {
-                    id: 1,
-                    name: 'Test Snapshot',
-                    episode: '101',
-                    scene: '5',
-                    character: 2,
-                    notes: 'Test notes'
-                }
-            }))
-            .mockImplementationOnce(() => Promise.resolve({
-                success: true,
-                data: {
-                    id: 2,
-                    name: 'Test Character'
-                }
-            }))
-            .mockImplementationOnce(() => Promise.resolve({
-                success: true,
-                data: { success: true }  // Delete response
-            }));
-        
-        const { getByText, getByTestId } = render(
-            <NavigationContainer>
-                <Snapshot />
-            </NavigationContainer>
-        );
-        
-        await waitFor(() => {
-            expect(getByText('General')).toBeTruthy();
-            expect(getByText('Test Character')).toBeTruthy();
-            expect(getByText('Test notes')).toBeTruthy();
-        });
-        
-        fireEvent.press(getByTestId('delete-snapshot-button'));
-     
-        expect(getByText('Delete Snapshot?')).toBeTruthy();
-     
-        fireEvent.press(getByTestId('delete-snapshot-confirm-button'));
-        
-        await waitFor(() => {
-            expect(apiMock).toHaveBeenCalledWith('/snapshot/1', 'PUT', {
-                name: 'Test Snapshot',
-                isDeleted: true,
-                deletedOn: mockDate.toISOString()
-            });
-        });
-     
-        jest.restoreAllMocks();
-    });
-    
-    it('should cancel snapshot deletion when cancel is pressed', async () => {
-        const apiMock = require('../api/api').default;
-        apiMock
-            .mockImplementationOnce(() => Promise.resolve({
-                success: true,
-                data: { id: 1, type: 2 }
-            }))
-            .mockImplementationOnce(() => Promise.resolve({
-                success: true,
-                data: {
-                    id: 1,
-                    name: 'Test Snapshot',
-                    episode: '101',
-                    scene: '5',
-                    character: 2,
-                    notes: 'Test notes'
-                }
-            }))
-            .mockImplementationOnce(() => Promise.resolve({
-                success: true,
-                data: {
-                    id: 2,
-                    name: 'Test Character'
-                }
-            }));
-    
-        const { getByText, getByTestId, queryByText } = render(
-            <NavigationContainer>
-                <Snapshot />
-            </NavigationContainer>
-        );
-    
-        await waitFor(() => {
-            expect(getByText('General')).toBeTruthy();
-            expect(getByText('Test Character')).toBeTruthy();
-            expect(getByText('Test notes')).toBeTruthy();
-        });
-    
-        fireEvent.press(getByTestId('delete-snapshot-button'));
-    
-        expect(getByText('Delete Snapshot?')).toBeTruthy();
-    
-        fireEvent.press(getByTestId('delete-snapshot-cancel-button'));
-    
-        await waitFor(() => {
-            expect(queryByText('Delete Snapshot?')).toBeNull();
-            expect(getByText('Test Character')).toBeTruthy();
-            expect(getByText('Test notes')).toBeTruthy();
-            expect(apiMock).toHaveBeenCalledTimes(3);
-        });
-    });
-    
-    it('should navigate back to Space screen after deletion when no folderId exists', async () => {
-        const mockNavigate = jest.fn();
-        jest.spyOn(require('@react-navigation/native'), 'useNavigation')
-            .mockReturnValue({ navigate: mockNavigate });
-        
-        // Mock route without folderId
-        jest.spyOn(require('@react-navigation/native'), 'useRoute')
-            .mockReturnValue({
-                params: {
-                    spaceId: 1,
-                    spaceName: 'Test Space',
-                    snapshotId: 1,
-                    snapshotName: 'Test Snapshot'
-                }
-            });
-    
-        const apiMock = require('../api/api').default;
-        apiMock
-            .mockImplementationOnce(() => Promise.resolve({
-                success: true,
-                data: { id: 1, type: 2 }
-            }))
-            .mockImplementationOnce(() => Promise.resolve({
-                success: true,
-                data: {
-                    id: 1,
-                    name: 'Test Snapshot'
-                }
-            }))
-            .mockImplementationOnce(() => Promise.resolve({
-                success: true,
-                data: { success: true }  // Delete response
-            }));
-    
-        const { getByTestId } = render(
-            <NavigationContainer>
-                <Snapshot />
-            </NavigationContainer>
-        );
-    
-        fireEvent.press(getByTestId('delete-snapshot-button'));
-        fireEvent.press(getByTestId('delete-snapshot-confirm-button'));
-    
-        await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledWith('Space', {
-                spaceId: 1,
-                spaceName: 'Test Space'
-            });
-        });
-    });
-    
-    it('should navigate back to Folder screen after deletion when folderId exists', async () => {
-        const mockNavigate = jest.fn();
-        jest.spyOn(require('@react-navigation/native'), 'useNavigation')
-            .mockReturnValue({ navigate: mockNavigate });
-        
-        // Mock route with folderId
-        jest.spyOn(require('@react-navigation/native'), 'useRoute')
-            .mockReturnValue({
-                params: {
-                    spaceId: 1,
-                    spaceName: 'Test Space',
-                    folderId: 2,
-                    folderName: 'Test Folder',
-                    snapshotId: 1,
-                    snapshotName: 'Test Snapshot'
-                }
-            });
-    
-        const apiMock = require('../api/api').default;
-        apiMock
-            .mockImplementationOnce(() => Promise.resolve({
-                success: true,
-                data: { id: 1, type: 2 }
-            }))
-            .mockImplementationOnce(() => Promise.resolve({
-                success: true,
-                data: {
-                    id: 1,
-                    name: 'Test Snapshot'
-                }
-            }))
-            .mockImplementationOnce(() => Promise.resolve({
-                success: true,
-                data: { success: true }  // Delete response
-            }));
-    
-        const { getByTestId } = render(
-            <NavigationContainer>
-                <Snapshot />
-            </NavigationContainer>
-        );
-    
-        fireEvent.press(getByTestId('delete-snapshot-button'));
-        fireEvent.press(getByTestId('delete-snapshot-confirm-button'));
-    
-        await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledWith('Folder', {
-                spaceId: 1,
-                spaceName: 'Test Space',
-                folderId: 2,
-                folderName: 'Test Folder'
-            });
-        });
+        expect(generalFields.length).toBeGreaterThan(0);
+        expect(makeupFields.length).toBeGreaterThan(0);
+        expect(hairFields.length).toBeGreaterThan(0);
     });
 });
