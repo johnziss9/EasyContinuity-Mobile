@@ -18,6 +18,20 @@ jest.mock('../hooks/useFileBrowser', () => {
     }));
 });
 
+// Mocks for navigation
+jest.mock('@react-navigation/native', () => ({
+    useNavigation: () => ({
+        navigate: jest.fn(),
+    }),
+    useRoute: () => ({
+        params: {
+            spaceId: '123',
+            folderId: '456',
+            snapshotId: '789',
+        }
+    }),
+}));
+
 const mockFile = {
     uri: 'file://test-image.jpg',
     name: 'test-image.jpg',

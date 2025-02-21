@@ -1,46 +1,26 @@
 import React, { useState, useCallback } from 'react';
 import { StyleSheet, View, Text, ScrollView, Modal, Image, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
-import someImage from '../assets/dummy-image.jpg';
-import someImage2 from '../assets/dummy-image2.jpg';
-import someImage3 from '../assets/dummy-image3.jpeg';
-import someImage4 from '../assets/dummy-image4.jpeg';
 import ImageGrid from '../components/ImageGrid';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import useFileBrowser from '../hooks/useFileBrowser';
 import handleHttpRequest from '../api/api';
 
 // TODO Using testImages prop in order to test the empty dummyImages array in the Snapshot tests - Needs to be removed
-const Snapshot = ({ testImages = null }) => {
+const Snapshot = () => {
 
     const navigation = useNavigation();
     const route = useRoute();
 
     const { spaceId, spaceName, folderId, folderName, snapshotId, snapshotName } = route.params;
 
-    const MAX_IMAGES = 6;
-
-    const { filesInfo, browseFiles, clearFiles } = useFileBrowser({
-        fileTypes: ['image/jpeg', 'image/jpg', 'image/png']
-    });
-
     const [showImageModal, setShowImageModal] = useState(false);
     const [showDeleteSnapshotModal, setShowDeleteSnapshotModal] = useState(false);
 
-    const [selectedImages, setSelectedImages] = useState([]);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [snapshot, setSnapshot] = useState({});
     const [characterName, setCharacterName] = useState('');
     const [spaceType, setSpaceType] = useState(0);
-
-    // Initial code was: const dummyImages = [
-    // TODO This would need to be removed and updated when there's not images coming from the database
-    const dummyImages = testImages !== null ? testImages : [
-        { id: 1, source: someImage },
-        { id: 2, source: someImage2 },
-        { id: 3, source: someImage3 },
-        { id: 4, source: someImage4 }
-    ];
+    const [attachments, setAttachments] = useState([]);
 
     const renderField = (label, value, index, sectionId) => {
         return (
@@ -49,8 +29,8 @@ const Snapshot = ({ testImages = null }) => {
                 style={styles.fieldContainer}
                 testID={`${sectionId}-field-${index}`}
             >
-                <Text style={styles.fieldLabel}>{label}</Text>
-                <Text style={styles.fieldText}>{value}</Text>
+                <Text style={styles.fieldLabel} testID={`fieldLabel-${index}`}>{label}</Text>
+                <Text style={styles.fieldText} testID={`fieldValue-${index}`}>{value}</Text>
             </View>
         );
     }
@@ -99,20 +79,18 @@ const Snapshot = ({ testImages = null }) => {
     };
 
     const handleNextImage = () => {
-        setSelectedImageIndex((prevIndex) => (prevIndex + 1) % dummyImages.length);
+        setSelectedImageIndex((prevIndex) => (prevIndex + 1) % attachments.length);
     };
 
     const handlePreviousImage = () => {
-        setSelectedImageIndex((prevIndex) => (prevIndex - 1 + dummyImages.length) % dummyImages.length);
+        setSelectedImageIndex((prevIndex) => (prevIndex - 1 + attachments.length) % attachments.length);
     };
 
-    // TODO Remove this once images are working correctly when uploading
     useFocusEffect(
         useCallback(() => {
             handleGetSpaceType();
             handleGetSnapshotInfo();
-
-            console.log('Current filesInfo:', filesInfo);
+            fetchAttachments();
         }, [])
     );
 
@@ -148,6 +126,29 @@ const Snapshot = ({ testImages = null }) => {
             // TODO Show deletion confirmation
         }
     }
+
+    const fetchAttachments = async () => {
+        try {
+            const url = `/attachment/snapshot/${snapshotId}`;
+            const response = await handleHttpRequest(url, 'GET');
+    
+            if (response.success && response.data) {
+                // Transform the response data to match our image structure
+                const transformedAttachments = response.data.map(attachment => ({
+                    id: attachment.id,
+                    source: { uri: attachment.url }
+                }));
+    
+                setAttachments(transformedAttachments);
+            } else {
+                console.error('Failed to fetch attachments:', response.error);
+                // TODO: Show error toast to user
+            }
+        } catch (error) {
+            console.error('Error fetching attachments:', error);
+            // TODO: Show error toast to user
+        }
+    };
 
     const handleGetSpaceType = async () => {
         try {
@@ -217,46 +218,8 @@ const Snapshot = ({ testImages = null }) => {
         }
     }
 
-    const handleBrowseFiles = async () => {
-        console.log('Attempting to browse files...');
-        const availableSlots = MAX_IMAGES - selectedImages.length;
-
-        if (availableSlots <= 0) {
-            Alert.alert(
-                "Maximum Images Reached",
-                `You've already selected the maximum of ${MAX_IMAGES} images. Please remove some images before adding more.`,
-                [{ text: "OK" }]
-            );
-            return;
-        }
-
-        try {
-            const result = await browseFiles();
-            console.log('Browse files result:', result);
-
-            if (result === null || result === undefined || result.length === 0) {
-                console.log('No valid files selected or unsupported file type.');
-            } else {
-                const newImages = result.slice(0, availableSlots);
-                setSelectedImages(prevImages => [...prevImages, ...newImages]);
-
-                console.log(`Selected ${newImages.length} file(s)`);
-                newImages.forEach((file, index) => {
-                    console.log(`File ${index + 1}: ${file.name} (${file.size} bytes)`);
-                });
-
-                if (result.length > availableSlots) {
-                    const addedImages = newImages.length;
-                    Alert.alert(
-                        "Maximum Images Reached",
-                        `Only ${addedImages} image(s) were added to reach the maximum of ${MAX_IMAGES} images.`,
-                        [{ text: "OK" }]
-                    );
-                }
-            }
-        } catch (error) {
-            console.error('Error browsing files:', error);
-        }
+    const handleAddImagesButtonPress = () => {
+        navigation.navigate('SnapshotImagesManage', { spaceId, folderId, snapshotId, shouldOpenFileBrowser: true });
     };
 
     return (
@@ -282,7 +245,6 @@ const Snapshot = ({ testImages = null }) => {
                                 onPress={() => {
                                     setShowDeleteSnapshotModal(false);
                                     handleConfirmDeleteSnapshotPress();
-                                    // setSnapshotToDelete(null); 
                                 }}
                             >
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>Delete</Text>
@@ -301,20 +263,21 @@ const Snapshot = ({ testImages = null }) => {
                 testID="image-modal"
             >
                 <View style={styles.modalContainer}>
-                    <TouchableOpacity style={styles.modalCloseButton} onPress={() => setShowImageModal(false)}>
+                    <TouchableOpacity style={styles.modalCloseButton} onPress={() => setShowImageModal(false)} testID="modalCloseButton">
                         <Ionicons name="close" size={30} color="#FFF" />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.modalPrevButton} onPress={handlePreviousImage}>
+                    <TouchableOpacity style={styles.modalPrevButton} onPress={handlePreviousImage} testID="modalPrevButton">
                         <Ionicons name="chevron-back" size={30} color="#FFF" />
                     </TouchableOpacity>
-                    {dummyImages.length > 0 && (
+                    {attachments.length > 0 && (
                         <Image
-                            source={dummyImages[selectedImageIndex].source}
+                            source={attachments[selectedImageIndex].source}
                             style={styles.modalViewImage}
                             resizeMode="contain"
+                            testID="modal-image"
                         />
                     )}
-                    <TouchableOpacity style={styles.modalNextButton} onPress={handleNextImage}>
+                    <TouchableOpacity style={styles.modalNextButton} onPress={handleNextImage} testID="modalNextButton">
                         <Ionicons name="chevron-forward" size={30} color="#FFF" />
                     </TouchableOpacity>
                 </View>
@@ -324,17 +287,17 @@ const Snapshot = ({ testImages = null }) => {
                 <View style={styles.imageSection}>
                     <View style={styles.imageSectionHeader}>
                         <Text style={styles.sectionHeader}>Images</Text>
-                        {dummyImages.length > 0 ?
+                        {attachments.length > 0 ?
                             <TouchableOpacity onPress={handleEditImagesPress} testID='edit-images-button'>
                                 <Ionicons name="create-outline" size={30} color="#3F4F5F" />
                             </TouchableOpacity> :
-                            <TouchableOpacity onPress={handleBrowseFiles} testID="add-images-button">
+                            <TouchableOpacity onPress={handleAddImagesButtonPress} testID="add-images-button">
                                 <Ionicons name="add-outline" size={30} color="#3F4F5F" />
                             </TouchableOpacity>
                         }
                     </View>
                     <View style={styles.imageSliderContainer}>
-                        <ImageGrid images={dummyImages} onImagePress={handleImagePress} />
+                        <ImageGrid images={attachments} onImagePress={handleImagePress} />
                     </View>
                 </View>
 
