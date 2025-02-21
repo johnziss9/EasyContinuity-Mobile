@@ -135,6 +135,11 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
         }
     };
 
+    const handleCancelUpload = () => {
+        setSelectedFiles([]);
+        clearFiles();
+    };
+
     const handleViewImage = (image) => {
         setSelectedImage(image);
         setShowImageModal(true);
@@ -170,45 +175,79 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
         );
     }
 
-    const renderItem = ({ item }) => (
-        <View style={styles.attachmentContainer}>
-            <View style={styles.imageContainer}>
-                <Image source={item.source} style={styles.image} />
-            </View>
-            <View style={styles.nameContainer}>
-                {!item.isEdit ? (
+    const renderItem = ({ item }) => {
+        const hasPreviewImages = selectedFiles.length > 0;
+
+        return (
+
+            <View style={[styles.attachmentContainer, item.isPreview && styles.previewAttachmentContainer]}>
+                {!item.isPreview && hasPreviewImages && <View style={styles.uploadedOverlay} testID="uploaded-overlay" />}
+                <View style={styles.imageContainer}>
+                    <Image source={item.source} style={styles.image} />
+                </View>
+                <View style={styles.nameContainer}>
+                    {!item.isEdit ? (
+                        <>
+                            <Text style={[styles.text, (!item.isPreview && hasPreviewImages) && styles.uploadedText]}>{item.name}</Text>
+                            {item.isPreview && (
+                                <View style={styles.previewLabelContainer}>
+                                    <Text style={styles.previewLabelText}>PREVIEW</Text>
+                                </View>
+                            )}
+                        </>
+                    ) : (
+                        <TextInput
+                            style={styles.textbox}
+                            onChangeText={(text) => handleChangeImageName(item.id, text)}
+                            value={item.editName}
+                            placeholder='Image Name'
+                            cursorColor={'#3F4F5F'}
+                        />
+                    )}
+                </View>
+                {!item.isEdit ?
                     <>
-                        <Text style={styles.text}>{item.name}</Text>
-                        {item.isPreview && <Text style={styles.previewText}>Preview</Text>}
-                    </>
-                ) : (
-                    <TextInput
-                        style={styles.textbox}
-                        onChangeText={(text) => handleChangeImageName(item.id, text)}
-                        value={item.editName}
-                        placeholder='Image Name'
-                        cursorColor={'#3F4F5F'}
-                    />
-                )}
+                        <TouchableOpacity
+                            style={[styles.viewButton, (!item.isPreview && hasPreviewImages) && styles.uploadedButton]}
+                            onPress={() => handleViewImage(item)}
+                            testID="view-image-button"
+                        >
+                            <Ionicons
+                                name="eye-outline"
+                                size={30}
+                                color={(!item.isPreview && hasPreviewImages) ? "rgba(205, 167, 175, 0.6)" : "#CDA7AF"}
+                            />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.editButton, (!item.isPreview && hasPreviewImages) && styles.uploadedButton]}
+                            onPress={() => handleEditImageName(item.id)}
+                            testID="edit-image-button"
+                        >
+                            <Ionicons
+                                name="create-outline"
+                                size={30}
+                                color={(!item.isPreview && hasPreviewImages) ? "rgba(205, 167, 175, 0.6)" : "#CDA7AF"}
+                            />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.deleteButton, (!item.isPreview && hasPreviewImages) && styles.uploadedButton]}
+                            onPress={() => handleDeleteImage(item.id)}
+                            testID="delete-image-button"
+                        >
+                            <Ionicons
+                                name="trash-outline"
+                                size={30}
+                                color={(!item.isPreview && hasPreviewImages) ? "rgba(205, 167, 175, 0.6)" : "#CDA7AF"}
+                            />
+                        </TouchableOpacity>
+                    </> :
+                    <TouchableOpacity style={styles.saveButton} onPress={() => handleSaveImageName(item.id)} testID="save-image-button">
+                        <Ionicons name="save-outline" size={30} color="#CDA7AF" />
+                    </TouchableOpacity>
+                }
             </View>
-            {!item.isEdit ?
-                <>
-                    <TouchableOpacity style={styles.viewButton} onPress={() => handleViewImage(item)} testID="view-image-button">
-                        <Ionicons name="eye-outline" size={30} color="#CDA7AF" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.editButton} onPress={() => handleEditImageName(item.id)} testID="edit-image-button">
-                        <Ionicons name="create-outline" size={30} color="#CDA7AF" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteImage(item.id)} testID="delete-image-button">
-                        <Ionicons name="trash-outline" size={30} color="#CDA7AF" />
-                    </TouchableOpacity>
-                </> :
-                <TouchableOpacity style={styles.saveButton} onPress={() => handleSaveImageName(item.id)} testID="save-image-button">
-                    <Ionicons name="save-outline" size={30} color="#CDA7AF" />
-                </TouchableOpacity>
-            }
-        </View>
-    );
+        );
+    };
 
     return (
         <View style={styles.container}>
@@ -221,8 +260,8 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                 testID="image-modal"
             >
                 <View style={styles.modalContainer}>
-                    <TouchableOpacity 
-                        style={styles.modalCloseButton} 
+                    <TouchableOpacity
+                        style={styles.modalCloseButton}
                         onPress={() => setShowImageModal(false)}
                         testID="modal-close-button"
                     >
@@ -252,15 +291,25 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                 }
             />
             {selectedFiles.length > 0 && (
-                <TouchableOpacity
-                    style={[styles.uploadButton, isUploading && styles.uploadButtonDisabled]}
-                    onPress={handleUpload}
-                    disabled={isUploading}
-                >
-                    <Text style={styles.uploadButtonText}>
-                        {isUploading ? 'Uploading...' : 'Upload Selected Files'}
-                    </Text>
-                </TouchableOpacity>
+                <View style={styles.buttonsContainer}>
+                    <TouchableOpacity
+                        style={[styles.uploadButton, isUploading && styles.uploadButtonDisabled]}
+                        onPress={handleUpload}
+                        disabled={isUploading}
+                    >
+                        <Text style={styles.uploadButtonText}>
+                            {isUploading ? 'Uploading...' : 'Upload Selected Files'}
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={handleCancelUpload}
+                        disabled={isUploading}
+                        testID="cancel-upload-button"
+                    >
+                        <Text style={styles.cancelButtonText}>Cancel</Text>
+                    </TouchableOpacity>
+                </View>
             )}
             <Pressable style={styles.addNewButton} testID='add-image-button' onPress={handleAddAttachment}>
                 <Ionicons name="add-circle-sharp" size={70} color="#CDA7AF" />
@@ -285,6 +334,43 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
         backgroundColor: '#3F4F5F',
         borderRadius: 10,
+        position: 'relative', // Added for overlay positioning
+        overflow: 'hidden', // Ensures overlay stays within borders
+    },
+    previewAttachmentContainer: {
+        borderWidth: 5,
+        borderColor: '#CDA7AF',
+        backgroundColor: '#3F4F5F',
+        zIndex: 2
+    },
+    uploadedOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        zIndex: 1,
+    },
+    uploadedText: {
+        opacity: 0.6,
+    },
+    uploadedButton: {
+        opacity: 0.6,
+    },
+    previewLabelContainer: {
+        backgroundColor: '#CDA7AF',
+        alignSelf: 'flex-start',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 5,
+        marginTop: 8,
+    },
+    previewLabelText: {
+        color: '#3F4F5F',
+        fontSize: 14,
+        fontWeight: 'bold',
+        letterSpacing: 1,
     },
     imageContainer: {
         width: 100,
@@ -342,13 +428,26 @@ const styles = StyleSheet.create({
         bottom: 30,
         right: 30
     },
+    buttonsContainer: {
+        marginBottom: 15,
+        zIndex: 1
+    },
     uploadButton: {
         backgroundColor: '#3F4F5F',
         padding: 15,
         borderRadius: 10,
-        marginVertical: 10,
+        marginVertical: 5,
         alignItems: 'center',
-        zIndex: 1
+        zIndex: 1 // TODO Remove this when + button goes in the header
+    },
+    cancelButton: {
+        backgroundColor: 'transparent',
+        padding: 15,
+        borderRadius: 10,
+        marginVertical: 5,
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: '#3F4F5F',
     },
     uploadButtonDisabled: {
         opacity: 0.7
@@ -357,6 +456,11 @@ const styles = StyleSheet.create({
         color: '#CDA7AF',
         fontSize: 16,
         fontWeight: 'bold'
+    },
+    cancelButtonText: {
+        color: '#3F4F5F',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
     modalContainer: {
         flex: 1,

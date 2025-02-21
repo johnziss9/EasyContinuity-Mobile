@@ -268,6 +268,66 @@ describe('ImageAttachment', () => {
     
         resolveUpload({ success: true, data: [] });
     });
+
+    it('should clear preview images when cancel is pressed', async () => {
+        const rendered = render(<ImageAttachment spaceId="123" />);
+
+        // Add file
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('add-image-button'));
+            await mockBrowseFiles();
+        });
+
+        // Verify preview exists
+        expect(rendered.getByText('test-image.jpg')).toBeTruthy();
+        expect(rendered.getByText('Upload Selected Files')).toBeTruthy();
+
+        // Press cancel
+        fireEvent.press(rendered.getByText('Cancel'));
+
+        // Verify preview is cleared
+        expect(rendered.queryByText('test-image.jpg')).toBeNull();
+        expect(rendered.queryByText('Cancel')).toBeNull();
+        expect(mockClearFiles).toHaveBeenCalled();
+    });
+
+    it('should show overlay on uploaded images only when previews exist', async () => {
+        handleHttpRequest.mockResolvedValue({
+            success: true,
+            data: [{
+                id: '123',
+                name: 'uploaded-image.jpg',
+                url: 'file://uploaded-image.jpg'
+            }]
+        });
+
+        const rendered = render(<ImageAttachment spaceId="123" />);
+
+        // Wait for uploaded image to load
+        await waitFor(() => {
+            expect(rendered.getByText('uploaded-image.jpg')).toBeTruthy();
+        });
+
+        // Initially there should be no element with the uploadedOverlay style
+        expect(rendered.queryByTestId('uploaded-overlay')).toBeNull();
+
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('add-image-button'));
+            await mockBrowseFiles();
+        });
+
+        // Now we should have an overlay element on the uploaded image
+        expect(rendered.getByTestId('uploaded-overlay')).toBeTruthy();
+
+        // Preview image should not have overlay
+        const previewCardOverlay = rendered.queryAllByTestId('uploaded-overlay');
+        expect(previewCardOverlay.length).toBe(1); // Only one overlay for the uploaded image
+
+        fireEvent.press(rendered.getByText('Cancel'));
+
+        // Verify overlay is removed
+        expect(rendered.queryByTestId('uploaded-overlay')).toBeNull();
+    });
 });
 
 // Add these tests to the existing ImageAttachment.test.js file
