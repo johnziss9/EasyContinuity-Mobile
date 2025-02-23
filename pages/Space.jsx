@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, useWindowDimensions, ActivityIndicator, ScrollView } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import useFileBrowser from '../hooks/useFileBrowser';
 import SnapshotCard from '../components/SnapshotCard';
 import FolderCard from '../components/FolderCard';
 import handleHttpRequest from '../api/api';
@@ -10,7 +9,6 @@ import SearchBar from '../components/SearchBar';
 
 const Space = () => {
     const navigation = useNavigation();
-    // const { filesInfo, browseFiles } = useFileBrowser();
     const { width } = useWindowDimensions();
     const route = useRoute();
     const { spaceId, spaceName } = route.params;
@@ -371,7 +369,7 @@ const Space = () => {
     return (
         <View style={styles.container}>
 
-            {/* Added/Updated Folder confirmation modal */}
+            {/* Added/Updated Folder Confirmation Modal */}
             <Modal
                 transparent={true}
                 animationType="fade"
@@ -397,7 +395,7 @@ const Space = () => {
                 </View>
             </Modal>
 
-            {/* Delete Snapshot confirmation modal */}
+            {/* Delete Snapshot Confirmation Modal */}
             <Modal
                 transparent={true}
                 animationType="fade"
@@ -471,7 +469,6 @@ const Space = () => {
                             <TouchableOpacity style={[styles.modalButton, styles.modalButtonFolder]} testID='add-new-folder-button' onPress={handleAddFolderPress}>
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextFolder]}>Folder</Text>
                             </TouchableOpacity>
-                            {/* onPress={browseFiles} *** this should be going on where the file browsing button will be *** */}
                             <TouchableOpacity style={[styles.modalButton, styles.modalButtonSnapshot]} testID='add-new-snapshot-button' onPress={handleAddSnapshotPress}>
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextSnapshot]}>Snapshot</Text>
                             </TouchableOpacity>

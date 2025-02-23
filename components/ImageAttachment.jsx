@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Image, View, Text, TouchableOpacity, TextInput, FlatList, Pressable, Modal } from 'react-native';
+import { StyleSheet, Image, View, Text, TouchableOpacity, TextInput, FlatList, Pressable, Modal, useWindowDimensions } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useFileBrowser from '../hooks/useFileBrowser';
 import handleHttpRequest from '../api/api';
@@ -9,6 +9,7 @@ import { useRoute } from '@react-navigation/native';
 const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
     const route = useRoute();
     const { shouldOpenFileBrowser } = route.params || {};
+    const { width } = useWindowDimensions();
 
     const { browseFiles, clearFiles } = useFileBrowser({
         fileTypes: ['image/jpeg', 'image/jpg', 'image/png']
@@ -18,8 +19,13 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
-    const [showImageModal, setShowImageModal] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
+    const [showEditImageModal, setShowEditImageModal] = useState(false);
+    const [showEditImageConfirmationModal, setShowEditImageConfirmationModal] = useState(false);
+    const [showImageModal, setShowImageModal] = useState(false);
+    const [imageExtension, setImageExtension] = useState('');
+    const [imageName, setImageName] = useState('');
+    const [attachmentId, setAttachmentId] = useState(null);
 
     useEffect(() => {
         fetchAttachments();
@@ -44,8 +50,6 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                     id: attachment.id,
                     name: attachment.name,
                     source: { uri: attachment.url },
-                    isEdit: false,
-                    editName: '',
                     isPreview: false,
                     mimeType: attachment.mimeType,
                     path: attachment.path,
@@ -85,8 +89,6 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
             id: Math.random().toString(),
             source: { uri: file.uri },
             name: file.name,
-            isEdit: false,
-            editName: '',
             isPreview: true,
             mimeType: file.mimeType
         }));
@@ -108,7 +110,7 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
 
             selectedFiles.forEach((file, index) => {
                 const cleanFileName = file.name
-                    .replace(/[^a-zA-Z0-9.]/g, '_')  // Replace special chars with underscore
+                    .replace(/[^a-zA-Z0-9.\(\)\-\[\]]/g, '_')  // Replace special chars with underscore
                     .replace(/_+/g, '_');            // Replace multiple underscores with single one
 
                 formData.append('files', {
@@ -146,6 +148,40 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
         }
     };
 
+    const handleSubmitEditImage = async () => {
+        try {
+            const cleanFileName = imageName
+                .replace(/[^a-zA-Z0-9.\(\)\-\[\]]/g, '_') // Replace special chars with underscore
+                .replace(/_+/g, '_') + imageExtension; // Replace multiple underscores with single one
+
+            const url = `/attachment/${attachmentId}`;
+            const method = 'PUT';
+            const body = {
+                name: cleanFileName,
+                lastUpdatedOn: new Date().toISOString()
+                // TODO Include lastUpdatedBy
+            };
+
+            const response = await handleHttpRequest(url, method, body);
+
+            if (response.success) {
+                setShowEditImageConfirmationModal(true);
+            } else {
+                // TODO Replace error with fail toast
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('Error Updating Image Name:', error);
+
+            // TODO Replace error with fail toast
+            throw error;
+        } finally {
+            setShowEditImageModal(false);
+            setImageName('');
+            setAttachmentId(null);
+        }
+    }
+
     const handleCancelUpload = () => {
         setSelectedFiles([]);
         clearFiles();
@@ -156,28 +192,21 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
         setShowImageModal(true);
     };
 
-    const handleEditImageName = (id) => {
-        setAttachments(prevAttachments =>
-            prevAttachments.map(att =>
-                att.id === id ? { ...att, isEdit: true, editName: att.name } : att
-            )
-        );
+    const handleEditImageName = (item) => {
+        setAttachmentId(item.id);
+        setShowEditImageModal(true);
+        
+        const lastDotIndex = item.name.lastIndexOf('.');
+        const nameWithoutExtension = item.name.substring(0, lastDotIndex);
+        const extension = item.name.substring(lastDotIndex); // Get the extension including the dot
+        
+        setImageName(nameWithoutExtension);
+        setImageExtension(extension);
     }
 
-    const handleChangeImageName = (id, newName) => {
-        setAttachments(prevAttachments =>
-            prevAttachments.map(att =>
-                att.id === id ? { ...att, editName: newName } : att
-            )
-        );
-    }
-
-    const handleSaveImageName = (id) => {
-        setAttachments(prevAttachments =>
-            prevAttachments.map(att =>
-                att.id === id ? { ...att, name: att.editName, isEdit: false } : att
-            )
-        );
+    const handleCancelEditImage = () => {
+        setShowEditImageModal(false);
+        setImageName('');
     }
 
     const handleDeleteImage = (id) => {
@@ -188,80 +217,134 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
 
     const renderItem = ({ item }) => {
         const hasPreviewImages = selectedFiles.length > 0;
+        const displayName = item.name.substring(0, item.name.lastIndexOf('.'));
 
         return (
-
             <View style={[styles.attachmentContainer, item.isPreview && styles.previewAttachmentContainer]}>
                 {!item.isPreview && hasPreviewImages && <View style={styles.uploadedOverlay} testID="uploaded-overlay" />}
                 <View style={styles.imageContainer}>
                     <Image source={item.source} style={styles.image} />
                 </View>
                 <View style={styles.nameContainer}>
-                    {!item.isEdit ? (
-                        <>
-                            <Text style={[styles.text, (!item.isPreview && hasPreviewImages) && styles.uploadedText]}>{item.name}</Text>
-                            {item.isPreview && (
-                                <View style={styles.previewLabelContainer}>
-                                    <Text style={styles.previewLabelText}>PREVIEW</Text>
-                                </View>
-                            )}
-                        </>
-                    ) : (
-                        <TextInput
-                            style={styles.textbox}
-                            onChangeText={(text) => handleChangeImageName(item.id, text)}
-                            value={item.editName}
-                            placeholder='Image Name'
-                            cursorColor={'#3F4F5F'}
-                        />
+                    <Text style={[styles.text, (!item.isPreview && hasPreviewImages) && styles.uploadedText]}>{displayName}</Text>
+                    {item.isPreview && (
+                        <View style={styles.previewLabelContainer}>
+                            <Text style={styles.previewLabelText}>PREVIEW</Text>
+                        </View>
                     )}
                 </View>
-                {!item.isEdit ?
-                    <>
-                        <TouchableOpacity
-                            style={[styles.viewButton, (!item.isPreview && hasPreviewImages) && styles.uploadedButton]}
-                            onPress={() => handleViewImage(item)}
-                            testID="view-image-button"
-                        >
-                            <Ionicons
-                                name="eye-outline"
-                                size={30}
-                                color={(!item.isPreview && hasPreviewImages) ? "rgba(205, 167, 175, 0.6)" : "#CDA7AF"}
-                            />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.editButton, (!item.isPreview && hasPreviewImages) && styles.uploadedButton]}
-                            onPress={() => handleEditImageName(item.id)}
-                            testID="edit-image-button"
-                        >
-                            <Ionicons
-                                name="create-outline"
-                                size={30}
-                                color={(!item.isPreview && hasPreviewImages) ? "rgba(205, 167, 175, 0.6)" : "#CDA7AF"}
-                            />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.deleteButton, (!item.isPreview && hasPreviewImages) && styles.uploadedButton]}
-                            onPress={() => handleDeleteImage(item.id)}
-                            testID="delete-image-button"
-                        >
-                            <Ionicons
-                                name="trash-outline"
-                                size={30}
-                                color={(!item.isPreview && hasPreviewImages) ? "rgba(205, 167, 175, 0.6)" : "#CDA7AF"}
-                            />
-                        </TouchableOpacity>
-                    </> :
-                    <TouchableOpacity style={styles.saveButton} onPress={() => handleSaveImageName(item.id)} testID="save-image-button">
-                        <Ionicons name="save-outline" size={30} color="#CDA7AF" />
-                    </TouchableOpacity>
-                }
+                <TouchableOpacity
+                    style={[styles.viewButton, (!item.isPreview && hasPreviewImages) && styles.uploadedButton]}
+                    onPress={() => handleViewImage(item)}
+                    testID="view-image-button"
+                >
+                    <Ionicons
+                        name="eye-outline"
+                        size={30}
+                        color={(!item.isPreview && hasPreviewImages) ? "rgba(205, 167, 175, 0.6)" : "#CDA7AF"}
+                    />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.editButton, (!item.isPreview && hasPreviewImages) && styles.uploadedButton]}
+                    onPress={() => handleEditImageName(item)}
+                    testID="edit-image-button"
+                >
+                    <Ionicons
+                        name="create-outline"
+                        size={30}
+                        color={(!item.isPreview && hasPreviewImages) ? "rgba(205, 167, 175, 0.6)" : "#CDA7AF"}
+                    />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.deleteButton, (!item.isPreview && hasPreviewImages) && styles.uploadedButton]}
+                    onPress={() => handleDeleteImage(item.id)}
+                    testID="delete-image-button"
+                >
+                    <Ionicons
+                        name="trash-outline"
+                        size={30}
+                        color={(!item.isPreview && hasPreviewImages) ? "rgba(205, 167, 175, 0.6)" : "#CDA7AF"}
+                    />
+                </TouchableOpacity>
             </View>
         );
     };
 
+    const dynamicStyles = {
+        modalTextbox: {
+            width: width < 600 ? '100%' : '61%',
+            height: 60,
+            borderWidth: 1,
+            borderColor: '#3F4F5F',
+            borderRadius: 5,
+            paddingLeft: 7,
+            marginTop: 7,
+            backgroundColor: 'rgba(205, 167, 175, 0.2)',
+            fontSize: 18,
+            marginBottom: 10,
+            color: '#3F4F5F'
+        }
+    };
+
     return (
         <View style={styles.container}>
+            {/* Edited Image Name Confirmation Modal */}
+            <Modal
+                transparent={true}
+                animationType="fade"
+                visible={showEditImageConfirmationModal}
+                onRequestClose={() => setShowEditImageConfirmationModal(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalText}>Image Name Updated Successfully</Text>
+                        <View style={styles.modalButtonsContainer}>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.modalButtonSave]}
+                                testID='edited-image-name-confirm-button'
+                                onPress={() => {
+                                    setShowEditImageConfirmationModal(false);
+                                    fetchAttachments();
+                                }}
+                            >
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>OK</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Edit Image Name Modal */}
+            <Modal
+                transparent={true}
+                animationType="fade"
+                visible={showEditImageModal}
+                onRequestClose={() => setShowEditImageModal(false)}
+                testID="edit-image-modal"
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalText} accessibilityLabel="Enter Image Name:">Enter Image Name:</Text>
+                        <TextInput
+                            style={dynamicStyles.modalTextbox}
+                            onChangeText={setImageName}
+                            value={imageName}
+                            placeholder='Image Name'
+                            cursorColor={'#3F4F5F'}
+                            testID='image-name-text-input'
+                        />
+                        <View style={styles.modalImageButtonContainer}>
+                            <TouchableOpacity style={[styles.modalEditImageButton, styles.modalButtonCancel]} testID='edit-image-name-cancel-button' onPress={handleCancelEditImage}>
+                                <Text style={[styles.modalEditImageButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={[styles.modalEditImageButton, styles.modalButtonSave]} testID='edit-image-name-submit-button' onPress={handleSubmitEditImage}>
+                                <Text style={[styles.modalEditImageButtonText, styles.modalButtonTextSave]}>Submit</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+            
             {/* Image View Modal */}
             <Modal
                 transparent={true}
@@ -405,15 +488,6 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontStyle: 'italic'
     },
-    textbox: {
-        height: 55,
-        borderWidth: 1,
-        borderColor: '#3F4F5F',
-        borderRadius: 5,
-        paddingLeft: 7,
-        backgroundColor: 'rgba(205, 167, 175, 1)',
-        color: '#3F4F5F'
-    },
     viewButton: {
         position: 'absolute',
         bottom: 18,
@@ -428,11 +502,6 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 20,
         right: 20
-    },
-    saveButton: {
-        position: 'absolute',
-        bottom: 20,
-        right: 15
     },
     addNewButton: {
         position: 'absolute',
@@ -478,6 +547,60 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    },
+    modalContent: {
+        width: '85%',
+        padding: 20,
+        backgroundColor: '#E2CFC8',
+        borderRadius: 10,
+        alignItems: 'left',
+    },
+    modalText: {
+        fontSize: 18,
+        marginBottom: 13,
+        marginLeft: 2,
+        fontWeight: 'bold',
+        color: '#3F4F5F'
+    },
+    modalImageButtonContainer: {
+        flexDirection: 'row'
+    },
+    modalEditImageButton: {
+        marginTop: 10,
+        padding: 10,
+        borderRadius: 5,
+        width: '30%',
+        height: 50,
+        marginRight: 10,
+        justifyContent: 'center'
+    },
+    modalEditImageButtonText: {
+        fontSize: 18,
+        textAlign: 'center'
+    },
+    modalButton: {
+        borderRadius: 5,
+        width: '70%',
+        height: 60,
+        justifyContent: 'center',
+        margin: 10
+    },
+    modalButtonText: {
+        fontSize: 18,
+        textAlign: 'center'
+    },
+    modalButtonSave: {
+        backgroundColor: '#3F4F5F',
+    },
+    modalButtonCancel: {
+        borderWidth: 2,
+        borderColor: '#3F4F5F'
+    },
+    modalButtonTextSave: {
+        color: '#E2CFC8'
+    },
+    modalButtonTextCancel: {
+        color: '#3F4F5F'
     },
     modalViewImage: {
         width: '95%',
