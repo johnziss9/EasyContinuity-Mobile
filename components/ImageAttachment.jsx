@@ -230,11 +230,26 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
         setImageName('');
     }
 
-    const handleDeleteImage = (id) => {
-        setAttachments(prevAttachments =>
-            prevAttachments.filter(att => att.id !== id)
-        );
-    }
+    const handleDeleteImage = (item) => {
+        if (item.isPreview) {
+            // Handle preview image deletion
+            setSelectedFiles(prevFiles => {
+                const newFiles = prevFiles.filter(file => file.id !== item.id);
+                
+                // If no more preview files, clear everything
+                if (newFiles.length === 0) {
+                    clearFiles();
+                }
+                
+                return newFiles;
+            });
+        } else {
+            // Handle uploaded image deletion
+            setAttachments(prevAttachments =>
+                prevAttachments.filter(att => att.id !== item.id)
+            );
+        }
+    };
 
     const renderItem = ({ item }) => {
         const hasPreviewImages = selectedFiles.length > 0;
@@ -278,7 +293,7 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={[styles.deleteButton, (!item.isPreview && hasPreviewImages) && styles.uploadedButton]}
-                    onPress={() => handleDeleteImage(item.id)}
+                    onPress={() => handleDeleteImage(item)}
                     testID="delete-image-button"
                 >
                     <Ionicons
