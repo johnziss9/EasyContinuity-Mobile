@@ -621,108 +621,194 @@ describe('ImageAttachment', () => {
         // Verify no confirmation modal is shown
         expect(rendered.queryByText('Image Name Updated Successfully')).toBeNull();
     });
-});
 
-it('should remove a preview image when delete button is pressed', async () => {
-    // Mock multiple files
-    mockBrowseFiles.mockResolvedValueOnce([
-        { ...mockFile, name: 'preview1.jpg' },
-        { ...mockFile, name: 'preview2.jpg' }
-    ]);
-
-    const rendered = render(<ImageAttachment spaceId="123" />);
-
-    // Add preview files
-    await act(async () => {
-        fireEvent.press(rendered.getByTestId('add-image-button'));
-        await mockBrowseFiles();
+    it('should remove a preview image when delete button is pressed', async () => {
+        // Mock multiple files
+        mockBrowseFiles.mockResolvedValueOnce([
+            { ...mockFile, name: 'preview1.jpg' },
+            { ...mockFile, name: 'preview2.jpg' }
+        ]);
+    
+        const rendered = render(<ImageAttachment spaceId="123" />);
+    
+        // Add preview files
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('add-image-button'));
+            await mockBrowseFiles();
+        });
+    
+        expect(rendered.getByText('preview1')).toBeTruthy();
+        expect(rendered.getByText('preview2')).toBeTruthy();
+    
+        const deleteButtons = rendered.getAllByTestId('delete-image-button');
+        fireEvent.press(deleteButtons[0]);
+    
+        expect(rendered.queryByText('preview1')).toBeNull();
+        expect(rendered.getByText('preview2')).toBeTruthy();
+    });
+    
+    it('should clear preview state when last preview image is deleted', async () => {
+        const rendered = render(<ImageAttachment spaceId="123" />);
+    
+        // Add preview file
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('add-image-button'));
+            await mockBrowseFiles();
+        });
+    
+        expect(rendered.getByText('test-image')).toBeTruthy();
+        expect(rendered.getByText('Upload Selected Files')).toBeTruthy();
+    
+        fireEvent.press(rendered.getByTestId('delete-image-button'));
+    
+        expect(rendered.queryByText('test-image')).toBeNull();
+        expect(rendered.queryByText('Upload Selected Files')).toBeNull();
+        expect(mockClearFiles).toHaveBeenCalled();
+    });
+    
+    it('should remove overlay from uploaded images when all previews are deleted', async () => {
+        handleHttpRequest.mockResolvedValue({
+            success: true,
+            data: [{
+                id: '123',
+                name: 'uploaded-image.jpg',
+                url: 'file://uploaded-image.jpg'
+            }]
+        });
+    
+        const rendered = render(<ImageAttachment spaceId="123" />);
+    
+        // Wait for uploaded image to load
+        await waitFor(() => {
+            expect(rendered.getByText('uploaded-image')).toBeTruthy();
+        });
+    
+        // Add preview file
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('add-image-button'));
+            await mockBrowseFiles();
+        });
+    
+        expect(rendered.getByTestId('uploaded-overlay')).toBeTruthy();
+    
+        const deleteButtons = rendered.getAllByTestId('delete-image-button');
+        fireEvent.press(deleteButtons[0]);
+    
+        expect(rendered.queryByTestId('uploaded-overlay')).toBeNull();
+    });
+    
+    it('should maintain upload button state when some previews remain after deletion', async () => {
+        // Mock multiple files
+        mockBrowseFiles.mockResolvedValueOnce([
+            { ...mockFile, name: 'preview1.jpg' },
+            { ...mockFile, name: 'preview2.jpg' }
+        ]);
+    
+        const rendered = render(<ImageAttachment spaceId="123" />);
+    
+        // Add preview files
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('add-image-button'));
+            await mockBrowseFiles();
+        });
+    
+        expect(rendered.getByText('Upload Selected Files')).toBeTruthy();
+    
+        const deleteButtons = rendered.getAllByTestId('delete-image-button');
+        fireEvent.press(deleteButtons[0]);
+    
+        expect(rendered.getByText('Upload Selected Files')).toBeTruthy();
+    
+        fireEvent.press(deleteButtons[1]);
+    
+        expect(rendered.queryByText('Upload Selected Files')).toBeNull();
     });
 
-    expect(rendered.getByText('preview1')).toBeTruthy();
-    expect(rendered.getByText('preview2')).toBeTruthy();
-
-    const deleteButtons = rendered.getAllByTestId('delete-image-button');
-    fireEvent.press(deleteButtons[0]);
-
-    expect(rendered.queryByText('preview1')).toBeNull();
-    expect(rendered.getByText('preview2')).toBeTruthy();
-});
-
-it('should clear preview state when last preview image is deleted', async () => {
-    const rendered = render(<ImageAttachment spaceId="123" />);
-
-    // Add preview file
-    await act(async () => {
-        fireEvent.press(rendered.getByTestId('add-image-button'));
-        await mockBrowseFiles();
-    });
-
-    expect(rendered.getByText('test-image')).toBeTruthy();
-    expect(rendered.getByText('Upload Selected Files')).toBeTruthy();
-
-    fireEvent.press(rendered.getByTestId('delete-image-button'));
-
-    expect(rendered.queryByText('test-image')).toBeNull();
-    expect(rendered.queryByText('Upload Selected Files')).toBeNull();
-    expect(mockClearFiles).toHaveBeenCalled();
-});
-
-it('should remove overlay from uploaded images when all previews are deleted', async () => {
-    handleHttpRequest.mockResolvedValue({
-        success: true,
-        data: [{
+    it('should handle delete for uploaded image with confirmation', async () => {
+        const mockAttachment = {
             id: '123',
-            name: 'uploaded-image.jpg',
-            url: 'file://uploaded-image.jpg'
-        }]
+            name: 'test-image.jpg',
+            source: { uri: 'file://test-image.jpg' },
+            url: 'file://test-image.jpg',
+            isPreview: false,
+            mimeType: 'image/jpeg'
+        };
+    
+        handleHttpRequest
+            .mockResolvedValueOnce({ success: true, data: [mockAttachment] })  // Initial fetch
+            .mockResolvedValueOnce({ success: true })  // Delete request
+            .mockResolvedValueOnce({ success: true, data: [] });  // Fetch after delete
+    
+        const rendered = render(<ImageAttachment spaceId="123" />);
+    
+        // Wait for the image to load
+        await waitFor(() => {
+            expect(rendered.getByText('test-image')).toBeTruthy();
+        });
+    
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('delete-image-button'));
+        });
+    
+        // Verify API call was made with correct parameters
+        expect(handleHttpRequest).toHaveBeenCalledWith(
+            '/attachment/123',
+            'PUT',
+            {
+                isDeleted: true,
+                deletedOn: expect.any(String)
+            }
+        );
+    
+        await waitFor(() => {
+            expect(rendered.getByText('Image Deleted Successfully')).toBeTruthy();
+        });
+    
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('deleted-image-name-confirm-button'));
+        });
+    
+        await waitFor(() => {
+            expect(rendered.queryByText('test-image')).toBeNull();
+            expect(rendered.getByText('No Images. Tap + to add.')).toBeTruthy();
+        });
     });
-
-    const rendered = render(<ImageAttachment spaceId="123" />);
-
-    // Wait for uploaded image to load
-    await waitFor(() => {
-        expect(rendered.getByText('uploaded-image')).toBeTruthy();
+    
+    it('should handle API error when deleting uploaded image', async () => {
+        const mockAttachment = {
+            id: '123',
+            name: 'test-image.jpg',
+            source: { uri: 'file://test-image.jpg' },
+            url: 'file://test-image.jpg',
+            isPreview: false,
+            mimeType: 'image/jpeg'
+        };
+    
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    
+        handleHttpRequest
+            .mockResolvedValueOnce({ success: true, data: [mockAttachment] })  // Initial fetch
+            .mockRejectedValueOnce(new Error('Delete failed'));  // Delete request fails
+    
+        const rendered = render(<ImageAttachment spaceId="123" />);
+    
+        await waitFor(() => {
+            expect(rendered.getByText('test-image')).toBeTruthy();
+        });
+    
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('delete-image-button'));
+        });
+    
+        // Verify error was logged
+        expect(consoleErrorSpy).toHaveBeenCalled();
+    
+        expect(rendered.queryByText('Image Deleted Successfully')).toBeNull();
+    
+        expect(rendered.getByText('test-image')).toBeTruthy();
+    
+        consoleErrorSpy.mockRestore();
     });
-
-    // Add preview file
-    await act(async () => {
-        fireEvent.press(rendered.getByTestId('add-image-button'));
-        await mockBrowseFiles();
-    });
-
-    expect(rendered.getByTestId('uploaded-overlay')).toBeTruthy();
-
-    const deleteButtons = rendered.getAllByTestId('delete-image-button');
-    fireEvent.press(deleteButtons[0]);
-
-    expect(rendered.queryByTestId('uploaded-overlay')).toBeNull();
-});
-
-it('should maintain upload button state when some previews remain after deletion', async () => {
-    // Mock multiple files
-    mockBrowseFiles.mockResolvedValueOnce([
-        { ...mockFile, name: 'preview1.jpg' },
-        { ...mockFile, name: 'preview2.jpg' }
-    ]);
-
-    const rendered = render(<ImageAttachment spaceId="123" />);
-
-    // Add preview files
-    await act(async () => {
-        fireEvent.press(rendered.getByTestId('add-image-button'));
-        await mockBrowseFiles();
-    });
-
-    expect(rendered.getByText('Upload Selected Files')).toBeTruthy();
-
-    const deleteButtons = rendered.getAllByTestId('delete-image-button');
-    fireEvent.press(deleteButtons[0]);
-
-    expect(rendered.getByText('Upload Selected Files')).toBeTruthy();
-
-    fireEvent.press(deleteButtons[1]);
-
-    expect(rendered.queryByText('Upload Selected Files')).toBeNull();
 });
 
 describe('Image View Modal', () => {
