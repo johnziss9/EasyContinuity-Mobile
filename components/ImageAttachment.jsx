@@ -35,7 +35,7 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
         if (shouldOpenFileBrowser) {
             handleAddAttachment();
         }
-    }, []); 
+    }, []);
 
     const fetchAttachments = async () => {
         try {
@@ -154,6 +154,24 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                 .replace(/[^a-zA-Z0-9.\(\)\-\[\]]/g, '_') // Replace special chars with underscore
                 .replace(/_+/g, '_') + imageExtension; // Replace multiple underscores with single one
 
+            if (!attachmentId && selectedImage?.isPreview) {
+                setSelectedFiles(prevFiles => {
+                    const newFiles = prevFiles.map(file => {
+                        if (file.id === selectedImage.id) {
+                            return {
+                                ...file,
+                                name: cleanFileName
+                            };
+                        }
+                        return file;
+                    });
+                    return newFiles;
+                });
+    
+                setShowEditImageModal(false);
+                return;
+            }
+
             const url = `/attachment/${attachmentId}`;
             const method = 'PUT';
             const body = {
@@ -178,6 +196,8 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
         } finally {
             setShowEditImageModal(false);
             setImageName('');
+            setImageExtension('');
+            setSelectedImage(null);
             setAttachmentId(null);
         }
     }
@@ -193,7 +213,8 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
     };
 
     const handleEditImageName = (item) => {
-        setAttachmentId(item.id);
+        setSelectedImage(item);
+        setAttachmentId(item.isPreview ? null : item.id);
         setShowEditImageModal(true);
         
         const lastDotIndex = item.name.lastIndexOf('.');
