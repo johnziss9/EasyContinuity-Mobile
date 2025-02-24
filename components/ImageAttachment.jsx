@@ -22,6 +22,7 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [showEditImageModal, setShowEditImageModal] = useState(false);
     const [showEditImageConfirmationModal, setShowEditImageConfirmationModal] = useState(false);
+    const [showDeleteImageConfirmationModal, setShowDeleteImageConfirmationModal] = useState(false);
     const [showImageModal, setShowImageModal] = useState(false);
     const [imageExtension, setImageExtension] = useState('');
     const [imageName, setImageName] = useState('');
@@ -230,7 +231,7 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
         setImageName('');
     }
 
-    const handleDeleteImage = (item) => {
+    const handleDeleteImage = async (item) => {
         if (item.isPreview) {
             // Handle preview image deletion
             setSelectedFiles(prevFiles => {
@@ -244,10 +245,30 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                 return newFiles;
             });
         } else {
-            // Handle uploaded image deletion
-            setAttachments(prevAttachments =>
-                prevAttachments.filter(att => att.id !== item.id)
-            );
+            try {
+                const url = `/attachment/${item.id}`;
+                const method = 'PUT';
+                const body = {
+                    isDeleted: true,
+                    deletedOn: new Date().toISOString()
+                };
+    
+                const response = await handleHttpRequest(url, method, body);
+    
+                if (response.success) {
+                    setShowDeleteImageConfirmationModal(true);
+                } else {
+                    // TODO: Show error toast to user
+                    console.error('Failed to delete attachment:', response.error);
+                }
+            } catch (error) {
+                // TODO: Show error toast to user
+                console.error('Error deleting attachment:', {
+                    message: error.message,
+                    stack: error.stack,
+                    error: error.toString()
+                });
+            }
         }
     };
 
@@ -324,6 +345,32 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
 
     return (
         <View style={styles.container}>
+            {/* Deleted Image Name Confirmation Modal */}
+            <Modal
+                transparent={true}
+                animationType="fade"
+                visible={showDeleteImageConfirmationModal}
+                onRequestClose={() => setShowDeleteImageConfirmationModal(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalText}>Image Deleted Successfully</Text>
+                        <View style={styles.modalButtonsContainer}>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.modalButtonSave]}
+                                testID='deleted-image-name-confirm-button'
+                                onPress={() => {
+                                    setShowDeleteImageConfirmationModal(false);
+                                    fetchAttachments();
+                                }}
+                            >
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>OK</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+            
             {/* Edited Image Name Confirmation Modal */}
             <Modal
                 transparent={true}
