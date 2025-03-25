@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, useWindowDimensions, ActivityIndicator, ScrollView } from 'react-native';
+import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, ActivityIndicator, ScrollView } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SpaceCard from '../components/SpaceCard';
 import { SelectList } from 'react-native-dropdown-select-list'
@@ -8,7 +8,6 @@ import handleHttpRequest from '../api/api';
 
 const Dashboard = () => {
     const navigation = useNavigation();
-    const { width } = useWindowDimensions();
 
     const [showAddNewSpaceModal, setShowAddNewSpaceModal] = useState(false);
     const [showDeleteSpaceModal, setShowDeleteSpaceModal] = useState(false);
@@ -198,37 +197,6 @@ const Dashboard = () => {
         fontWeight: value ? 400 : 'normal'
     });
 
-    const dynamicStyles = {
-        modalTextbox: {
-            width: width < 600 ? '100%' : '61%',
-            borderWidth: 1,
-            borderColor: '#3F4F5F',
-            borderRadius: 5,
-            paddingLeft: 7,
-            backgroundColor: 'rgba(205, 167, 175, 0.2)',
-            fontSize: 18,
-            marginBottom: 10,
-            color: '#3F4F5F'
-        },
-        dropdownBox: {
-            width: width < 600 ? '100%' : '61%',
-            height: 60,
-            borderColor: '#3F4F5F',
-            borderRadius: 5,
-            backgroundColor: 'rgba(205, 167, 175, 0.2)',
-            marginBottom: 10,
-            alignItems: 'center',
-            paddingHorizontal: 7
-        },
-        dropdownList: {
-            borderColor: '#3F4F5F',
-            borderRadius: 5,
-            width: width < 600 ? '100%' : '61%',
-            marginTop: 0,
-            marginBottom: 25
-        },
-    };
-
     return (
         <View style={styles.container}>
 
@@ -244,14 +212,14 @@ const Dashboard = () => {
                         <Text style={styles.modalText}>{confirmationModalText}</Text>
                         <View style={styles.modalButtonsContainer}>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.modalButtonSave]}
+                                style={[styles.modalButton, styles.modalButtonRight]}
                                 testID='added-space-confirm-button'
                                 onPress={() => {
                                     setShowConfirmationSpaceModal(false);
                                     handleGetAllSpaces();
                                 }}
                             >
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>OK</Text>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>OK</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -269,11 +237,11 @@ const Dashboard = () => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalText}>Delete Space?</Text>
                         <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} testID='delete-space-cancel-button' onPress={() => setShowDeleteSpaceModal(false)}>
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonLeft]} testID='delete-space-cancel-button' onPress={() => setShowDeleteSpaceModal(false)}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextLeft]}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.modalButtonSave]}
+                                style={[styles.modalButton, styles.modalButtonRight]}
                                 testID='delete-space-confirm-button'
                                 onPress={() => {
                                     setShowDeleteSpaceModal(false);
@@ -281,7 +249,7 @@ const Dashboard = () => {
                                     setSpaceToDelete(null); 
                                 }}
                             >
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>OK</Text>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>OK</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -305,9 +273,9 @@ const Dashboard = () => {
                                 placeholder="Type"
                                 searchPlaceholder="Search..."
                                 save='key'
-                                boxStyles={dynamicStyles.dropdownBox}
+                                boxStyles={styles.dropdownBox}
                                 inputStyles={getSelectListStyle(spaceType)}
-                                dropdownStyles={dynamicStyles.dropdownList}
+                                dropdownStyles={styles.dropdownList}
                                 dropdownItemStyles={styles.dropdownListItem}
                                 dropdownTextStyles={styles.dropdownListText}
                                 maxHeight={150}
@@ -322,11 +290,11 @@ const Dashboard = () => {
                                     save="key"
                                     style={styles.selectList}
                                     boxStyles={{
-                                        ...dynamicStyles.dropdownBox,
+                                        ...styles.dropdownBox,
                                         backgroundColor: 'rgba(153, 153, 153, 0.3)'
                                     }}
                                     inputStyles={getSelectListStyle(spaceType)}
-                                    dropdownStyles={dynamicStyles.dropdownList}
+                                    dropdownStyles={styles.dropdownList}
                                     dropdownItemStyles={styles.dropdownListItem}
                                     dropdownTextStyles={styles.dropdownListText}
                                     maxHeight={150}
@@ -336,7 +304,7 @@ const Dashboard = () => {
                             </View>
                         }
                         <TextInput
-                            style={[dynamicStyles.modalTextbox, { height: 60 }, getTextInputStyle(spaceNameField)]}
+                            style={[styles.modalTextbox, { height: 60 }, getTextInputStyle(spaceNameField)]}
                             onChangeText={setSpaceNameField}
                             value={spaceNameField}
                             placeholder='Name'
@@ -344,7 +312,7 @@ const Dashboard = () => {
                             testID='space-name-text-input'
                         />
                         <TextInput
-                            style={[dynamicStyles.modalTextbox, { height: 120, textAlignVertical: 'top' }, getTextInputStyle(spaceDescription)]}
+                            style={[styles.modalTextbox, { height: 120, textAlignVertical: 'top' }, getTextInputStyle(spaceDescription)]}
                             onChangeText={setSpaceDescription}
                             value={spaceDescription}
                             placeholder='Description'
@@ -354,11 +322,11 @@ const Dashboard = () => {
                             testID='space-description-text-input'
                         />
                         <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} testID='add-space-cancel-button' onPress={handleModalCancelPress}>
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonLeft]} testID='add-space-cancel-button' onPress={handleModalCancelPress}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextLeft]}>Cancel</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonSave]} testID='add-space-submit-button' onPress={handleSaveSpace}>
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>Submit</Text>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonRight]} testID='add-space-submit-button' onPress={handleSaveSpace}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>Submit</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -437,31 +405,59 @@ const styles = StyleSheet.create({
         padding: 20,
         backgroundColor: '#E2CFC8',
         borderRadius: 10,
-        alignItems: 'left',
+        maxWidth: 400
     },
     modalText: {
         fontSize: 18,
-        marginBottom: 13,
         marginLeft: 2,
         fontWeight: 'bold',
         color: '#3F4F5F'
     },
+    modalTextbox: {
+        width: '100%',
+        borderWidth: 1,
+        borderColor: '#3F4F5F',
+        borderRadius: 5,
+        paddingLeft: 7,
+        backgroundColor: 'rgba(205, 167, 175, 0.2)',
+        fontSize: 18,
+        marginBottom: 10,
+        color: '#3F4F5F'
+    },
+    dropdownBox: {
+        width: '100%',
+        height: 60,
+        borderColor: '#3F4F5F',
+        borderRadius: 5,
+        backgroundColor: 'rgba(205, 167, 175, 0.2)',
+        marginBottom: 10,
+        marginTop: 10,
+        alignItems: 'center',
+        paddingHorizontal: 7
+    },
+    dropdownList: {
+        borderColor: '#3F4F5F',
+        borderRadius: 5,
+        width: '100%',
+        marginTop: 0,
+        marginBottom: 25
+    },
     modalButtonsContainer: {
-        flexDirection: 'row'
+        flexDirection: 'row',
+        justifyContent: 'space-around'
     },
     modalButton: {
         marginTop: 10,
         padding: 10,
         borderRadius: 5,
-        width: '30%',
+        width: 150,
         height: 50,
-        marginRight: 10,
         justifyContent: 'center'
     },
-    modalButtonSave: {
+    modalButtonRight: {
         backgroundColor: '#3F4F5F',
     },
-    modalButtonCancel: {
+    modalButtonLeft: {
         borderWidth: 2,
         borderColor: '#3F4F5F'
     },
@@ -469,10 +465,10 @@ const styles = StyleSheet.create({
         fontSize: 18,
         textAlign: 'center'
     },
-    modalButtonTextSave: {
+    modalButtonTextRight: {
         color: '#E2CFC8'
     },
-    modalButtonTextCancel: {
+    modalButtonTextLeft: {
         color: '#3F4F5F'
     },
     dropdownInput: {
