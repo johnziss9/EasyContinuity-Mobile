@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useLayoutEffect } from 'react';
 import { BackHandler, Platform } from 'react-native';
-import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, useWindowDimensions, ActivityIndicator, ScrollView } from 'react-native';
+import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, ActivityIndicator, ScrollView } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import handleHttpRequest from '../api/api';
@@ -29,7 +29,6 @@ const Folder = () => {
     const [showConfirmationFolderModal, setShowConfirmationFolderModal] = useState(false);
     const [confirmationModalText, setConfirmationModalText] = useState('');
 
-    const { width } = useWindowDimensions();
     const route = useRoute();
     const navigation = useNavigation();
     const { spaceId, spaceName, folderId, folderName } = route.params;
@@ -344,22 +343,6 @@ const Folder = () => {
         }
     }
 
-    const dynamicStyles = {
-        modalTextbox: {
-            width: width < 600 ? '100%' : '61%',
-            height: 60,
-            borderWidth: 1,
-            borderColor: '#3F4F5F',
-            borderRadius: 5,
-            paddingLeft: 7,
-            marginTop: 7,
-            backgroundColor: 'rgba(205, 167, 175, 0.2)',
-            fontSize: 18,
-            marginBottom: 10,
-            color: '#3F4F5F'
-        }
-    };
-
     return (
         <View style={styles.container}>
 
@@ -375,14 +358,14 @@ const Folder = () => {
                         <Text style={styles.modalText}>{confirmationModalText}</Text>
                         <View style={styles.modalButtonsContainer}>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.modalButtonSave]}
+                                style={[styles.modalButton, styles.modalButtonRight]}
                                 testID='added-folder-confirm-button'
                                 onPress={() => {
                                     setShowConfirmationFolderModal(false);
                                     handleFetchAllFolderData();
                                 }}
                             >
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>OK</Text>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>OK</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -400,11 +383,11 @@ const Folder = () => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalText}>Delete Snapshot?</Text>
                         <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} testID='delete-snapshot-cancel-button' onPress={() => setShowDeleteSnapshotModal(false)}>
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonLeft]} testID='delete-snapshot-cancel-button' onPress={() => setShowDeleteSnapshotModal(false)}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextLeft]}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.modalButtonSave]}
+                                style={[styles.modalButton, styles.modalButtonRight]}
                                 testID='delete-snapshot-confirm-button'
                                 onPress={() => {
                                     setShowDeleteSnapshotModal(false);
@@ -412,7 +395,7 @@ const Folder = () => {
                                     setSnapshotToDelete(null); 
                                 }}
                             >
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>Delete</Text>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>Delete</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -430,11 +413,11 @@ const Folder = () => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalText}>Delete Folder?</Text>
                         <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} testID='delete-folder-cancel-button' onPress={() => setShowDeleteFolderModal(false)}>
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonLeft]} testID='delete-folder-cancel-button' onPress={() => setShowDeleteFolderModal(false)}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonLeftRight]}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.modalButtonSave]}
+                                style={[styles.modalButton, styles.modalButtonRight]}
                                 testID='delete-folder-confirm-button'
                                 onPress={() => {
                                     setShowDeleteFolderModal(false);
@@ -442,7 +425,7 @@ const Folder = () => {
                                     setFolderToDelete(null); 
                                 }}
                             >
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>Delete</Text>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>Delete</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -460,12 +443,12 @@ const Folder = () => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalText} accessibilityLabel="Add Item:">Add Item:</Text>
                         <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonFolder]} testID='add-new-folder-button' onPress={handleAddFolderPress}>
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextFolder]}>Folder</Text>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonLeft]} testID='add-new-folder-button' onPress={handleAddFolderPress}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextLeft]}>Folder</Text>
                             </TouchableOpacity>
                             {/* onPress={browseFiles} *** this should be going on where the file browsing button will be *** */}
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonSnapshot]} testID='add-new-snapshot-button' onPress={handleAddSnapshotPress}>
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextSnapshot]}>Snapshot</Text>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonRight]} testID='add-new-snapshot-button' onPress={handleAddSnapshotPress}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>Snapshot</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -483,19 +466,19 @@ const Folder = () => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalText} accessibilityLabel="Enter Folder Name:">Enter Folder Name:</Text>
                         <TextInput
-                            style={dynamicStyles.modalTextbox}
+                            style={styles.modalTextbox}
                             onChangeText={setFolderNameField}
                             value={folderNameField}
                             placeholder='Folder Name'
                             cursorColor={'#3F4F5F'}
                             testID='folder-name-text-input'
                         />
-                        <View style={styles.modalFolderButtonContainer}>
-                            <TouchableOpacity style={[styles.modalFolderButton, styles.modalButtonCancel]} testID='add-folder-cancel-button' onPress={handleCancelAddFolder}>
-                                <Text style={[styles.modalFolderButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
+                        <View style={styles.modalButtonsContainer}>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonLeft]} testID='add-folder-cancel-button' onPress={handleCancelAddFolder}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextLeft]}>Cancel</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalFolderButton, styles.modalButtonSave]} testID='add-folder-submit-button' onPress={handleCreateOrEditFolder}>
-                                <Text style={[styles.modalFolderButtonText, styles.modalButtonTextSave]}>Submit</Text>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonRight]} testID='add-folder-submit-button' onPress={handleCreateOrEditFolder}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>Submit</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -633,29 +616,43 @@ const styles = StyleSheet.create({
         width: '85%',
         padding: 20,
         backgroundColor: '#E2CFC8',
-        borderRadius: 10
+        borderRadius: 10,
+        maxWidth: 400
     },
     modalText: {
         fontSize: 18,
-        marginBottom: 5,
-        marginLeft: 5,
+        marginLeft: 2,
         color: '#3F4F5F',
         fontWeight: 'bold'
     },
+    modalTextbox: {
+        width: '100%',
+        height: 60,
+        borderWidth: 1,
+        borderColor: '#3F4F5F',
+        borderRadius: 5,
+        paddingLeft: 7,
+        marginTop: 10,
+        backgroundColor: 'rgba(205, 167, 175, 0.2)',
+        fontSize: 18,
+        marginBottom: 10,
+        color: '#3F4F5F'
+    },
     modalButtonsContainer: {
-        alignItems: 'center'
+        flexDirection: 'row',
+        justifyContent: 'space-around'
     },
     modalButton: {
+        marginTop: 10,
         borderRadius: 5,
-        width: '70%',
-        height: 60,
-        justifyContent: 'center',
-        margin: 10
+        width: 150,
+        height: 50,
+        justifyContent: 'center'
     },
-    modalButtonSnapshot: {
+    modalButtonRight: {
         backgroundColor: '#3F4F5F',
     },
-    modalButtonFolder: {
+    modalButtonLeft: {
         borderWidth: 2,
         borderColor: '#3F4F5F'
     },
@@ -663,39 +660,10 @@ const styles = StyleSheet.create({
         fontSize: 18,
         textAlign: 'center'
     },
-    modalButtonTextSnapshot: {
+    modalButtonTextRight: {
         color: '#E2CFC8'
     },
-    modalButtonTextFolder: {
-        color: '#3F4F5F'
-    },
-    modalFolderButtonContainer: {
-        flexDirection: 'row'
-    },
-    modalFolderButton: {
-        marginTop: 10,
-        padding: 10,
-        borderRadius: 5,
-        width: '30%',
-        height: 50,
-        marginRight: 10,
-        justifyContent: 'center'
-    },
-    modalFolderButtonText: {
-        fontSize: 18,
-        textAlign: 'center'
-    },
-    modalButtonSave: {
-        backgroundColor: '#3F4F5F',
-    },
-    modalButtonCancel: {
-        borderWidth: 2,
-        borderColor: '#3F4F5F'
-    },
-    modalButtonTextSave: {
-        color: '#E2CFC8'
-    },
-    modalButtonTextCancel: {
+    modalButtonTextLeft: {
         color: '#3F4F5F'
     },
     sortFilterContainer: {
