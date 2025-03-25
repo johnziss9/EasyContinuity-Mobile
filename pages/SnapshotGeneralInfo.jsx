@@ -459,14 +459,14 @@ const SnapshotGeneralInfo = () => {
                         <Text style={styles.modalText}>{confirmationModalText}</Text>
                         <View style={styles.modalButtonsContainer}>
                             <TouchableOpacity
-                                style={[styles.modalDeleteCharacterButton, styles.modalButtonSave]}
+                                style={[styles.modalButton, styles.modalButtonRight]}
                                 testID='addition-confirm-button'
                                 onPress={() => {
                                     setShowConfirmationModal(false);
                                     handleConfirmationModalOkPress();
                                 }}
                             >
-                                <Text style={[styles.buttonText, styles.buttonTextSave]}>OK</Text>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>OK</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -483,12 +483,12 @@ const SnapshotGeneralInfo = () => {
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
                         <Text style={styles.modalText}>Delete Character?</Text>
-                        <View style={styles.modalDeleteCharacterButtonsContainer}>
-                            <TouchableOpacity style={[styles.modalDeleteCharacterButton, styles.modalButtonCancel]} testID='delete-character-cancel-button' onPress={() => setShowDeleteCharacterModal(false)}>
-                                <Text style={[styles.buttonText, styles.buttonTextCancel]}>Cancel</Text>
+                        <View style={styles.modalButtonsContainer}>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonLeft]} testID='delete-character-cancel-button' onPress={() => setShowDeleteCharacterModal(false)}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextLeft]}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.modalDeleteCharacterButton, styles.modalButtonSave]}
+                                style={[styles.modalButton, styles.modalButtonRight]}
                                 testID='delete-character-confirm-button'
                                 onPress={() => {
                                     setShowDeleteCharacterModal(false);
@@ -496,7 +496,7 @@ const SnapshotGeneralInfo = () => {
                                     setCharacterToDelete(null); 
                                 }}
                             >
-                                <Text style={[styles.buttonText, styles.buttonTextSave]}>Delete</Text>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>Delete</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -528,8 +528,8 @@ const SnapshotGeneralInfo = () => {
                             </>
                         )}
                         <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity style={[styles.modalButton, styles.buttonSave]} testID='manage-characters-close-button' onPress={handleCloseManageCharacters}>
-                                <Text style={[styles.buttonText, styles.buttonTextSave]}>Close</Text>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonRight]} testID='manage-characters-close-button' onPress={handleCloseManageCharacters}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>Close</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -555,11 +555,11 @@ const SnapshotGeneralInfo = () => {
                             testID='character-name-text-input'
                         />
                         <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity style={[styles.modalButton, styles.buttonCancel]} testID='add-new-character-cancel-button' onPress={handleCancelAddOrEditCharacter}>
-                                <Text style={[styles.buttonText, styles.buttonTextCancel]}>Cancel</Text>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonLeft]} testID='add-new-character-cancel-button' onPress={handleCancelAddOrEditCharacter}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextLeft]}>Cancel</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalButton, styles.buttonSave]} testID='add-new-character-submit-button' onPress={handleCreateOrEditCharacter}>
-                                <Text style={[styles.buttonText, styles.buttonTextSave]}>Submit</Text>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonRight]} testID='add-new-character-submit-button' onPress={handleCreateOrEditCharacter}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>Submit</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -659,11 +659,11 @@ const SnapshotGeneralInfo = () => {
                     testID='snapshot-notes-text-input'
                 />
                 <View style={styles.formButtonsContainer}>
-                    <TouchableOpacity style={[styles.formButton, styles.buttonCancel]} onPress={handleNavigationOnConfirmOrCancel} testID='general-cancel-button'>
-                        <Text style={[styles.buttonText, styles.buttonTextCancel]}>Cancel</Text>
+                    <TouchableOpacity style={[styles.formButton, styles.modalButtonLeft]} onPress={handleNavigationOnConfirmOrCancel} testID='general-cancel-button'>
+                        <Text style={[styles.modalButtonText, styles.modalButtonTextLeft]}>Cancel</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.formButton, styles.buttonSave]} onPress={handleCreateOrEditSnapshot} testID='general-submit-button'>
-                        <Text style={[styles.buttonText, styles.buttonTextSave]}>Submit</Text>
+                    <TouchableOpacity style={[styles.formButton, styles.modalButtonRight]} onPress={handleCreateOrEditSnapshot} testID='general-submit-button'>
+                        <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>Submit</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
@@ -746,11 +746,11 @@ const styles = StyleSheet.create({
         textAlignVertical: 'top'
     },
     formButtonsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
         width: 300,
         marginLeft: 20,
-        marginBottom: 30
+        marginBottom: 30,
+        flexDirection: 'row',
+        justifyContent: 'space-between'
     },
     formButton: {
         padding: 10,
@@ -758,14 +758,6 @@ const styles = StyleSheet.create({
         width: 140,
         height: 50,
         justifyContent: 'center'
-    },
-    buttonSave: {
-        backgroundColor: '#3F4F5F',
-    },
-    buttonCancel: {
-        borderWidth: 2,
-        borderColor: '#3F4F5F',
-        marginRight: 10
     },
     modalContainer: {
         flex: 1,
@@ -777,11 +769,11 @@ const styles = StyleSheet.create({
         width: '85%',
         padding: 20,
         backgroundColor: '#E2CFC8',
-        borderRadius: 10
+        borderRadius: 10,
+        maxWidth: 400
     },
     modalText: {
-        fontSize: 20,
-        marginBottom: 12,
+        fontSize: 18,
         marginLeft: 2,
         fontWeight: 'bold',
         color: '#3F4F5F'
@@ -795,60 +787,45 @@ const styles = StyleSheet.create({
         marginBottom: 25,
     },
     modalTextbox: {
-        width: 300,
+        width: '100%',
         height: 60,
         borderWidth: 1,
         borderColor: '#3F4F5F',
         borderRadius: 5,
         paddingLeft: 7,
+        marginTop: 10,
         backgroundColor: 'rgba(205, 167, 175, 0.2)',
         fontSize: 18,
         marginBottom: 10,
         color: '#3F4F5F'
     },
     modalButtonsContainer: {
-        flexDirection: 'row'
+        flexDirection: 'row',
+        justifyContent: 'space-around'
     },
     modalButton: {
         marginTop: 10,
-        padding: 10,
         borderRadius: 5,
-        width: '30%',
+        width: 150,
         height: 50,
         justifyContent: 'center'
     },
-    buttonText: {
-        fontSize: 18,
-        textAlign: 'center'
-    },
-    buttonTextSave: {
-        color: '#E2CFC8'
-    },
-    buttonTextCancel: {
-        color: '#3F4F5F'
-    },
-    modalButtonSave: {
+    modalButtonRight: {
         backgroundColor: '#3F4F5F',
     },
-    modalButtonCancel: {
+    modalButtonLeft: {
         borderWidth: 2,
         borderColor: '#3F4F5F'
     },
-    modalButtonTextSave: {
+    modalButtonText: {
+        fontSize: 18,
+        textAlign: 'center'
+    },
+    modalButtonTextRight: {
         color: '#E2CFC8'
     },
-    modalButtonTextCancel: {
+    modalButtonTextLeft: {
         color: '#3F4F5F'
-    },
-    modalDeleteCharacterButtonsContainer: {
-        alignItems: 'center'
-    },
-    modalDeleteCharacterButton: {
-        borderRadius: 5,
-        width: '70%',
-        height: 60,
-        justifyContent: 'center',
-        margin: 10
     },
     characterLabel: {
         flexDirection: 'row',

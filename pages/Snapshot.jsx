@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { StyleSheet, View, Text, ScrollView, Modal, Image, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, Modal, Image, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import ImageGrid from '../components/ImageGrid';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -236,18 +236,18 @@ const Snapshot = () => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalText}>Delete Snapshot?</Text>
                         <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} testID='delete-snapshot-cancel-button' onPress={() => setShowDeleteSnapshotModal(false)}>
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonLeft]} testID='delete-snapshot-cancel-button' onPress={() => setShowDeleteSnapshotModal(false)}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextLeft]}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.modalButtonSave]}
+                                style={[styles.modalButton, styles.modalButtonRight]}
                                 testID='delete-snapshot-confirm-button'
                                 onPress={() => {
                                     setShowDeleteSnapshotModal(false);
                                     handleConfirmDeleteSnapshotPress();
                                 }}
                             >
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>Delete</Text>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>Delete</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -410,40 +410,41 @@ const styles = StyleSheet.create({
         width: '85%',
         padding: 20,
         backgroundColor: '#E2CFC8',
-        borderRadius: 10
+        borderRadius: 10,
+        maxWidth: 400
     },
     modalText: {
         fontSize: 18,
-        marginBottom: 5,
-        marginLeft: 5,
+        marginLeft: 2,
         color: '#3F4F5F',
         fontWeight: 'bold'
     },
     modalButtonsContainer: {
-        alignItems: 'center'
+        flexDirection: 'row',
+        justifyContent: 'space-around'
     },
     modalButton: {
+        marginTop: 10,
         borderRadius: 5,
-        width: '70%',
-        height: 60,
-        justifyContent: 'center',
-        margin: 10
+        width: 150,
+        height: 50,
+        justifyContent: 'center'
     },
     modalButtonText: {
         fontSize: 18,
         textAlign: 'center'
     },
-    modalButtonSave: {
+    modalButtonRight: {
         backgroundColor: '#3F4F5F',
     },
-    modalButtonCancel: {
+    modalButtonLeft: {
         borderWidth: 2,
         borderColor: '#3F4F5F'
     },
-    modalButtonTextSave: {
+    modalButtonTextRight: {
         color: '#E2CFC8'
     },
-    modalButtonTextCancel: {
+    modalButtonTextLeft: {
         color: '#3F4F5F'
     },
     imageSection: {
