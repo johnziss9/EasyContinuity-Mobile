@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Image, View, Text, TouchableOpacity, TextInput, FlatList, Pressable, Modal, useWindowDimensions } from 'react-native';
+import { StyleSheet, Image, View, Text, TouchableOpacity, TextInput, FlatList, Pressable, Modal } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useFileBrowser from '../hooks/useFileBrowser';
 import handleHttpRequest from '../api/api';
@@ -9,7 +9,6 @@ import { useRoute } from '@react-navigation/native';
 const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
     const route = useRoute();
     const { shouldOpenFileBrowser } = route.params || {};
-    const { width } = useWindowDimensions();
 
     const { browseFiles, clearFiles } = useFileBrowser({
         fileTypes: ['image/jpeg', 'image/jpg', 'image/png']
@@ -22,6 +21,7 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [showEditImageModal, setShowEditImageModal] = useState(false);
     const [showEditImageConfirmationModal, setShowEditImageConfirmationModal] = useState(false);
+    const [showDeleteImageConfirmationModal, setShowDeleteImageConfirmationModal] = useState(false);
     const [showImageModal, setShowImageModal] = useState(false);
     const [imageExtension, setImageExtension] = useState('');
     const [imageName, setImageName] = useState('');
@@ -230,7 +230,7 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
         setImageName('');
     }
 
-    const handleDeleteImage = (item) => {
+    const handleDeleteImage = async (item) => {
         if (item.isPreview) {
             // Handle preview image deletion
             setSelectedFiles(prevFiles => {
@@ -244,10 +244,30 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                 return newFiles;
             });
         } else {
-            // Handle uploaded image deletion
-            setAttachments(prevAttachments =>
-                prevAttachments.filter(att => att.id !== item.id)
-            );
+            try {
+                const url = `/attachment/${item.id}`;
+                const method = 'PUT';
+                const body = {
+                    isDeleted: true,
+                    deletedOn: new Date().toISOString()
+                };
+    
+                const response = await handleHttpRequest(url, method, body);
+    
+                if (response.success) {
+                    setShowDeleteImageConfirmationModal(true);
+                } else {
+                    // TODO: Show error toast to user
+                    console.error('Failed to delete attachment:', response.error);
+                }
+            } catch (error) {
+                // TODO: Show error toast to user
+                console.error('Error deleting attachment:', {
+                    message: error.message,
+                    stack: error.stack,
+                    error: error.toString()
+                });
+            }
         }
     };
 
@@ -306,24 +326,34 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
         );
     };
 
-    const dynamicStyles = {
-        modalTextbox: {
-            width: width < 600 ? '100%' : '61%',
-            height: 60,
-            borderWidth: 1,
-            borderColor: '#3F4F5F',
-            borderRadius: 5,
-            paddingLeft: 7,
-            marginTop: 7,
-            backgroundColor: 'rgba(205, 167, 175, 0.2)',
-            fontSize: 18,
-            marginBottom: 10,
-            color: '#3F4F5F'
-        }
-    };
-
     return (
         <View style={styles.container}>
+            {/* Deleted Image Name Confirmation Modal */}
+            <Modal
+                transparent={true}
+                animationType="fade"
+                visible={showDeleteImageConfirmationModal}
+                onRequestClose={() => setShowDeleteImageConfirmationModal(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalText}>Image Deleted Successfully</Text>
+                        <View style={styles.modalButtonsContainer}>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.modalButtonRight]}
+                                testID='deleted-image-name-confirm-button'
+                                onPress={() => {
+                                    setShowDeleteImageConfirmationModal(false);
+                                    fetchAttachments();
+                                }}
+                            >
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>OK</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+            
             {/* Edited Image Name Confirmation Modal */}
             <Modal
                 transparent={true}
@@ -336,14 +366,14 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                         <Text style={styles.modalText}>Image Name Updated Successfully</Text>
                         <View style={styles.modalButtonsContainer}>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.modalButtonSave]}
+                                style={[styles.modalButton, styles.modalButtonRight]}
                                 testID='edited-image-name-confirm-button'
                                 onPress={() => {
                                     setShowEditImageConfirmationModal(false);
                                     fetchAttachments();
                                 }}
                             >
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextSave]}>OK</Text>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>OK</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -362,19 +392,19 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalText} accessibilityLabel="Enter Image Name:">Enter Image Name:</Text>
                         <TextInput
-                            style={dynamicStyles.modalTextbox}
+                            style={styles.modalTextbox}
                             onChangeText={setImageName}
                             value={imageName}
                             placeholder='Image Name'
                             cursorColor={'#3F4F5F'}
                             testID='image-name-text-input'
                         />
-                        <View style={styles.modalImageButtonContainer}>
-                            <TouchableOpacity style={[styles.modalEditImageButton, styles.modalButtonCancel]} testID='edit-image-name-cancel-button' onPress={handleCancelEditImage}>
-                                <Text style={[styles.modalEditImageButtonText, styles.modalButtonTextCancel]}>Cancel</Text>
+                        <View style={styles.modalButtonsContainer}>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonLeft]} testID='edit-image-name-cancel-button' onPress={handleCancelEditImage}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextLeft]}>Cancel</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalEditImageButton, styles.modalButtonSave]} testID='edit-image-name-submit-button' onPress={handleSubmitEditImage}>
-                                <Text style={[styles.modalEditImageButtonText, styles.modalButtonTextSave]}>Submit</Text>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonRight]} testID='edit-image-name-submit-button' onPress={handleSubmitEditImage}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>Submit</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -519,11 +549,6 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: '#CDA7AF'
     },
-    previewText: {
-        color: '#CDA7AF',
-        fontSize: 12,
-        fontStyle: 'italic'
-    },
     viewButton: {
         position: 'absolute',
         bottom: 18,
@@ -589,53 +614,53 @@ const styles = StyleSheet.create({
         padding: 20,
         backgroundColor: '#E2CFC8',
         borderRadius: 10,
-        alignItems: 'left',
+        maxWidth: 400
     },
     modalText: {
         fontSize: 18,
-        marginBottom: 13,
         marginLeft: 2,
         fontWeight: 'bold',
         color: '#3F4F5F'
     },
-    modalImageButtonContainer: {
-        flexDirection: 'row'
-    },
-    modalEditImageButton: {
-        marginTop: 10,
-        padding: 10,
+    modalTextbox: {
+        width: '100%',
+        height: 60,
+        borderWidth: 1,
+        borderColor: '#3F4F5F',
         borderRadius: 5,
-        width: '30%',
-        height: 50,
-        marginRight: 10,
-        justifyContent: 'center'
-    },
-    modalEditImageButtonText: {
+        paddingLeft: 7,
+        marginTop: 10,
+        backgroundColor: 'rgba(205, 167, 175, 0.2)',
         fontSize: 18,
-        textAlign: 'center'
+        marginBottom: 10,
+        color: '#3F4F5F'
+    },
+    modalButtonsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around'
     },
     modalButton: {
+        marginTop: 10,
         borderRadius: 5,
-        width: '70%',
-        height: 60,
-        justifyContent: 'center',
-        margin: 10
+        width: 150,
+        height: 50,
+        justifyContent: 'center'
+    },
+    modalButtonRight: {
+        backgroundColor: '#3F4F5F',
+    },
+    modalButtonLeft: {
+        borderWidth: 2,
+        borderColor: '#3F4F5F'
     },
     modalButtonText: {
         fontSize: 18,
         textAlign: 'center'
     },
-    modalButtonSave: {
-        backgroundColor: '#3F4F5F',
-    },
-    modalButtonCancel: {
-        borderWidth: 2,
-        borderColor: '#3F4F5F'
-    },
-    modalButtonTextSave: {
+    modalButtonTextRight: {
         color: '#E2CFC8'
     },
-    modalButtonTextCancel: {
+    modalButtonTextLeft: {
         color: '#3F4F5F'
     },
     modalViewImage: {
