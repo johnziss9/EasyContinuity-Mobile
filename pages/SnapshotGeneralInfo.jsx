@@ -5,11 +5,12 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import handleHttpRequest from '../api/api';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CharacterCard from '../components/CharacterCard';
+import ToastNotification from '../utils/ToastNotification';
 
 const SnapshotGeneralInfo = () => {
 
     const route = useRoute();
-    const { isNewSnapshot, spaceId, spaceName, folderId, folderName, snapshotId, snapshotName } = route.params;
+    const { isNewSnapshot, spaceId, spaceName, folderId, folderName, snapshotId } = route.params;
 
     const navigation = useNavigation();
     const { width } = useWindowDimensions();
@@ -31,14 +32,12 @@ const SnapshotGeneralInfo = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [characterToDelete, setCharacterToDelete] = useState(null);
     const [characterAdded, setCharacterAdded] = useState(null);
-    const [confirmationModalText, setConfirmationModalText] = useState('');
     const [isCharacterNew, setIsCharacterNew] = useState(false);
     const [confirmationModal, setConfirmationModal] = useState('');
 
     const [showAddCharacterModal, setShowAddCharacterModal] = useState(false);
     const [showManageCharactersModal, setShowManageCharactersModal] = useState(false);
     const [showDeleteCharacterModal, setShowDeleteCharacterModal] = useState(false);
-    const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
     useEffect(() => {
         handleGetSpaceType();
@@ -60,9 +59,14 @@ const SnapshotGeneralInfo = () => {
         }
     }, [snapshot, isNewSnapshot]);
 
+    useEffect(() => {
+        if (confirmationModal) {
+            handleConfirmationModalOkPress();
+        }
+    }, [confirmationModal]);
+
     const handleConfirmationModalOkPress = () => {
         if (confirmationModal === 'Snapshot') {
-            setShowConfirmationModal(false);
             handleNavigationOnConfirmOrCancel();
         } else if (confirmationModal === 'Character') {
             handleCharacterConfirmation();
@@ -138,7 +142,7 @@ const SnapshotGeneralInfo = () => {
             const deleteResponse = await handleHttpRequest(deleteUrl, deleteMethod, deleteBody);
             
             if (deleteResponse.success) {
-                // TODO Show success toast
+                ToastNotification.show('success', 'Success', 'Character Deleted Successfully');
 
                 // API Call 1 - Get all snapshots
                 const snapshotsUrl = `/snapshot/space/${spaceId}`;
@@ -163,14 +167,12 @@ const SnapshotGeneralInfo = () => {
                         const updateResponse = await handleHttpRequest(updateUrl, updateMethod, updateBody);
 
                         if (!updateResponse) {
-                            // TODO Replace error with fail toast
-                            throw new Error(updateResponse.error);
+                            ToastNotification.show('error', 'Error', updateResponse.error);
                         }
 
                     }
                 } else {
-                    // TODO Replace error with fail toast
-                    throw new Error(deleteResponse.error);
+                    ToastNotification.show('error', 'Error', deleteResponse.error);
                 }
 
                 // API Call 3 - Update character list in the UI
@@ -192,16 +194,10 @@ const SnapshotGeneralInfo = () => {
                     handleCloseManageCharacters();
                 }
             } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error Deleting Character:', error);
-
-            // TODO Replace error with fail toast
-            throw error;
-        } finally {
-            // TODO Show deletion confirmation
+            ToastNotification.show('error', 'Error', 'Failed to delete character');
         }
     }
 
@@ -224,14 +220,10 @@ const SnapshotGeneralInfo = () => {
             if (response.success) {
                 setSpaceType(response.data.type);
             } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error Getting Space Type:', error);
-
-            // TODO Replace error with fail toast
-            throw error;
+            ToastNotification.show('error', 'Error', 'Failed to get space type');
         }
     }
 
@@ -245,14 +237,10 @@ const SnapshotGeneralInfo = () => {
             if (response.success) {
                 setSnapshot(response.data);
             } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error Getting Snapshot:', error);
-
-            // TODO Replace error with fail toast
-            throw error;
+            ToastNotification.show('error', 'Error', 'Failed to load snapshot');
         }
     }
 
@@ -293,18 +281,13 @@ const SnapshotGeneralInfo = () => {
                 const response = await handleHttpRequest(url, method, body);
 
                 if (response.success) {
-                    setConfirmationModalText('Snapshot Added Successfully');
+                    ToastNotification.show('success', 'Success', 'Snapshot Added Successfully');
                     setConfirmationModal('Snapshot');
-                    setShowConfirmationModal(true);
                 } else {
-                    // TODO Replace error with fail toast
-                    throw new Error(response.error);
+                    ToastNotification.show('error', 'Error', response.error);
                 }
             } catch (error) {
-                console.error('Error Creating Snapshot:', error);
-
-                // TODO Replace error with fail toast
-                throw error;
+                ToastNotification.show('error', 'Error', 'Failed to create snapshot');
             }
         }
         else {
@@ -328,19 +311,13 @@ const SnapshotGeneralInfo = () => {
                 const response = await handleHttpRequest(url, method, body);
 
                 if (response.success) {
-                    setConfirmationModalText('Snapshot Updated Successfully');
+                    ToastNotification.show('success', 'Success', 'Snapshot General Details Updated Successfully');
                     setConfirmationModal('Snapshot');
-                    setShowConfirmationModal(true);
-                    // navigation.navigate('Snapshot', { spaceId: spaceId, spaceName: spaceName, folderId: folderId, folderName: folderName, snapshotId: snapshotId, snapshotName: name });
                 } else {
-                    // TODO Replace error with fail toast
-                    throw new Error(response.error);
+                    ToastNotification.show('error', 'Error', response.error);
                 }
             } catch (error) {
-                console.error('Error Updating Snapshot:', error);
-
-                // TODO Replace error with fail toast
-                throw error;
+                ToastNotification.show('error', 'Error', 'Failed to update snapshot');
             }
         }
     }
@@ -360,20 +337,15 @@ const SnapshotGeneralInfo = () => {
                 const response = await handleHttpRequest(url, method, body);
 
                 if (response.success) {
-                    setConfirmationModalText('Character Added Successfully');
+                    ToastNotification.show('success', 'Success', 'Character Added Successfully');
                     setConfirmationModal('Character');
                     setIsCharacterNew(true);
-                    setShowConfirmationModal(true);
-                    setCharacterAdded(response.data.id); // This is used to select the new character on the SelectList   
+                    setCharacterAdded(response.data.id); // This is used to select the new character on the SelectList
                 } else {
-                    // TODO Replace error with fail toast
-                    throw new Error(response.error);
+                    ToastNotification.show('error', 'Error', response.error);
                 }
             } catch (error) {
-                console.error('Error Creating Character:', error);
-
-                // TODO Replace error with fail toast
-                throw error;
+                ToastNotification.show('error', 'Error', 'Failed to create character');
             } finally {
                 setShowAddCharacterModal(false);
                 setCharacterName('');
@@ -391,20 +363,14 @@ const SnapshotGeneralInfo = () => {
                 const response = await handleHttpRequest(url, method, body);
 
                 if (response.success) {
-                    // TODO Show success toast
-                    setConfirmationModalText('Character Updated Successfully');
+                    ToastNotification.show('success', 'Success', 'Character Updated Successfully');
                     setConfirmationModal('Character');
                     setIsCharacterNew(false);
-                    setShowConfirmationModal(true);
                 } else {
-                    // TODO Replace error with fail toast
-                    throw new Error(response.error);
+                    ToastNotification.show('error', 'Error', response.error);
                 }
             } catch (error) {
-                console.error('Error Updating Character:', error);
-
-                // TODO Replace error with fail toast
-                throw error;
+                ToastNotification.show('error', 'Error', 'Failed to update character');
             } finally {
                 setShowAddCharacterModal(false);
                 setIsEditing(false);
@@ -431,14 +397,10 @@ const SnapshotGeneralInfo = () => {
                 ];
                 setCharacters(formattedCharacters);
             } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error Getting Characters:', error);
-
-            // TODO Replace error with fail toast
-            throw error;
+            ToastNotification.show('error', 'Error', 'Failed to load characters');
         } finally {
             setIsLoading(false);
         }
@@ -446,32 +408,6 @@ const SnapshotGeneralInfo = () => {
 
     return (
         <View style={dynamicStyles.container}>
-
-            {/* Added/Updated Snapshot/Character confirmation modal */}
-            <Modal
-                transparent={true}
-                animationType="fade"
-                visible={showConfirmationModal}
-                onRequestClose={() => setShowConfirmationModal(false)}
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalText}>{confirmationModalText}</Text>
-                        <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity
-                                style={[styles.modalButton, styles.modalButtonRight]}
-                                testID='addition-confirm-button'
-                                onPress={() => {
-                                    setShowConfirmationModal(false);
-                                    handleConfirmationModalOkPress();
-                                }}
-                            >
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>OK</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
 
             {/* Delete confirmation modal */}
             <Modal

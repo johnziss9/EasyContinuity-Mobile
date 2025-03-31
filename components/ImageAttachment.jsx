@@ -4,6 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import useFileBrowser from '../hooks/useFileBrowser';
 import handleHttpRequest from '../api/api';
 import { useRoute } from '@react-navigation/native';
+import ToastNotification from '../utils/ToastNotification';
 
 
 const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
@@ -60,16 +61,10 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
 
                 setAttachments(transformedAttachments);
             } else {
-                console.error('Failed to fetch attachments:', response.error);
-                // TODO: Show error toast to user
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error fetching attachments:', {
-                message: error.message,
-                stack: error.stack,
-                error: error.toString()
-            });
-            // TODO: Show error toast to user
+            ToastNotification.show('error', 'Error', 'Failed to load attachments');
         } finally {
             setIsLoading(false);
         }
@@ -110,8 +105,8 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
 
             selectedFiles.forEach((file, index) => {
                 const cleanFileName = file.name
-                    .replace(/[^a-zA-Z0-9.\(\)\-\[\]]/g, '_')  // Replace special chars with underscore
-                    .replace(/_+/g, '_');            // Replace multiple underscores with single one
+                    .replace(/[^a-zA-Z0-9.\(\)\-\[\]]/g, '_') // Replace special chars with underscore
+                    .replace(/_+/g, '_'); // Replace multiple underscores with single one
 
                 formData.append('files', {
                     uri: file.source.uri,
@@ -137,12 +132,10 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
 
                 await fetchAttachments();
             } else {
-                console.error('Upload failed:', response.error);
-                // TODO: Show error toast to user
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Upload error:', { message: error.message, stack: error.stack, error: error.toString() });
-            // TODO: Show error toast to user
+            ToastNotification.show('error', 'Error', 'Failed to upload attachments');
         } finally {
             setIsUploading(false);
         }
@@ -185,14 +178,10 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
             if (response.success) {
                 setShowEditImageConfirmationModal(true);
             } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error Updating Image Name:', error);
-
-            // TODO Replace error with fail toast
-            throw error;
+            ToastNotification.show('error', 'Error', 'Failed to update image name');
         } finally {
             setShowEditImageModal(false);
             setImageName('');
@@ -257,16 +246,10 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                 if (response.success) {
                     setShowDeleteImageConfirmationModal(true);
                 } else {
-                    // TODO: Show error toast to user
-                    console.error('Failed to delete attachment:', response.error);
+                    ToastNotification.show('error', 'Error', response.error);
                 }
             } catch (error) {
-                // TODO: Show error toast to user
-                console.error('Error deleting attachment:', {
-                    message: error.message,
-                    stack: error.stack,
-                    error: error.toString()
-                });
+                ToastNotification.show('error', 'Error', 'Failed to delete image');
             }
         }
     };

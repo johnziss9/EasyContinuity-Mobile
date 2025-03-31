@@ -6,6 +6,7 @@ import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/nativ
 import handleHttpRequest from '../api/api';
 import FolderCard from '../components/FolderCard';
 import SnapshotCard from '../components/SnapshotCard';
+import ToastNotification from '../utils/ToastNotification';
 
 const Folder = () => {
 
@@ -114,19 +115,14 @@ const Folder = () => {
             const response = await handleHttpRequest(url, method, body);
 
             if (response.success) {
-                // TODO Show success toast
                 handleFetchAllFolderData();
+                ToastNotification.show('success', 'Success', 'Snapshot Deleted Successfully');
             } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error Deleting Snapshot:', error);
-
-            // TODO Replace error with fail toast
+            ToastNotification.show('error', 'Error', 'Failed to delete snapshot');
             throw error;
-        } finally {
-            // TODO Show deletion confirmation
         }
     }
 
@@ -144,19 +140,14 @@ const Folder = () => {
             const response = await handleHttpRequest(url, method, body);
 
             if (response.success) {
-                // TODO Show success toast
                 handleFetchAllFolderData();
+                ToastNotification.show('success', 'Success', 'Folder Deleted Successfully');
             } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error Deleting Folder:', error);
-
-            // TODO Replace error with fail toast
+            ToastNotification.show('error', 'Error', 'Failed to delete folder');
             throw error;
-        } finally {
-            // TODO Show deletion confirmation
         }
     }
 
@@ -215,8 +206,7 @@ const Folder = () => {
                 });
             }
         } catch (error) {
-            console.error('Error fetching folder data:', error);
-            // TODO: Show error toast
+            ToastNotification.show('error', 'Error', 'Failed to load folder data');
         } finally {
             setIsLoading(false);
         }
@@ -297,14 +287,10 @@ const Folder = () => {
                     setConfirmationModalText('Folder Updated Successfully');
                     setShowConfirmationFolderModal(true);
                 } else {
-                    // TODO Replace error with fail toast
-                    throw new Error(response.error);
+                    ToastNotification.show('error', 'Error', response.error);
                 }
             } catch (error) {
-                console.error('Error Updating Folder:', error);
-    
-                // TODO Replace error with fail toast
-                throw error;
+                ToastNotification.show('error', 'Error', 'Failed to update folder');
             } finally {
                 setShowAddNewFolderModal(false);
                 setFolderNameField('');
@@ -328,17 +314,13 @@ const Folder = () => {
                     setConfirmationModalText('Folder Added Successfully');
                     setShowConfirmationFolderModal(true);
                 } else {
-                    // TODO Replace error with fail toast
-                    throw new Error(response.error);
+                    ToastNotification.show('error', 'Error', response.error);
                 }
 
                 setShowAddNewFolderModal(false);
                 setFolderNameField('');
             } catch (error) {
-                console.error('Error Creating Folder:', error);
-
-                // TODO Replace error with fail toast
-                throw error;
+                ToastNotification.show('error', 'Error', 'Failed to create folder');
             }
         }
     }
