@@ -6,6 +6,7 @@ import SnapshotCard from '../components/SnapshotCard';
 import FolderCard from '../components/FolderCard';
 import handleHttpRequest from '../api/api';
 import SearchBar from '../components/SearchBar';
+import ToastNotification from '../utils/ToastNotification';
 
 const Space = () => {
     const navigation = useNavigation();
@@ -18,7 +19,6 @@ const Space = () => {
     const [showSortByModal, setShowSortByModal] = useState(false);
     const [showDeleteFolderModal, setShowDeleteFolderModal] = useState(false);
     const [showDeleteSnapshotModal, setShowDeleteSnapshotModal] = useState(false);
-    const [showConfirmationFolderModal, setShowConfirmationFolderModal] = useState(false);
 
     const [folderName, setFolderName] = useState('');
     const [currentFolderId, setCurrentFolderId] = useState(0);
@@ -31,7 +31,6 @@ const Space = () => {
     const [currentSort, setCurrentSort] = useState({ id: 1, label: 'Date: Newest First' });
     const [folderToDelete, setFolderToDelete] = useState(null);
     const [snapshotToDelete, setSnapshotToDelete] = useState(null);
-    const [confirmationModalText, setConfirmationModalText] = useState('');
 
     const sortOptions = [
         { id: 1, label: 'Date: Newest First' },
@@ -148,19 +147,13 @@ const Space = () => {
             const response = await handleHttpRequest(url, method, body);
 
             if (response.success) {
-                // TODO Show success toast
                 handleFetchSpaceItems();
+                ToastNotification.show('success', 'Success', 'Snapshot Deleted Successfully');
             } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error Deleting Snapshot:', error);
-
-            // TODO Replace error with fail toast
-            throw error;
-        } finally {
-            // TODO Show deletion confirmation
+            ToastNotification.show('error', 'Error', 'Failed to delete snapshot');
         }
     }
 
@@ -178,19 +171,13 @@ const Space = () => {
             const response = await handleHttpRequest(url, method, body);
 
             if (response.success) {
-                // TODO Show success toast
                 handleFetchSpaceItems();
+                ToastNotification.show('success', 'Success', 'Folder Deleted Successfully');
             } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error Deleting Folder:', error);
-
-            // TODO Replace error with fail toast
-            throw error;
-        } finally {
-            // TODO Show deletion confirmation
+            ToastNotification.show('error', 'Error', 'Failed to delete folder');
         }
     }
 
@@ -204,14 +191,11 @@ const Space = () => {
             const url = `/space/${spaceId}/search?query=${encodeURIComponent(searchQuery)}`;
             const method = 'GET';
 
-            console.log(url);
-
             const response = await handleHttpRequest(url, method);
 
-            console.log(response);
-
             if (!response.success) {
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
+                return;
             }
 
             // Transform results to include type information
@@ -239,8 +223,7 @@ const Space = () => {
 
             setSearchResults(resultsWithType);
         } catch (error) {
-            console.error('Search failed:', error);
-            // TODO: Show error toast
+            ToastNotification.show('error', 'Error', 'Failed to load search results');
         } finally {
             setIsLoading(false);
         }
@@ -270,17 +253,13 @@ const Space = () => {
                 const response = await handleHttpRequest(url, method, body);
 
                 if (response.success) {
-                    setConfirmationModalText('Folder Updated Successfully');
-                    setShowConfirmationFolderModal(true);
+                    handleFetchSpaceItems();
+                    ToastNotification.show('success', 'Success', 'Folder Updated Successfully');
                 } else {
-                    // TODO Replace error with fail toast
-                    throw new Error(response.error);
+                    ToastNotification.show('error', 'Error', response.error);
                 }
             } catch (error) {
-                console.error('Error Updating Folder:', error);
-
-                // TODO Replace error with fail toast
-                throw error;
+                ToastNotification.show('error', 'Error', 'Failed to update folder');
             } finally {
                 setShowAddNewFolderModal(false);
                 setFolderName('');
@@ -300,20 +279,16 @@ const Space = () => {
                 const response = await handleHttpRequest(url, method, body);
 
                 if (response.success) {
-                    setConfirmationModalText('Folder Added Successfully');
-                    setShowConfirmationFolderModal(true);
+                    handleFetchSpaceItems();
+                    ToastNotification.show('success', 'Success', 'Folder Added Successfully');
                 } else {
-                    // TODO Replace error with fail toast
-                    throw new Error(response.error);
+                    ToastNotification.show('error', 'Error', response.error);
                 }
 
                 setShowAddNewFolderModal(false);
                 setFolderName('');
             } catch (error) {
-                console.error('Error Creating Folder:', error);
-
-                // TODO Replace error with fail toast
-                throw error;
+                ToastNotification.show('error', 'Error', 'Failed to add folder');
             }
         }
     }
@@ -328,8 +303,7 @@ const Space = () => {
             ]);
 
             if (!foldersResponse.success || !snapshotsResponse.success) {
-                // TODO Handle error and show toaster
-                throw new Error(foldersResponse.error || snapshotsResponse.error);
+                ToastNotification.show('error', 'Error', foldersResponse.error || snapshotsResponse.error);
             }
 
             const rootFolders = foldersResponse.data.filter(folder => folder.parentId === null);
@@ -342,9 +316,7 @@ const Space = () => {
             setFolders(sortedFolders);
             setSnapshots(sortedSnapshots);
         } catch (error) {
-            console.error('Error fetching items:', error);
-            // TODO Replace with fail toast
-            throw error;
+            ToastNotification.show('error', 'Error', 'Failed to load items');
         } finally {
             setIsLoading(false);
         }
@@ -352,32 +324,6 @@ const Space = () => {
     
     return (
         <View style={styles.container}>
-
-            {/* Added/Updated Folder Confirmation Modal */}
-            <Modal
-                transparent={true}
-                animationType="fade"
-                visible={showConfirmationFolderModal}
-                onRequestClose={() => setShowConfirmationFolderModal(false)}
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalText}>{confirmationModalText}</Text>
-                        <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity
-                                style={[styles.modalButton, styles.modalButtonRight]}
-                                testID='added-folder-confirm-button'
-                                onPress={() => {
-                                    setShowConfirmationFolderModal(false);
-                                    handleFetchSpaceItems();
-                                }}
-                            >
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>OK</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
 
             {/* Delete Snapshot Confirmation Modal */}
             <Modal

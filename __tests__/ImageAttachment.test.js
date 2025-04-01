@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import ImageAttachment from '../components/ImageAttachment';
 import handleHttpRequest from '../api/api';
-import useFileBrowser from '../hooks/useFileBrowser';
+import ToastNotification from '../utils/ToastNotification';
 
 // Mock the API request handler
 jest.mock('../api/api', () => jest.fn());
@@ -38,9 +38,15 @@ const mockFile = {
     mimeType: 'image/jpeg'
 };
 
+// Mock for ToastNotification
+jest.mock('../utils/ToastNotification', () => ({
+    show: jest.fn()
+}));
+
 describe('ImageAttachment', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        ToastNotification.show.mockClear();
         mockBrowseFiles.mockResolvedValue([mockFile]);
         // Default mock for handleHttpRequest
         handleHttpRequest.mockResolvedValue({
@@ -436,42 +442,6 @@ describe('ImageAttachment', () => {
         });
     });
 
-    it('should handle fetch attachments error', async () => {
-        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
-        handleHttpRequest.mockRejectedValueOnce(new Error('Network error'));
-
-        const rendered = render(<ImageAttachment spaceId="123" snapshotId="456" />);
-
-        await waitFor(() => {
-            expect(rendered.getByText('No Images. Tap + to add.')).toBeTruthy();
-        });
-
-        expect(consoleErrorSpy).toHaveBeenCalled();
-        consoleErrorSpy.mockRestore();
-    });
-
-    it('should handle upload error', async () => {
-        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
-        handleHttpRequest
-            .mockResolvedValueOnce({ success: true, data: [] })
-            .mockRejectedValueOnce(new Error('Upload failed'));
-
-        const rendered = render(<ImageAttachment spaceId="123" />);
-
-        await act(async () => {
-            fireEvent.press(rendered.getByTestId('add-image-button'));
-            await mockBrowseFiles();
-        });
-
-        await act(async () => {
-            fireEvent.press(rendered.getByText('Upload Selected Files'));
-        });
-
-        expect(consoleErrorSpy).toHaveBeenCalled();
-        expect(rendered.queryByText('Uploading...')).toBeNull();
-        consoleErrorSpy.mockRestore();
-    });
-
     it('should handle empty file browser result', async () => {
         mockBrowseFiles.mockResolvedValueOnce([]);
 
@@ -628,44 +598,44 @@ describe('ImageAttachment', () => {
             { ...mockFile, name: 'preview1.jpg' },
             { ...mockFile, name: 'preview2.jpg' }
         ]);
-    
+
         const rendered = render(<ImageAttachment spaceId="123" />);
-    
+
         // Add preview files
         await act(async () => {
             fireEvent.press(rendered.getByTestId('add-image-button'));
             await mockBrowseFiles();
         });
-    
+
         expect(rendered.getByText('preview1')).toBeTruthy();
         expect(rendered.getByText('preview2')).toBeTruthy();
-    
+
         const deleteButtons = rendered.getAllByTestId('delete-image-button');
         fireEvent.press(deleteButtons[0]);
-    
+
         expect(rendered.queryByText('preview1')).toBeNull();
         expect(rendered.getByText('preview2')).toBeTruthy();
     });
-    
+
     it('should clear preview state when last preview image is deleted', async () => {
         const rendered = render(<ImageAttachment spaceId="123" />);
-    
+
         // Add preview file
         await act(async () => {
             fireEvent.press(rendered.getByTestId('add-image-button'));
             await mockBrowseFiles();
         });
-    
+
         expect(rendered.getByText('test-image')).toBeTruthy();
         expect(rendered.getByText('Upload Selected Files')).toBeTruthy();
-    
+
         fireEvent.press(rendered.getByTestId('delete-image-button'));
-    
+
         expect(rendered.queryByText('test-image')).toBeNull();
         expect(rendered.queryByText('Upload Selected Files')).toBeNull();
         expect(mockClearFiles).toHaveBeenCalled();
     });
-    
+
     it('should remove overlay from uploaded images when all previews are deleted', async () => {
         handleHttpRequest.mockResolvedValue({
             success: true,
@@ -675,52 +645,52 @@ describe('ImageAttachment', () => {
                 url: 'file://uploaded-image.jpg'
             }]
         });
-    
+
         const rendered = render(<ImageAttachment spaceId="123" />);
-    
+
         // Wait for uploaded image to load
         await waitFor(() => {
             expect(rendered.getByText('uploaded-image')).toBeTruthy();
         });
-    
+
         // Add preview file
         await act(async () => {
             fireEvent.press(rendered.getByTestId('add-image-button'));
             await mockBrowseFiles();
         });
-    
+
         expect(rendered.getByTestId('uploaded-overlay')).toBeTruthy();
-    
+
         const deleteButtons = rendered.getAllByTestId('delete-image-button');
         fireEvent.press(deleteButtons[0]);
-    
+
         expect(rendered.queryByTestId('uploaded-overlay')).toBeNull();
     });
-    
+
     it('should maintain upload button state when some previews remain after deletion', async () => {
         // Mock multiple files
         mockBrowseFiles.mockResolvedValueOnce([
             { ...mockFile, name: 'preview1.jpg' },
             { ...mockFile, name: 'preview2.jpg' }
         ]);
-    
+
         const rendered = render(<ImageAttachment spaceId="123" />);
-    
+
         // Add preview files
         await act(async () => {
             fireEvent.press(rendered.getByTestId('add-image-button'));
             await mockBrowseFiles();
         });
-    
+
         expect(rendered.getByText('Upload Selected Files')).toBeTruthy();
-    
+
         const deleteButtons = rendered.getAllByTestId('delete-image-button');
         fireEvent.press(deleteButtons[0]);
-    
+
         expect(rendered.getByText('Upload Selected Files')).toBeTruthy();
-    
+
         fireEvent.press(deleteButtons[1]);
-    
+
         expect(rendered.queryByText('Upload Selected Files')).toBeNull();
     });
 
@@ -733,23 +703,23 @@ describe('ImageAttachment', () => {
             isPreview: false,
             mimeType: 'image/jpeg'
         };
-    
+
         handleHttpRequest
             .mockResolvedValueOnce({ success: true, data: [mockAttachment] })  // Initial fetch
             .mockResolvedValueOnce({ success: true })  // Delete request
             .mockResolvedValueOnce({ success: true, data: [] });  // Fetch after delete
-    
+
         const rendered = render(<ImageAttachment spaceId="123" />);
-    
+
         // Wait for the image to load
         await waitFor(() => {
             expect(rendered.getByText('test-image')).toBeTruthy();
         });
-    
+
         await act(async () => {
             fireEvent.press(rendered.getByTestId('delete-image-button'));
         });
-    
+
         // Verify API call was made with correct parameters
         expect(handleHttpRequest).toHaveBeenCalledWith(
             '/attachment/123',
@@ -759,21 +729,219 @@ describe('ImageAttachment', () => {
                 deletedOn: expect.any(String)
             }
         );
-    
+
         await waitFor(() => {
             expect(rendered.getByText('Image Deleted Successfully')).toBeTruthy();
         });
-    
+
         await act(async () => {
             fireEvent.press(rendered.getByTestId('deleted-image-name-confirm-button'));
         });
-    
+
         await waitFor(() => {
             expect(rendered.queryByText('test-image')).toBeNull();
             expect(rendered.getByText('No Images. Tap + to add.')).toBeTruthy();
         });
     });
-    
+
+    // Test for API error in fetchAttachments
+    it('should show error toast when API returns unsuccessful response during fetch', async () => {
+        handleHttpRequest.mockResolvedValueOnce({
+            success: false,
+            error: 'API Error Message'
+        });
+
+        render(<ImageAttachment spaceId="123" snapshotId="456" />);
+
+        await waitFor(() => {
+            expect(ToastNotification.show).toHaveBeenCalledWith(
+                'error',
+                'Error',
+                'API Error Message'
+            );
+        });
+    });
+
+    // Test for network error in fetchAttachments
+    it('should handle fetch attachments error', async () => {
+        handleHttpRequest.mockRejectedValueOnce(new Error('Network error'));
+
+        const rendered = render(<ImageAttachment spaceId="123" snapshotId="456" />);
+
+        await waitFor(() => {
+            expect(rendered.getByText('No Images. Tap + to add.')).toBeTruthy();
+        });
+
+        expect(ToastNotification.show).toHaveBeenCalledWith(
+            'error',
+            'Error',
+            'Failed to load attachments'
+        );
+    });
+
+    // Test for API error in upload with error message
+    it('should show error toast with API message when upload returns unsuccessful response', async () => {
+        handleHttpRequest
+            .mockResolvedValueOnce({ success: true, data: [] })
+            .mockResolvedValueOnce({
+                success: false,
+                error: 'Upload API Error'
+            });
+
+        const rendered = render(<ImageAttachment spaceId="123" />);
+
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('add-image-button'));
+            await mockBrowseFiles();
+        });
+
+        await act(async () => {
+            fireEvent.press(rendered.getByText('Upload Selected Files'));
+        });
+
+        expect(ToastNotification.show).toHaveBeenCalledWith(
+            'error',
+            'Error',
+            'Upload API Error'
+        );
+    });
+
+    // Test for network error in upload 
+    it('should handle upload error', async () => {
+        handleHttpRequest
+            .mockResolvedValueOnce({ success: true, data: [] })
+            .mockRejectedValueOnce(new Error('Upload failed'));
+
+        const rendered = render(<ImageAttachment spaceId="123" />);
+
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('add-image-button'));
+            await mockBrowseFiles();
+        });
+
+        await act(async () => {
+            fireEvent.press(rendered.getByText('Upload Selected Files'));
+        });
+
+        expect(ToastNotification.show).toHaveBeenCalledWith(
+            'error',
+            'Error',
+            'Failed to upload attachments'
+        );
+        expect(rendered.queryByText('Uploading...')).toBeNull();
+    });
+
+    // Test for API error when editing image name
+    it('should show error toast when image name update returns unsuccessful response', async () => {
+        const mockAttachment = {
+            id: '123',
+            name: 'test-image.jpg',
+            source: { uri: 'file://test-image.jpg' },
+            url: 'file://test-image.jpg',
+            mimeType: 'image/jpeg'
+        };
+
+        handleHttpRequest
+            .mockResolvedValueOnce({ success: true, data: [mockAttachment] })
+            .mockResolvedValueOnce({
+                success: false,
+                error: 'Name Update Error'
+            });
+
+        const rendered = render(<ImageAttachment spaceId="123" />);
+
+        await waitFor(() => {
+            expect(rendered.getByTestId('edit-image-button')).toBeTruthy();
+        });
+
+        fireEvent.press(rendered.getByTestId('edit-image-button'));
+
+        const input = rendered.getByTestId('image-name-text-input');
+        fireEvent.changeText(input, 'new-name');
+
+        fireEvent.press(rendered.getByTestId('edit-image-name-submit-button'));
+
+        await waitFor(() => {
+            expect(ToastNotification.show).toHaveBeenCalledWith(
+                'error',
+                'Error',
+                'Name Update Error'
+            );
+        });
+    });
+
+    // Test for network error when editing image name
+    it('should show error toast when image name update throws network error', async () => {
+        const mockAttachment = {
+            id: '123',
+            name: 'test-image.jpg',
+            source: { uri: 'file://test-image.jpg' },
+            url: 'file://test-image.jpg',
+            mimeType: 'image/jpeg'
+        };
+
+        handleHttpRequest
+            .mockResolvedValueOnce({ success: true, data: [mockAttachment] })
+            .mockRejectedValueOnce(new Error('Network error during update'));
+
+        const rendered = render(<ImageAttachment spaceId="123" />);
+
+        await waitFor(() => {
+            expect(rendered.getByTestId('edit-image-button')).toBeTruthy();
+        });
+
+        fireEvent.press(rendered.getByTestId('edit-image-button'));
+
+        const input = rendered.getByTestId('image-name-text-input');
+        fireEvent.changeText(input, 'new-name');
+
+        fireEvent.press(rendered.getByTestId('edit-image-name-submit-button'));
+
+        await waitFor(() => {
+            expect(ToastNotification.show).toHaveBeenCalledWith(
+                'error',
+                'Error',
+                'Failed to update image name'
+            );
+        });
+    });
+
+    // Test for API error when deleting uploaded image
+    it('should show error toast with API message when deleting image returns unsuccessful response', async () => {
+        const mockAttachment = {
+            id: '123',
+            name: 'test-image.jpg',
+            source: { uri: 'file://test-image.jpg' },
+            url: 'file://test-image.jpg',
+            isPreview: false,
+            mimeType: 'image/jpeg'
+        };
+
+        handleHttpRequest
+            .mockResolvedValueOnce({ success: true, data: [mockAttachment] })
+            .mockResolvedValueOnce({
+                success: false,
+                error: 'Deletion Error'
+            });
+
+        const rendered = render(<ImageAttachment spaceId="123" />);
+
+        await waitFor(() => {
+            expect(rendered.getByText('test-image')).toBeTruthy();
+        });
+
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('delete-image-button'));
+        });
+
+        expect(ToastNotification.show).toHaveBeenCalledWith(
+            'error',
+            'Error',
+            'Deletion Error'
+        );
+    });
+
+    // Test for network error when deleting uploaded image
     it('should handle API error when deleting uploaded image', async () => {
         const mockAttachment = {
             id: '123',
@@ -783,31 +951,28 @@ describe('ImageAttachment', () => {
             isPreview: false,
             mimeType: 'image/jpeg'
         };
-    
-        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    
+
         handleHttpRequest
             .mockResolvedValueOnce({ success: true, data: [mockAttachment] })  // Initial fetch
             .mockRejectedValueOnce(new Error('Delete failed'));  // Delete request fails
-    
+
         const rendered = render(<ImageAttachment spaceId="123" />);
-    
+
         await waitFor(() => {
             expect(rendered.getByText('test-image')).toBeTruthy();
         });
-    
+
         await act(async () => {
             fireEvent.press(rendered.getByTestId('delete-image-button'));
         });
-    
-        // Verify error was logged
-        expect(consoleErrorSpy).toHaveBeenCalled();
-    
-        expect(rendered.queryByText('Image Deleted Successfully')).toBeNull();
-    
+
+        expect(ToastNotification.show).toHaveBeenCalledWith(
+            'error',
+            'Error',
+            'Failed to delete image'
+        );
+
         expect(rendered.getByText('test-image')).toBeTruthy();
-    
-        consoleErrorSpy.mockRestore();
     });
 });
 
