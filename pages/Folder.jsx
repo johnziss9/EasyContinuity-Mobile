@@ -27,8 +27,6 @@ const Folder = () => {
     const [showSortByModal, setShowSortByModal] = useState(false);
     const [showDeleteFolderModal, setShowDeleteFolderModal] = useState(false);
     const [showDeleteSnapshotModal, setShowDeleteSnapshotModal] = useState(false);
-    const [showConfirmationFolderModal, setShowConfirmationFolderModal] = useState(false);
-    const [confirmationModalText, setConfirmationModalText] = useState('');
 
     const route = useRoute();
     const navigation = useNavigation();
@@ -122,7 +120,6 @@ const Folder = () => {
             }
         } catch (error) {
             ToastNotification.show('error', 'Error', 'Failed to delete snapshot');
-            throw error;
         }
     }
 
@@ -147,7 +144,6 @@ const Folder = () => {
             }
         } catch (error) {
             ToastNotification.show('error', 'Error', 'Failed to delete folder');
-            throw error;
         }
     }
 
@@ -164,7 +160,7 @@ const Folder = () => {
 
             // Check all responses
             if (!currentFolderResponse.success || !foldersResponse.success || !snapshotsResponse.success || !spacesResponse.success) {
-                throw new Error(currentFolderResponse.error || foldersResponse.error || snapshotsResponse.error || spacesResponse.error);
+                ToastNotification.show('error', 'Error', currentFolderResponse.error || foldersResponse.error || snapshotsResponse.error || spacesResponse.error);
             }
 
             const spaceName = spacesResponse.data.name;
@@ -284,8 +280,8 @@ const Folder = () => {
                 const response = await handleHttpRequest(url, method, body);
     
                 if (response.success) {
-                    setConfirmationModalText('Folder Updated Successfully');
-                    setShowConfirmationFolderModal(true);
+                    ToastNotification.show('success', 'Success', 'Folder Updated Successfully');
+                    handleFetchAllFolderData();
                 } else {
                     ToastNotification.show('error', 'Error', response.error);
                 }
@@ -311,8 +307,8 @@ const Folder = () => {
                 const response = await handleHttpRequest(url, method, body);
 
                 if (response.success) {
-                    setConfirmationModalText('Folder Added Successfully');
-                    setShowConfirmationFolderModal(true);
+                    ToastNotification.show('success', 'Success', 'Folder Created Successfully');
+                    handleFetchAllFolderData();
                 } else {
                     ToastNotification.show('error', 'Error', response.error);
                 }
@@ -327,32 +323,6 @@ const Folder = () => {
 
     return (
         <View style={styles.container}>
-
-            {/* Added/Updated Folder confirmation modal */}
-            <Modal
-                transparent={true}
-                animationType="fade"
-                visible={showConfirmationFolderModal}
-                onRequestClose={() => setShowConfirmationFolderModal(false)}
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalText}>{confirmationModalText}</Text>
-                        <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity
-                                style={[styles.modalButton, styles.modalButtonRight]}
-                                testID='added-folder-confirm-button'
-                                onPress={() => {
-                                    setShowConfirmationFolderModal(false);
-                                    handleFetchAllFolderData();
-                                }}
-                            >
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>OK</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
 
             {/* Delete Snapshot confirmation modal */}
             <Modal

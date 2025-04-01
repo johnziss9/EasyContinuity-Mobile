@@ -407,7 +407,7 @@ const SnapshotGeneralInfo = () => {
     }
 
     return (
-        <View style={dynamicStyles.container}>
+        <View style={dynamicStyles.container} testID='snapshot-general-container'>
 
             {/* Delete confirmation modal */}
             <Modal

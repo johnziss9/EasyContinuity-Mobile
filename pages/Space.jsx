@@ -191,14 +191,11 @@ const Space = () => {
             const url = `/space/${spaceId}/search?query=${encodeURIComponent(searchQuery)}`;
             const method = 'GET';
 
-            console.log(url);
-
             const response = await handleHttpRequest(url, method);
 
-            console.log(response);
-
             if (!response.success) {
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
+                return;
             }
 
             // Transform results to include type information
@@ -320,7 +317,6 @@ const Space = () => {
             setSnapshots(sortedSnapshots);
         } catch (error) {
             ToastNotification.show('error', 'Error', 'Failed to load items');
-            throw error;
         } finally {
             setIsLoading(false);
         }
