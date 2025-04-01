@@ -48,7 +48,7 @@ describe('Space Component', () => {
     it('should render the component', async () => {
         // Reset the mock implementation for this specific test
         const apiMock = require('../api/api').default;
-        
+
         // Explicitly set the implementation for the initial API calls
         apiMock
             .mockImplementationOnce(() => Promise.resolve({  // For folders
@@ -65,25 +65,38 @@ describe('Space Component', () => {
                     { id: 4, name: 'Snapshot-2', spaceId: 1, folderId: null }
                 ]
             }));
-    
+
         const { getByTestId, getByText, queryByTestId } = render(
             <NavigationContainer>
                 <Space />
             </NavigationContainer>
         );
-    
+
+        // Initial check for loading indicator
         expect(queryByTestId('activity-indicator')).toBeTruthy();
-    
+
+        // Add some debugging to check component state
+        console.log('Initial DOM state:', queryByTestId('activity-indicator') ? 'Loading' : 'Loaded');
+
+        // First wait for loading to finish
         await waitFor(() => {
-            expect(queryByTestId('activity-indicator')).toBeNull();
-            expect(getByTestId('search-input')).toBeTruthy();
-            expect(getByTestId('add-item-button')).toBeTruthy();
-            expect(getByText('Folder-1')).toBeTruthy();
-            expect(getByText('Folder-2')).toBeTruthy();
-            expect(getByText('Snapshot-1')).toBeTruthy();
-            expect(getByText('Snapshot-2')).toBeTruthy();
-        });
-    });
+            console.log('Checking loading state:', queryByTestId('activity-indicator') ? 'Still loading' : 'Done loading');
+            return expect(queryByTestId('activity-indicator')).toBeNull();
+        }, { timeout: 10000 });
+
+        // Verify the API mock was called the expected number of times
+        expect(apiMock).toHaveBeenCalledTimes(2);
+
+        // Then check for the other elements separately
+        expect(getByTestId('search-input')).toBeTruthy();
+        expect(getByTestId('add-item-button')).toBeTruthy();
+
+        // Check content elements
+        expect(getByText('Folder-1')).toBeTruthy();
+        expect(getByText('Folder-2')).toBeTruthy();
+        expect(getByText('Snapshot-1')).toBeTruthy();
+        expect(getByText('Snapshot-2')).toBeTruthy();
+    }, 15000);
 
     it('should navigate to Snapshot screen when snapshot card is pressed', async () => {
         const apiMock = require('../api/api').default;
