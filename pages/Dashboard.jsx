@@ -5,13 +5,13 @@ import SpaceCard from '../components/SpaceCard';
 import { SelectList } from 'react-native-dropdown-select-list'
 import { useNavigation } from '@react-navigation/native';
 import handleHttpRequest from '../api/api';
+import ToastNotification from '../utils/ToastNotification';
 
 const Dashboard = () => {
     const navigation = useNavigation();
 
     const [showAddNewSpaceModal, setShowAddNewSpaceModal] = useState(false);
     const [showDeleteSpaceModal, setShowDeleteSpaceModal] = useState(false);
-    const [showConfirmationSpaceModal, setShowConfirmationSpaceModal] = useState(false);
 
     const [spaceNameField, setSpaceNameField] = React.useState('');
     const [spaceDescription, setSpaceDescription] = React.useState('');
@@ -21,7 +21,6 @@ const Dashboard = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [currentSpaceId, setCurrentSpaceId] = useState(null);
     const [spaceToDelete, setSpaceToDelete] = useState(null);
-    const [confirmationModalText, setConfirmationModalText] = useState('');
 
     const spaceTypes = [
         { key: '1', value: 'Movie' },
@@ -74,20 +73,13 @@ const Dashboard = () => {
             const response = await handleHttpRequest(url, method, body);
 
             if (response.success) {
-                // TODO Show success toast
-                // TODO Refresh data on screen
                 handleGetAllSpaces();
+                ToastNotification.show('success', 'Success', 'Space Deleted Successfully');
             } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error Deleting Space:', error);
-
-            // TODO Replace error with fail toast
-            throw error;
-        } finally {
-            // TODO Show deletion confirmation
+            ToastNotification.show('error', 'Error', 'Failed to delete space');
         }
     }
 
@@ -112,17 +104,13 @@ const Dashboard = () => {
                 const response = await handleHttpRequest(url, method, body);
 
                 if (response.success) {
-                    setConfirmationModalText('Space Updated Successfully');
-                    setShowConfirmationSpaceModal(true);
+                    handleGetAllSpaces();
+                    ToastNotification.show('success', 'Success', 'Space Updated Successfully');
                 } else {
-                    // TODO Replace error with fail toast
-                    throw new Error(response.error);
+                    ToastNotification.show('error', 'Error', response.error);
                 }
             } catch (error) {
-                console.error('Error Updating Space:', error);
-
-                // TODO Replace error with fail toast
-                throw error;
+                ToastNotification.show('error', 'Error', 'Failed to update space');
             } finally {
                 setShowAddNewSpaceModal(false);
                 setSpaceNameField('');
@@ -144,17 +132,13 @@ const Dashboard = () => {
                 const response = await handleHttpRequest(url, method, body);
 
                 if (response.success) {
-                    setConfirmationModalText('Space Added Successfully');
-                    setShowConfirmationSpaceModal(true);
+                    handleGetAllSpaces();
+                    ToastNotification.show('success', 'Success', 'Space Added Successfully');
                 } else {
-                    // TODO Replace error with fail toast
-                    throw new Error(response.error);
+                    ToastNotification.show('error', 'Error', response.error);
                 }
             } catch (error) {
-                console.error('Error Creating Space:', error);
-
-                // TODO Replace error with fail toast
-                throw error;
+                ToastNotification.show('error', 'Error', 'Failed to add space');
             } finally {
                 setShowAddNewSpaceModal(false);
                 setSpaceNameField('');
@@ -174,14 +158,10 @@ const Dashboard = () => {
             if (response.success) {
                 setSpaces(response.data);
             } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error Getting Spaces:', error);
-
-            // TODO Replace error with fail toast
-            throw error;
+            ToastNotification.show('error', 'Error', 'Failed to load spaces');
         } finally {
             setIsLoading(false);
         }
@@ -199,32 +179,6 @@ const Dashboard = () => {
 
     return (
         <View style={styles.container}>
-
-            {/* Added/Updated space confirmation modal */}
-            <Modal
-                transparent={true}
-                animationType="fade"
-                visible={showConfirmationSpaceModal}
-                onRequestClose={() => setShowConfirmationSpaceModal(false)}
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalText}>{confirmationModalText}</Text>
-                        <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity
-                                style={[styles.modalButton, styles.modalButtonRight]}
-                                testID='added-space-confirm-button'
-                                onPress={() => {
-                                    setShowConfirmationSpaceModal(false);
-                                    handleGetAllSpaces();
-                                }}
-                            >
-                                <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>OK</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
 
             {/* Delete space confirmation modal */}
             <Modal
@@ -246,7 +200,7 @@ const Dashboard = () => {
                                 onPress={() => {
                                     setShowDeleteSpaceModal(false);
                                     handleConfirmDeleteSpacePress(spaceToDelete);
-                                    setSpaceToDelete(null); 
+                                    setSpaceToDelete(null);
                                 }}
                             >
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>OK</Text>
@@ -256,7 +210,7 @@ const Dashboard = () => {
                 </View>
             </Modal>
 
-            {/* Add space modal */}
+            {/* Add/Edit space modal */}
             <Modal
                 transparent={true}
                 animationType="fade"

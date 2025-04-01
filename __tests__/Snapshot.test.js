@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import Snapshot from '../pages/Snapshot';
+import ToastNotification from '../utils/ToastNotification';
 
 const apiMock = require('../api/api').default;
 
@@ -28,9 +29,15 @@ jest.mock('@react-navigation/native', () => ({
     }),
 }));
 
+jest.mock('../utils/ToastNotification', () => ({
+    show: jest.fn()
+}));
+
 describe('Snapshot', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        ToastNotification.show.mockClear();
+        apiMock.mockClear();
     });
 
     it('should render the component with all sections and fields', async () => {
@@ -308,6 +315,12 @@ describe('Snapshot', () => {
                 deletedOn: mockDate.toISOString()
             });
 
+            expect(ToastNotification.show).toHaveBeenCalledWith(
+                'success',
+                'Success',
+                'Snapshot Deleted Successfully'
+            );
+
             expect(mockNavigate).toHaveBeenCalledWith('Folder', {
                 spaceId: 1,
                 spaceName: 'Test Space',
@@ -338,25 +351,25 @@ describe('Snapshot', () => {
                     url: 'http://test.com/test.jpg'
                 }]
             }));
-    
+
         const { getByTestId, debug } = render(
             <NavigationContainer>
                 <Snapshot />
             </NavigationContainer>
         );
-    
+
         // Wait for image to load and log debug info
         await waitFor(() => {
             // Check the image wrapper
             expect(getByTestId('image-wrapper-0')).toBeTruthy();
-            
+
             // Check the image inside the wrapper
             expect(getByTestId('image-0')).toBeTruthy();
         }, { timeout: 5000 });
-    
+
         // Click image
         fireEvent.press(getByTestId('image-wrapper-0'));
-    
+
         expect(getByTestId('image-modal')).toBeTruthy();
     });
 
@@ -369,7 +382,7 @@ describe('Snapshot', () => {
             { count: 5, testId: 'image-wrapper-4' },
             { count: 6, testId: 'image-wrapper-5' }
         ];
-    
+
         for (const scenario of imageScenarios) {
             // Create mock data with specific number of images
             const mockAttachments = Array.from({ length: scenario.count }, (_, index) => ({
@@ -377,10 +390,10 @@ describe('Snapshot', () => {
                 name: `test-image-${index + 1}.jpg`,
                 url: `http://test.com/image-${index + 1}.jpg`
             }));
-    
+
             // Reset mocks before each scenario
             jest.clearAllMocks();
-    
+
             // Setup mock API calls
             apiMock
                 .mockImplementationOnce(() => Promise.resolve({
@@ -395,32 +408,32 @@ describe('Snapshot', () => {
                     success: true,
                     data: mockAttachments
                 }));
-    
+
             const { getByTestId, getAllByTestId } = render(
                 <NavigationContainer>
                     <Snapshot />
                 </NavigationContainer>
             );
-    
+
             // Wait for images to load
             await waitFor(() => {
                 // Check that the expected number of image wrappers are rendered
                 const imageWrappers = getAllByTestId(/image-wrapper-/);
                 expect(imageWrappers.length).toBe(scenario.count);
             }, { timeout: 3000 });
-    
+
             // Verify edit images button is present
             expect(getByTestId('edit-images-button')).toBeTruthy();
-    
+
             // Try to open image modal
             fireEvent.press(getByTestId(`image-wrapper-${scenario.count - 1}`));
             expect(getByTestId('image-modal')).toBeTruthy();
-    
+
             // Navigate through images if multiple exist
             if (scenario.count > 1) {
                 // Test next image button
                 fireEvent.press(getByTestId('modalNextButton'));
-                
+
                 // Test previous image button
                 fireEvent.press(getByTestId('modalPrevButton'));
             }
@@ -482,5 +495,394 @@ describe('Snapshot', () => {
         expect(generalFields.length).toBeGreaterThan(0);
         expect(makeupFields.length).toBeGreaterThan(0);
         expect(hairFields.length).toBeGreaterThan(0);
+    });
+
+    // Test for space type API error
+    it('should show error toast when space type API returns unsuccessful response', async () => {
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: false,
+                error: 'Failed to fetch space type'
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Test Snapshot' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+
+        render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(ToastNotification.show).toHaveBeenCalledWith(
+                'error',
+                'Error',
+                'Failed to fetch space type'
+            );
+        });
+    });
+
+    // Test for space type network error
+    it('should show error toast when space type fetch throws network error', async () => {
+        apiMock
+            .mockImplementationOnce(() => Promise.reject(new Error('Network error')))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Test Snapshot' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+
+        render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(ToastNotification.show).toHaveBeenCalledWith(
+                'error',
+                'Error',
+                'Failed to load space type'
+            );
+        });
+    });
+
+    // Test for snapshot info API error
+    it('should show error toast when snapshot info API returns unsuccessful response', async () => {
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, type: 2 }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: false,
+                error: 'Failed to fetch snapshot'
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+
+        render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(ToastNotification.show).toHaveBeenCalledWith(
+                'error',
+                'Error',
+                'Failed to fetch snapshot'
+            );
+        });
+    });
+
+    // Test for snapshot info network error
+    it('should show error toast when snapshot info fetch throws network error', async () => {
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, type: 2 }
+            }))
+            .mockImplementationOnce(() => Promise.reject(new Error('Network error')))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+
+        render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(ToastNotification.show).toHaveBeenCalledWith(
+                'error',
+                'Error',
+                'Failed to load snapshot'
+            );
+        });
+    });
+
+    // Test for character API error
+    it('should show error toast when character API returns unsuccessful response', async () => {
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, type: 2 }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Test Snapshot', character: 1 }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: false,
+                error: 'Failed to fetch character'
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+
+        render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(ToastNotification.show).toHaveBeenCalledWith(
+                'error',
+                'Error',
+                'Failed to fetch character'
+            );
+        });
+    });
+
+    // Test for character network error
+    it('should show error toast when character fetch throws network error', async () => {
+        // Set up a more specific mock implementation based on the URL path
+        apiMock.mockImplementation((url, method) => {
+            if (url === '/space/1') {
+                return Promise.resolve({
+                    success: true,
+                    data: { id: 1, type: 2 }
+                });
+            } else if (url === '/snapshot/1') {
+                return Promise.resolve({
+                    success: true,
+                    data: { id: 1, name: 'Test Snapshot', character: 1 }
+                });
+            } else if (url === '/character/1') {
+                return Promise.reject(new Error('Network error'));
+            } else if (url === '/attachment/snapshot/1') {
+                return Promise.resolve({
+                    success: true,
+                    data: []
+                });
+            }
+            return Promise.reject(new Error('Invalid URL'));
+        });
+
+        render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(ToastNotification.show).toHaveBeenCalledWith(
+                'error',
+                'Error',
+                'Failed to load character'
+            );
+        });
+    });
+
+    // Test for attachments API error
+    it('should show error toast when attachments API returns unsuccessful response', async () => {
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, type: 2 }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Test Snapshot' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: false,
+                error: 'Failed to fetch attachments'
+            }));
+
+        render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(ToastNotification.show).toHaveBeenCalledWith(
+                'error',
+                'Error',
+                'Failed to fetch attachments'
+            );
+        });
+    });
+
+    // Test for attachments network error
+    it('should show error toast when attachments fetch throws network error', async () => {
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, type: 2 }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Test Snapshot' }
+            }))
+            .mockImplementationOnce(() => Promise.reject(new Error('Network error')));
+
+        render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(ToastNotification.show).toHaveBeenCalledWith(
+                'error',
+                'Error',
+                'Failed to load attachments'
+            );
+        });
+    });
+
+    // Test for delete snapshot API error
+    it('should show error toast when delete snapshot API returns unsuccessful response', async () => {
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, type: 2 }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Test Snapshot' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: false,
+                error: 'Failed to delete snapshot'
+            }));
+
+        const { getByTestId } = render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(getByTestId('delete-snapshot-button')).toBeTruthy();
+        });
+
+        fireEvent.press(getByTestId('delete-snapshot-button'));
+        fireEvent.press(getByTestId('delete-snapshot-confirm-button'));
+
+        await waitFor(() => {
+            expect(ToastNotification.show).toHaveBeenCalledWith(
+                'error',
+                'Error',
+                'Failed to delete snapshot'
+            );
+        });
+    });
+
+    // Test for delete snapshot network error
+    it('should show error toast when delete snapshot throws network error', async () => {
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, type: 2 }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Test Snapshot' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }))
+            .mockImplementationOnce(() => Promise.reject(new Error('Network error')));
+
+        const { getByTestId } = render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(getByTestId('delete-snapshot-button')).toBeTruthy();
+        });
+
+        fireEvent.press(getByTestId('delete-snapshot-button'));
+        fireEvent.press(getByTestId('delete-snapshot-confirm-button'));
+
+        await waitFor(() => {
+            expect(ToastNotification.show).toHaveBeenCalledWith(
+                'error',
+                'Error',
+                'Failed to delete snapshot'
+            );
+        });
+    });
+
+    // Test for navigation when no folder ID is present
+    it('should navigate to Space screen when no folder ID is present and snapshot is deleted', async () => {
+        const mockNavigate = jest.fn();
+
+        // Override route params to remove folderId
+        jest.spyOn(require('@react-navigation/native'), 'useRoute')
+            .mockReturnValue({
+                params: {
+                    spaceId: 1,
+                    spaceName: 'Test Space',
+                    snapshotId: 1,
+                    snapshotName: 'Test Snapshot'
+                }
+            });
+
+        jest.spyOn(require('@react-navigation/native'), 'useNavigation')
+            .mockReturnValue({ navigate: mockNavigate });
+
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, type: 2 }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Test Snapshot' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true
+            }));
+
+        const { getByTestId } = render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(getByTestId('delete-snapshot-button')).toBeTruthy();
+        });
+
+        fireEvent.press(getByTestId('delete-snapshot-button'));
+        fireEvent.press(getByTestId('delete-snapshot-confirm-button'));
+
+        await waitFor(() => {
+            expect(mockNavigate).toHaveBeenCalledWith('Space', {
+                spaceId: 1,
+                spaceName: 'Test Space'
+            });
+        });
     });
 });

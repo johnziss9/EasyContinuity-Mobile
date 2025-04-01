@@ -29,8 +29,6 @@ const useFileBrowser = (options = {}) => {
                         console.log(`File ${index + 1}: ${file.name} (${file.size} bytes)`);
                     });
 
-                    // TODO: Add code to upload documents
-
                     return files;
                 } else {
                     console.log('No valid files selected');
