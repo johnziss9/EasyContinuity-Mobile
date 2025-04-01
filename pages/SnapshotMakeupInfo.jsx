@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, ScrollView, TextInput, View, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import handleHttpRequest from '../api/api';
+import ToastNotification from '../utils/ToastNotification';
 
 const SnapshotMakeupInfo = () => {
 
@@ -44,14 +45,10 @@ const SnapshotMakeupInfo = () => {
             if (response.success) {
                 setSnapshot(response.data);
             } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error Getting Snapshot:', error);
-
-            // TODO Replace error with fail toast
-            throw error;
+            ToastNotification.show('error', 'Error', 'Failed to load snapshot');
         }
     }
 
@@ -76,17 +73,13 @@ const SnapshotMakeupInfo = () => {
             const response = await handleHttpRequest(url, method, body);
 
             if (response.success) {
-                // TODO Show success modal and navigate on okay
+                ToastNotification.show('success', 'Success', 'Snapshot Makeup Details Updated Successfully');
                 navigation.navigate('Snapshot', { spaceId: spaceId, spaceName: spaceName, folderId: folderId, folderName: folderName, snapshotId: snapshotId, snapshotName: snapshotName });
             } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error Updating Snapshot:', error);
-            
-            // TODO Replace error with fail toast
-            throw error;
+            ToastNotification.show('error', 'Error', 'Failed to update snapshot');
         }
     }
 

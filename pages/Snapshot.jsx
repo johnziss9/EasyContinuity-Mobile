@@ -4,8 +4,8 @@ import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/nativ
 import ImageGrid from '../components/ImageGrid';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import handleHttpRequest from '../api/api';
+import ToastNotification from '../utils/ToastNotification';
 
-// TODO Using testImages prop in order to test the empty dummyImages array in the Snapshot tests - Needs to be removed
 const Snapshot = () => {
 
     const navigation = useNavigation();
@@ -108,22 +108,16 @@ const Snapshot = () => {
             const response = await handleHttpRequest(url, method, body);
 
             if (response.success) {
-                // TODO Show success toast
+                ToastNotification.show('success', 'Success', 'Snapshot Deleted Successfully');
                 if (!folderId)
                     navigation.navigate('Space', { spaceId: spaceId, spaceName: spaceName });
                 else
                     navigation.navigate('Folder', { spaceId: spaceId, spaceName: spaceName, folderId: folderId, folderName: folderName });
             } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error Deleting Snapshot:', error);
-
-            // TODO Replace error with fail toast
-            throw error;
-        } finally {
-            // TODO Show deletion confirmation
+            ToastNotification.show('error', 'Error', 'Failed to delete snapshot');
         }
     }
 
@@ -141,12 +135,10 @@ const Snapshot = () => {
     
                 setAttachments(transformedAttachments);
             } else {
-                console.error('Failed to fetch attachments:', response.error);
-                // TODO: Show error toast to user
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error fetching attachments:', error);
-            // TODO: Show error toast to user
+            ToastNotification.show('error', 'Error', 'Failed to load attachments');
         }
     };
 
@@ -160,14 +152,10 @@ const Snapshot = () => {
             if (response.success) {
                 setSpaceType(response.data.type);
             } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error Getting Space Type:', error);
-            
-            // TODO Replace error with fail toast
-            throw error;
+            ToastNotification.show('error', 'Error', 'Failed to load space type');
         }
     }
 
@@ -181,14 +169,10 @@ const Snapshot = () => {
             if (response.success) {
                 setCharacterName(response.data.name)
             } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error Getting Character:', error);
-            
-            // TODO Replace error with fail toast
-            throw error;
+            ToastNotification.show('error', 'Error', 'Failed to load character');
         }
     }
 
@@ -207,14 +191,10 @@ const Snapshot = () => {
                     setCharacterName('');
                 }
             } else {
-                // TODO Replace error with fail toast
-                throw new Error(response.error);
+                ToastNotification.show('error', 'Error', response.error);
             }
         } catch (error) {
-            console.error('Error Getting Snapshot:', error);
-            
-            // TODO Replace error with fail toast
-            throw error;
+            ToastNotification.show('error', 'Error', 'Failed to load snapshot');
         }
     }
 

@@ -5,6 +5,7 @@ import { enableScreens } from 'react-native-screens';
 import { Platform } from 'react-native';
 import { HeaderBackButton } from '@react-navigation/elements';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Toast from 'react-native-toast-message';
 
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
@@ -137,6 +138,7 @@ const App = () => {
           />
         </Stack.Navigator>
       </NavigationContainer>
+      <Toast />
     </SafeAreaProvider>
   );
 }
