@@ -21,15 +21,15 @@ jobs:
       with:
         node-version: '20.15.0'
 
-    - name: Merge dev to preprod
+    - name: Merge preprod to main
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
-        git checkout dev
-        git pull origin dev
         git checkout preprod
-        git merge --no-ff dev
-        git push origin preprod
+        git pull origin preprod
+        git checkout main
+        git merge --no-ff preprod
+        git push origin main
 
     - name: Deploy to Linode
       uses: appleboy/ssh-action@master
@@ -39,14 +39,10 @@ jobs:
         key: ${{ secrets.LINODE_SSH_PRIVATE_KEY }}
         port: ${{ secrets.SSH_PORT }}
         script: |
-          cd EasyContinuity-API
-          docker compose -f docker-compose.uat.yml down
-          docker compose -f docker-compose.staging.yml up --build -d
-          cd ..
           cd EasyContinuity-Mobile
-          git checkout dev
-          git pull origin dev
           git checkout preprod
-          git merge dev
+          git pull origin preprod
+          git checkout main
+          git merge preprod
           docker compose -f docker-compose.uat.yml down
           docker compose -f docker-compose.staging.yml up -d --build

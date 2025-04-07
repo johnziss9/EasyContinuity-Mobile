@@ -2,7 +2,7 @@ name: Merge PR and Deploy to UAT
 
 on:
   push:
-    branches: [ main ]
+    branches: [ dev ]
 
 jobs:
   merge_and_deploy:
@@ -18,15 +18,15 @@ jobs:
       with:
         node-version: '20.15.0'
 
-    - name: Merge main to dev
+    - name: Merge dev to preprod
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
-        git checkout main
-        git pull origin main
         git checkout dev
-        git merge --no-ff main
-        git push origin dev
+        git pull origin dev
+        git checkout preprod
+        git merge --no-ff dev
+        git push origin preprod
 
     - name: Deploy to Linode
       uses: appleboy/ssh-action@master
@@ -36,14 +36,10 @@ jobs:
         key: ${{ secrets.LINODE_SSH_PRIVATE_KEY }}
         port: ${{ secrets.SSH_PORT }}
         script: |
-          cd EasyContinuity-API
-          docker compose -f docker-compose.staging.yml down
-          docker compose -f docker-compose.uat.yml up --build -d
-          cd ..
           cd EasyContinuity-Mobile
-          git checkout main
-          git pull origin main
           git checkout dev
-          git merge main
+          git pull origin dev
+          git checkout preprod
+          git merge dev
           docker compose -f docker-compose.staging.yml down
           docker compose -f docker-compose.uat.yml up -d --build
