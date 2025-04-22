@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, Pressable, TextInput, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import handleHttpRequest from '../api/api';
+import ToastNotification from '../utils/ToastNotification';
 
 const Home = () => {
     const navigation = useNavigation();
@@ -12,6 +14,7 @@ const Home = () => {
     const [firstName, setFirstName] = React.useState('');
     const [lastName, setLastName] = React.useState('');
     const [passwordConfirmation, setPasswordConfirmation] = React.useState('');
+    const [isLoading, setIsLoading] = React.useState(false);
 
     const handleLoginCancel = () => {
         setShowLoginForm(!showLoginForm);
@@ -31,8 +34,94 @@ const Home = () => {
         setPasswordConfirmation('');
     }
 
-    const handleDashboard = () => {
-        navigation.navigate('Dashboard');
+    const handleDashboard = async () => {
+        try {
+            if (!email || !password) {
+                ToastNotification.show('error', 'Error', 'Email and password are required');
+                return;
+            }
+
+            setIsLoading(true);
+            
+            const url = '/authentication/login';
+            const method = 'POST';
+            const body = {
+                email,
+                password
+            };
+    
+            const { success, data } = await handleHttpRequest(url, method, body);
+    
+            if (success) {
+                navigation.navigate('Dashboard');
+            } else {
+                try {
+                    const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+                    ToastNotification.show('error', 'Error', parsedData.title);
+                } catch (parseError) {
+                    console.error('Error parsing response:', parseError);
+                    ToastNotification.show('error', 'Error', 'Login failed');
+                }                
+            }
+        } catch (error) {
+            ToastNotification.show('error', 'Error', 'An unexpected error occurred. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleCreateAccount = async () => {
+        try {
+            if (!firstName || !lastName || !email || !password || !passwordConfirmation) {
+                ToastNotification.show('error', 'Error', 'Please fill in all fields');
+                return;
+            }
+    
+            if (password !== passwordConfirmation) {
+                
+                ToastNotification.show('error', 'Error', 'Passwords do not match');
+                return;
+            }
+
+            console.log(password, passwordConfirmation);
+            if (password.length < 8) {
+                ToastNotification.show('error', 'Error', 'Password must be at least 8 characters');
+                return;
+            }
+    
+            setIsLoading(true);
+            
+            const url = '/authentication/register';
+            const method = 'POST';
+            const body = {
+                firstName,
+                lastName,
+                email,
+                password,
+                confirmPassword: passwordConfirmation
+            };
+    
+            const { success, data } = await handleHttpRequest(url, method, body);
+            console.log(await handleHttpRequest(url, method, body));
+        
+            if (success) {
+                ToastNotification.show('success', 'Success', 'Account created successfully. Please sign in.');
+                handleClearTextboxes();
+                setShowLoginForm(!showLoginForm)
+            } else {
+                try {
+                    const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+                    ToastNotification.show('error', 'Error', parsedData.title);
+                } catch (parseError) {
+                    console.error('Error parsing response:', parseError);
+                    ToastNotification.show('error', 'Error', 'Registration failed');
+                }    
+            }
+        } catch (error) {
+            ToastNotification.show('error', 'Error', 'An unexpected error occurred. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -101,7 +190,7 @@ const Home = () => {
                             secureTextEntry
                         />
                         <View style={{ height: 12 }} />
-                        <Pressable style={[styles.button, styles.loginButton]}>
+                        <Pressable onPress={() => handleCreateAccount()} style={[styles.button, styles.loginButton]}>
                             <Text style={[styles.buttonText, styles.loginButtonText]}>Create Account</Text>
                         </Pressable>
                         <Pressable onPress={() => handleCreateAccountCancel()} style={[styles.button]}>
