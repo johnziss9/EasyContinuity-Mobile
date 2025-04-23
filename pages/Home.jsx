@@ -34,7 +34,7 @@ const Home = () => {
         setPasswordConfirmation('');
     }
 
-    const handleDashboard = async () => {
+    const handleLogin = async () => {
         try {
             if (!email || !password) {
                 ToastNotification.show('error', 'Error', 'Email and password are required');
@@ -57,7 +57,7 @@ const Home = () => {
             } else {
                 try {
                     const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
-                    ToastNotification.show('error', 'Error', parsedData.title);
+                    ToastNotification.show('error', 'Error', parsedData.title || 'Login failed');
                 } catch (parseError) {
                     console.error('Error parsing response:', parseError);
                     ToastNotification.show('error', 'Error', 'Login failed');
@@ -83,7 +83,6 @@ const Home = () => {
                 return;
             }
 
-            console.log(password, passwordConfirmation);
             if (password.length < 8) {
                 ToastNotification.show('error', 'Error', 'Password must be at least 8 characters');
                 return;
@@ -102,7 +101,6 @@ const Home = () => {
             };
     
             const { success, data } = await handleHttpRequest(url, method, body);
-            console.log(await handleHttpRequest(url, method, body));
         
             if (success) {
                 ToastNotification.show('success', 'Success', 'Account created successfully. Please sign in.');
@@ -111,7 +109,7 @@ const Home = () => {
             } else {
                 try {
                     const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
-                    ToastNotification.show('error', 'Error', parsedData.title);
+                    ToastNotification.show('error', 'Error', parsedData.title || 'Registration failed');
                 } catch (parseError) {
                     console.error('Error parsing response:', parseError);
                     ToastNotification.show('error', 'Error', 'Registration failed');
@@ -144,7 +142,7 @@ const Home = () => {
                         secureTextEntry
                     />
                     <View style={{ height: 12 }} />
-                    <Pressable onPress={handleDashboard} style={[styles.button, styles.loginButton]}>
+                    <Pressable onPress={handleLogin} style={[styles.button, styles.loginButton]}>
                         <Text style={[styles.buttonText, styles.loginButtonText]}>Sign In</Text>
                     </Pressable>
                     <Pressable onPress={() => handleLoginCancel()} style={[styles.button]}>
