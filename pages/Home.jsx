@@ -132,6 +132,7 @@ const Home = () => {
                         value={email}
                         placeholder='Email Address'
                         cursorColor={'#3F4F5F'}
+                        autoCapitalize="none"
                     />
                     <TextInput
                         style={styles.textbox}
@@ -170,6 +171,7 @@ const Home = () => {
                             value={email}
                             placeholder='Email Address'
                             cursorColor={'#3F4F5F'}
+                            autoCapitalize="none"
                         />
                         <TextInput
                             style={styles.textbox}
