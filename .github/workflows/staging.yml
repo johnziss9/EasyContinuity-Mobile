@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0 # Fetches the entire history of the repository. Without it only fetch-depth:1 happens
+        fetch-depth: 0 # Fetches the entire history of the repository
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -40,9 +40,16 @@ jobs:
         key: ${{ secrets.LINODE_SSH_PRIVATE_KEY }}
         port: ${{ secrets.SSH_PORT }}
         script: |
-          cd EasyContinuity-Mobile
+          # Stop all related containers
+          docker ps | grep "easycontinuity" | awk '{print $1}' | xargs docker stop || true
+          
+          # Start API containers
+          cd EasyContinuity-API_Staging
+          docker compose -f docker-compose.staging.yml up -d --build
+          
+          # Update and deploy Mobile for Staging
+          cd ../EasyContinuity-Mobile
           git fetch --all
           git checkout staging
           git pull origin staging
-          docker compose -f docker-compose.staging.yml down
           docker compose -f docker-compose.staging.yml up -d --build
