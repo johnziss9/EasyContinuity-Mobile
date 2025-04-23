@@ -230,7 +230,6 @@ describe('Home Component', () => {
         });
     });
 
-    // Registration functionality tests
     it('shows validation error when creating account with empty fields', async () => {
         const { getByText } = render(
             <NavigationContainer>
