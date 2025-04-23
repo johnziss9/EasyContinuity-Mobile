@@ -44,9 +44,16 @@ jobs:
         key: ${{ secrets.LINODE_SSH_PRIVATE_KEY }}
         port: ${{ secrets.SSH_PORT }}
         script: |
-          cd EasyContinuity-Mobile
+          # Stop all related containers
+          docker ps | grep "easycontinuity" | awk '{print $1}' | xargs docker stop || true
+          
+          # Start API containers
+          cd EasyContinuity-API_UAT
+          docker compose -f docker-compose.uat.yml up -d --build
+          
+          # Update and deploy Mobile for UAT
+          cd ../EasyContinuity-Mobile
           git fetch --all
           git checkout uat
           git pull origin uat
-          docker compose -f docker-compose.uat.yml down
           docker compose -f docker-compose.uat.yml up -d --build
