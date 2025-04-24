@@ -23,6 +23,12 @@ jest.mock('@react-navigation/native', () => ({
     NavigationContainer: ({ children }) => children
 }));
 
+// Mock SecureStore
+jest.mock('expo-secure-store', () => ({
+    setItemAsync: jest.fn(() => Promise.resolve()),
+    getItemAsync: jest.fn(() => Promise.resolve('test-value')),
+}));
+
 jest.mock('../utils/ToastNotification', () => ({
     show: jest.fn()
 }));
@@ -33,13 +39,13 @@ describe('Home Component', () => {
         ToastNotification.show.mockClear();
         mockNavigate.mockClear();
     });
-    
+
     it('renders initial buttons', () => {
         const { getByText } = render(
             <NavigationContainer>
                 <Home />
             </NavigationContainer>);
-        
+
         expect(getByText('Sign In')).toBeTruthy();
         expect(getByText('Create an Account')).toBeTruthy();
     });
@@ -49,9 +55,9 @@ describe('Home Component', () => {
             <NavigationContainer>
                 <Home />
             </NavigationContainer>);
-        
+
         fireEvent.press(getByText('Sign In'));
-        
+
         expect(getByPlaceholderText('Email Address')).toBeTruthy();
         expect(getByPlaceholderText('Password')).toBeTruthy();
     });
@@ -61,9 +67,9 @@ describe('Home Component', () => {
             <NavigationContainer>
                 <Home />
             </NavigationContainer>);
-        
+
         fireEvent.press(getByText('Create an Account'));
-        
+
         expect(getByPlaceholderText('First Name')).toBeTruthy();
         expect(getByPlaceholderText('Last Name')).toBeTruthy();
         expect(getByPlaceholderText('Email Address')).toBeTruthy();
@@ -76,10 +82,10 @@ describe('Home Component', () => {
             <NavigationContainer>
                 <Home />
             </NavigationContainer>);
-        
+
         fireEvent.press(getByText('Sign In'));
         fireEvent.press(getByText('Cancel'));
-        
+
         expect(queryByPlaceholderText('Email Address')).toBeNull();
         expect(queryByPlaceholderText('Password')).toBeNull();
     });
@@ -89,10 +95,10 @@ describe('Home Component', () => {
             <NavigationContainer>
                 <Home />
             </NavigationContainer>);
-        
+
         fireEvent.press(getByText('Create an Account'));
         fireEvent.press(getByText('Cancel'));
-        
+
         expect(queryByPlaceholderText('First Name')).toBeNull();
         expect(queryByPlaceholderText('Last Name')).toBeNull();
         expect(queryByPlaceholderText('Email Address')).toBeNull();
@@ -105,10 +111,10 @@ describe('Home Component', () => {
             <NavigationContainer>
                 <Home />
             </NavigationContainer>);
-        
+
         fireEvent.press(getByText('Sign In'));
         fireEvent.press(getByText('Sign In'));
-        
+
         expect(ToastNotification.show).toHaveBeenCalledWith(
             'error',
             'Error',
@@ -117,11 +123,14 @@ describe('Home Component', () => {
         expect(handleHttpRequest).not.toHaveBeenCalled();
     });
 
-    it('handles successful login correctly', async () => {
+    it('handles successful login correctly and stores auth data', async () => {
         const apiMock = handleHttpRequest;
+        const SecureStore = require('expo-secure-store');
+        
+        // Mock a successful login response with user ID and token
         apiMock.mockResolvedValueOnce({
             success: true,
-            data: { id: 1, email: 'test@example.com' }
+            data: { id: 123, token: 'test-auth-token', email: 'test@example.com' }
         });
         
         // Clear the navigation mock before the test
@@ -151,9 +160,15 @@ describe('Home Component', () => {
                     password: 'password123'
                 }
             );
+            
+            // Verify SecureStore.setItemAsync was called with the correct values
+            expect(SecureStore.setItemAsync).toHaveBeenCalledWith('user_id', '123');
+            expect(SecureStore.setItemAsync).toHaveBeenCalledWith('auth_token', 'test-auth-token');
+            
             expect(mockNavigate).toHaveBeenCalledWith('Dashboard');
         });
     });
+    
 
     it('handles login failure with server error', async () => {
         const apiMock = handleHttpRequest;
@@ -161,22 +176,22 @@ describe('Home Component', () => {
             success: false,
             data: JSON.stringify({ title: 'Invalid credentials' })
         });
-        
+
         const { getByText, getByPlaceholderText } = render(
             <NavigationContainer>
                 <Home />
             </NavigationContainer>);
-        
+
         fireEvent.press(getByText('Sign In'));
-        
+
         const emailInput = getByPlaceholderText('Email Address');
         const passwordInput = getByPlaceholderText('Password');
-        
+
         fireEvent.changeText(emailInput, 'test@example.com');
         fireEvent.changeText(passwordInput, 'wrongpassword');
-        
+
         fireEvent.press(getByText('Sign In'));
-        
+
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith(
                 '/authentication/login',
@@ -197,22 +212,22 @@ describe('Home Component', () => {
     it('handles login with network error', async () => {
         const apiMock = handleHttpRequest;
         apiMock.mockRejectedValueOnce(new Error('Network error'));
-        
+
         const { getByText, getByPlaceholderText } = render(
             <NavigationContainer>
                 <Home />
             </NavigationContainer>);
-        
+
         fireEvent.press(getByText('Sign In'));
-        
+
         const emailInput = getByPlaceholderText('Email Address');
         const passwordInput = getByPlaceholderText('Password');
-        
+
         fireEvent.changeText(emailInput, 'test@example.com');
         fireEvent.changeText(passwordInput, 'password123');
-        
+
         fireEvent.press(getByText('Sign In'));
-        
+
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith(
                 '/authentication/login',
@@ -235,10 +250,10 @@ describe('Home Component', () => {
             <NavigationContainer>
                 <Home />
             </NavigationContainer>);
-        
+
         fireEvent.press(getByText('Create an Account'));
         fireEvent.press(getByText('Create Account'));
-        
+
         expect(ToastNotification.show).toHaveBeenCalledWith(
             'error',
             'Error',
@@ -252,17 +267,17 @@ describe('Home Component', () => {
             <NavigationContainer>
                 <Home />
             </NavigationContainer>);
-        
+
         fireEvent.press(getByText('Create an Account'));
-        
+
         fireEvent.changeText(getByPlaceholderText('First Name'), 'John');
         fireEvent.changeText(getByPlaceholderText('Last Name'), 'Doe');
         fireEvent.changeText(getByPlaceholderText('Email Address'), 'john.doe@example.com');
         fireEvent.changeText(getByPlaceholderText('Password'), 'password123');
         fireEvent.changeText(getByPlaceholderText('Confirm Password'), 'password456');
-        
+
         fireEvent.press(getByText('Create Account'));
-        
+
         expect(ToastNotification.show).toHaveBeenCalledWith(
             'error',
             'Error',
@@ -276,17 +291,17 @@ describe('Home Component', () => {
             <NavigationContainer>
                 <Home />
             </NavigationContainer>);
-        
+
         fireEvent.press(getByText('Create an Account'));
-        
+
         fireEvent.changeText(getByPlaceholderText('First Name'), 'John');
         fireEvent.changeText(getByPlaceholderText('Last Name'), 'Doe');
         fireEvent.changeText(getByPlaceholderText('Email Address'), 'john.doe@example.com');
         fireEvent.changeText(getByPlaceholderText('Password'), 'short');
         fireEvent.changeText(getByPlaceholderText('Confirm Password'), 'short');
-        
+
         fireEvent.press(getByText('Create Account'));
-        
+
         expect(ToastNotification.show).toHaveBeenCalledWith(
             'error',
             'Error',
@@ -301,22 +316,22 @@ describe('Home Component', () => {
             success: true,
             data: { id: 1, email: 'john.doe@example.com' }
         });
-        
+
         const { getByText, getByPlaceholderText, queryByPlaceholderText } = render(
             <NavigationContainer>
                 <Home />
             </NavigationContainer>);
-        
+
         fireEvent.press(getByText('Create an Account'));
-        
+
         fireEvent.changeText(getByPlaceholderText('First Name'), 'John');
         fireEvent.changeText(getByPlaceholderText('Last Name'), 'Doe');
         fireEvent.changeText(getByPlaceholderText('Email Address'), 'john.doe@example.com');
         fireEvent.changeText(getByPlaceholderText('Password'), 'password123');
         fireEvent.changeText(getByPlaceholderText('Confirm Password'), 'password123');
-        
+
         fireEvent.press(getByText('Create Account'));
-        
+
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith(
                 '/authentication/register',
@@ -347,22 +362,22 @@ describe('Home Component', () => {
             success: false,
             data: JSON.stringify({ title: 'Email is already registered' })
         });
-        
+
         const { getByText, getByPlaceholderText } = render(
             <NavigationContainer>
                 <Home />
             </NavigationContainer>);
-        
+
         fireEvent.press(getByText('Create an Account'));
-        
+
         fireEvent.changeText(getByPlaceholderText('First Name'), 'John');
         fireEvent.changeText(getByPlaceholderText('Last Name'), 'Doe');
         fireEvent.changeText(getByPlaceholderText('Email Address'), 'john.doe@example.com');
         fireEvent.changeText(getByPlaceholderText('Password'), 'password123');
         fireEvent.changeText(getByPlaceholderText('Confirm Password'), 'password123');
-        
+
         fireEvent.press(getByText('Create Account'));
-        
+
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith(
                 '/authentication/register',
@@ -386,22 +401,22 @@ describe('Home Component', () => {
     it('handles account creation with network error', async () => {
         const apiMock = handleHttpRequest;
         apiMock.mockRejectedValueOnce(new Error('Network error'));
-        
+
         const { getByText, getByPlaceholderText } = render(
             <NavigationContainer>
                 <Home />
             </NavigationContainer>);
-        
+
         fireEvent.press(getByText('Create an Account'));
-        
+
         fireEvent.changeText(getByPlaceholderText('First Name'), 'John');
         fireEvent.changeText(getByPlaceholderText('Last Name'), 'Doe');
         fireEvent.changeText(getByPlaceholderText('Email Address'), 'john.doe@example.com');
         fireEvent.changeText(getByPlaceholderText('Password'), 'password123');
         fireEvent.changeText(getByPlaceholderText('Confirm Password'), 'password123');
-        
+
         fireEvent.press(getByText('Create Account'));
-        
+
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith(
                 '/authentication/register',
@@ -424,7 +439,7 @@ describe('Home Component', () => {
 
     it('sets loading state during login process', async () => {
         const apiMock = handleHttpRequest;
-        
+
         // Use a delayed promise to test loading state
         apiMock.mockImplementation(() => new Promise(resolve => {
             setTimeout(() => {
@@ -434,6 +449,94 @@ describe('Home Component', () => {
                 });
             }, 100);
         }));
+
+        const { getByText, getByPlaceholderText } = render(
+            <NavigationContainer>
+                <Home />
+            </NavigationContainer>);
+
+        fireEvent.press(getByText('Sign In'));
+
+        const emailInput = getByPlaceholderText('Email Address');
+        const passwordInput = getByPlaceholderText('Password');
+
+        fireEvent.changeText(emailInput, 'test@example.com');
+        fireEvent.changeText(passwordInput, 'password123');
+
+        fireEvent.press(getByText('Sign In'));
+
+        await waitFor(() => {
+            expect(apiMock).toHaveBeenCalled();
+        });
+    });
+
+    it('clears form inputs when login form is cancelled', () => {
+        const { getByText, getByPlaceholderText } = render(
+            <NavigationContainer>
+                <Home />
+            </NavigationContainer>);
+
+        fireEvent.press(getByText('Sign In'));
+
+        const emailInput = getByPlaceholderText('Email Address');
+        const passwordInput = getByPlaceholderText('Password');
+
+        fireEvent.changeText(emailInput, 'test@example.com');
+        fireEvent.changeText(passwordInput, 'password123');
+
+        fireEvent.press(getByText('Cancel'));
+
+        // Re-open the form to check if fields are cleared
+        fireEvent.press(getByText('Sign In'));
+
+        const newEmailInput = getByPlaceholderText('Email Address');
+        const newPasswordInput = getByPlaceholderText('Password');
+
+        expect(newEmailInput.props.value).toBe('');
+        expect(newPasswordInput.props.value).toBe('');
+    });
+
+    it('clears form inputs when registration form is cancelled', () => {
+        const { getByText, getByPlaceholderText } = render(
+            <NavigationContainer>
+                <Home />
+            </NavigationContainer>);
+
+        fireEvent.press(getByText('Create an Account'));
+
+        fireEvent.changeText(getByPlaceholderText('First Name'), 'John');
+        fireEvent.changeText(getByPlaceholderText('Last Name'), 'Doe');
+        fireEvent.changeText(getByPlaceholderText('Email Address'), 'john@example.com');
+        fireEvent.changeText(getByPlaceholderText('Password'), 'password123');
+        fireEvent.changeText(getByPlaceholderText('Confirm Password'), 'password123');
+
+        fireEvent.press(getByText('Cancel'));
+
+        // Re-open the form to check if fields are cleared
+        fireEvent.press(getByText('Create an Account'));
+
+        expect(getByPlaceholderText('First Name').props.value).toBe('');
+        expect(getByPlaceholderText('Last Name').props.value).toBe('');
+        expect(getByPlaceholderText('Email Address').props.value).toBe('');
+        expect(getByPlaceholderText('Password').props.value).toBe('');
+        expect(getByPlaceholderText('Confirm Password').props.value).toBe('');
+    });
+
+    it('handles SecureStore errors gracefully during login', async () => {
+        const apiMock = handleHttpRequest;
+        const SecureStore = require('expo-secure-store');
+        
+        // Mock a successful login response
+        apiMock.mockResolvedValueOnce({
+            success: true,
+            data: { id: 123, token: 'test-auth-token', email: 'test@example.com' }
+        });
+        
+        // But mock SecureStore to fail
+        SecureStore.setItemAsync.mockRejectedValueOnce(new Error('SecureStore error'));
+        
+        // Spy on console.error
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
         
         const { getByText, getByPlaceholderText } = render(
             <NavigationContainer>
@@ -451,11 +554,49 @@ describe('Home Component', () => {
         fireEvent.press(getByText('Sign In'));
         
         await waitFor(() => {
-            expect(apiMock).toHaveBeenCalled();
+            // The login API should still be called
+            expect(apiMock).toHaveBeenCalledWith(
+                '/authentication/login',
+                'POST',
+                {
+                    email: 'test@example.com',
+                    password: 'password123'
+                }
+            );
+            
+            // Should show an error notification
+            expect(ToastNotification.show).toHaveBeenCalledWith(
+                'error',
+                'Error',
+                'An unexpected error occurred. Please try again.'
+            );
+            
+            // Should have attempted to store data
+            expect(SecureStore.setItemAsync).toHaveBeenCalledWith('user_id', '123');
         });
+        
+        // Clean up
+        consoleErrorSpy.mockRestore();
     });
 
-    it('clears form inputs when login form is cancelled', () => {
+    it('handles partial SecureStore failures during login', async () => {
+        const apiMock = handleHttpRequest;
+        const SecureStore = require('expo-secure-store');
+        
+        // Mock a successful login response
+        apiMock.mockResolvedValueOnce({
+            success: true,
+            data: { id: 123, token: 'test-auth-token', email: 'test@example.com' }
+        });
+        
+        // First call succeeds, second fails
+        SecureStore.setItemAsync
+            .mockResolvedValueOnce() // user_id succeeds
+            .mockRejectedValueOnce(new Error('SecureStore error')); // auth_token fails
+        
+        // Spy on console.error
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        
         const { getByText, getByPlaceholderText } = render(
             <NavigationContainer>
                 <Home />
@@ -469,41 +610,22 @@ describe('Home Component', () => {
         fireEvent.changeText(emailInput, 'test@example.com');
         fireEvent.changeText(passwordInput, 'password123');
         
-        fireEvent.press(getByText('Cancel'));
-        
-        // Re-open the form to check if fields are cleared
         fireEvent.press(getByText('Sign In'));
         
-        const newEmailInput = getByPlaceholderText('Email Address');
-        const newPasswordInput = getByPlaceholderText('Password');
+        await waitFor(() => {
+            // Should have attempted to store both values
+            expect(SecureStore.setItemAsync).toHaveBeenCalledWith('user_id', '123');
+            expect(SecureStore.setItemAsync).toHaveBeenCalledWith('auth_token', 'test-auth-token');
+            
+            // Should show an error notification
+            expect(ToastNotification.show).toHaveBeenCalledWith(
+                'error',
+                'Error',
+                'An unexpected error occurred. Please try again.'
+            );
+        });
         
-        expect(newEmailInput.props.value).toBe('');
-        expect(newPasswordInput.props.value).toBe('');
-    });
-
-    it('clears form inputs when registration form is cancelled', () => {
-        const { getByText, getByPlaceholderText } = render(
-            <NavigationContainer>
-                <Home />
-            </NavigationContainer>);
-        
-        fireEvent.press(getByText('Create an Account'));
-        
-        fireEvent.changeText(getByPlaceholderText('First Name'), 'John');
-        fireEvent.changeText(getByPlaceholderText('Last Name'), 'Doe');
-        fireEvent.changeText(getByPlaceholderText('Email Address'), 'john@example.com');
-        fireEvent.changeText(getByPlaceholderText('Password'), 'password123');
-        fireEvent.changeText(getByPlaceholderText('Confirm Password'), 'password123');
-        
-        fireEvent.press(getByText('Cancel'));
-        
-        // Re-open the form to check if fields are cleared
-        fireEvent.press(getByText('Create an Account'));
-        
-        expect(getByPlaceholderText('First Name').props.value).toBe('');
-        expect(getByPlaceholderText('Last Name').props.value).toBe('');
-        expect(getByPlaceholderText('Email Address').props.value).toBe('');
-        expect(getByPlaceholderText('Password').props.value).toBe('');
-        expect(getByPlaceholderText('Confirm Password').props.value).toBe('');
-    });
+        // Clean up
+        consoleErrorSpy.mockRestore();
+    });    
 });

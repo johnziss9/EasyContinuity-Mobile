@@ -50,6 +50,12 @@ jest.mock('../utils/ToastNotification', () => ({
     show: jest.fn()
 }));
 
+// Mock the SecureStore module
+jest.mock('expo-secure-store', () => ({
+    getItemAsync: jest.fn(() => Promise.resolve('test-user-id')),
+    setItemAsync: jest.fn(() => Promise.resolve())
+  }));
+
 describe('Dashboard', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -209,7 +215,14 @@ describe('Dashboard', () => {
 
     it('should successfully create a new space', async () => {
         const apiMock = require('../api/api').default;
-
+        
+        // Mock SecureStore if not already done in the test file setup
+        jest.mock('expo-secure-store', () => ({
+            getItemAsync: jest.fn(() => Promise.resolve('test-user-id')),
+        }));
+        
+        const SecureStore = require('expo-secure-store');
+    
         apiMock
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
@@ -222,6 +235,18 @@ describe('Dashboard', () => {
                 success: true,
                 data: { id: 3, name: 'Mr. Robot', type: '2', description: 'Hacker series' }
             }))
+            // Add mock for userSpace API call
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { 
+                    id: 1, 
+                    spaceId: 3, 
+                    userId: 'test-user-id', 
+                    role: 0, 
+                    addedOn: expect.any(String),
+                    invitationStatus: 1
+                }
+            }))
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
                 data: [
@@ -230,42 +255,54 @@ describe('Dashboard', () => {
                     { id: 3, name: 'Mr. Robot', type: '2', description: 'Hacker series' }
                 ]
             }));
-
+    
         const { getByTestId, getByText } = render(
             <NavigationContainer>
                 <Dashboard />
             </NavigationContainer>
         );
-
+    
         await waitFor(() => {
             fireEvent.press(getByTestId('add-space-button'));
         });
-
+    
         await waitFor(() => {
             const nameInput = getByTestId('space-name-text-input');
             const descriptionInput = getByTestId('space-description-text-input');
             fireEvent.changeText(nameInput, 'Mr. Robot');
             fireEvent.changeText(descriptionInput, 'Hacker series');
-
+    
             const typeDropdown = getByTestId('space-type-select-dropdown');
             fireEvent.press(typeDropdown);
             const seriesOption = getByTestId('space-type-select-item-2');
             fireEvent.press(seriesOption);
         });
-
+    
         fireEvent.press(getByTestId('add-space-submit-button'));
-
+    
         await waitFor(() => {
+            // Check space creation with user ID
             expect(apiMock).toHaveBeenCalledWith('/space/', 'POST', {
                 name: 'Mr. Robot',
                 type: '2',
                 description: 'Hacker series',
-                createdOn: expect.any(String)
+                createdOn: expect.any(String),
+                createdBy: 'test-user-id'
             });
-
+    
+            // Check userSpace creation
+            expect(apiMock).toHaveBeenCalledWith('/userSpace', 'POST', {
+                spaceId: 3,
+                userId: 'test-user-id',
+                addedOn: expect.any(String),
+                role: 0, // Owner
+                addedBy: 'test-user-id',
+                invitationStatus: 1 // Accepted
+            });
+    
             expect(apiMock).toHaveBeenCalledWith('/space', 'GET');
             expect(getByText('Mr. Robot')).toBeTruthy();
-
+    
             expect(ToastNotification.show).toHaveBeenCalledWith(
                 'success',
                 'Success',
@@ -303,41 +340,68 @@ describe('Dashboard', () => {
 
 
     it('should correctly select space type from dropdown', async () => {
+        // Mock SecureStore if not already done in the test file setup
+        jest.mock('expo-secure-store', () => ({
+            getItemAsync: jest.fn(() => Promise.resolve('test-user-id')),
+        }));
+        
+        const SecureStore = require('expo-secure-store');
+        
         const { getByTestId } = render(
             <NavigationContainer>
                 <Dashboard />
             </NavigationContainer>
         );
-
+    
         await waitFor(() => {
             fireEvent.press(getByTestId('add-space-button'));
         });
-
+    
         const typeDropdown = getByTestId('space-type-select-dropdown');
         fireEvent.press(typeDropdown);
-
+    
         const movieOption = getByTestId('space-type-select-item-1');
         fireEvent.press(movieOption);
-
+    
         const nameInput = getByTestId('space-name-text-input');
         fireEvent.changeText(nameInput, 'Test Movie');
-
+    
         fireEvent.press(getByTestId('add-space-submit-button'));
-
+    
         await waitFor(() => {
             const apiMock = require('../api/api').default;
+            // Check space creation with user ID
             expect(apiMock).toHaveBeenCalledWith('/space/', 'POST', {
                 name: 'Test Movie',
                 type: '1',
                 description: '',
-                createdOn: expect.any(String)
+                createdOn: expect.any(String),
+                createdBy: 'test-user-id'  // Added user ID
             });
+            
+            // Test for userSpace creation - this would be the second call after space creation
+            expect(apiMock).toHaveBeenCalledWith('/userSpace', 'POST', expect.objectContaining({
+                userId: 'test-user-id',
+                role: 0,
+                addedBy: 'test-user-id',
+                invitationStatus: 1
+            }));
         });
+        
+        // Verify that SecureStore.getItemAsync was called to get the user ID
+        expect(SecureStore.getItemAsync).toHaveBeenCalledWith('user_id');
     });
 
     it('should handle editing a space correctly', async () => {
         const apiMock = require('../api/api').default;
-
+        
+        // Mock SecureStore if not already done in the test file setup
+        jest.mock('expo-secure-store', () => ({
+            getItemAsync: jest.fn(() => Promise.resolve('test-user-id')),
+        }));
+        
+        const SecureStore = require('expo-secure-store');
+    
         apiMock
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
@@ -355,20 +419,20 @@ describe('Dashboard', () => {
                     { id: 1, name: 'Updated Space', type: '2', description: 'Updated description' }
                 ]
             }));
-
+    
         const { getByTestId, getByText, findByText } = render(
             <NavigationContainer>
                 <Dashboard />
             </NavigationContainer>
         );
-
+    
         // Wait for initial render
         await waitFor(() => {
             expect(getByText('Test Space')).toBeTruthy();
         });
-
+    
         fireEvent.press(getByTestId('edit-space-button'));
-
+    
         // Verify initial form values
         await waitFor(() => {
             const nameInput = getByTestId('space-name-text-input');
@@ -376,19 +440,20 @@ describe('Dashboard', () => {
             expect(nameInput.props.value).toBe('Test Space');
             expect(descriptionInput.props.value).toBe('Original description');
         });
-
+    
         fireEvent.changeText(getByTestId('space-name-text-input'), 'Updated Space');
         fireEvent.changeText(getByTestId('space-description-text-input'), 'Updated description');
-
+    
         fireEvent.press(getByTestId('add-space-submit-button'));
-
-        // Verify the space was updated
+    
+        // Verify the space was updated with user ID for tracking
         await waitFor(() => {
             expect(apiMock).toHaveBeenCalledWith('/space/1', 'PUT', {
                 name: 'Updated Space',
                 type: '1',
                 description: 'Updated description',
-                lastUpdatedOn: expect.any(String)
+                lastUpdatedOn: expect.any(String),
+                lastUpdatedBy: 'test-user-id'  // Added user ID for tracking who updated
             });
             expect(getByText('Updated Space')).toBeTruthy();
             expect(ToastNotification.show).toHaveBeenCalledWith(
@@ -397,6 +462,9 @@ describe('Dashboard', () => {
                 'Space Updated Successfully'
             );
         });
+        
+        // Verify that SecureStore.getItemAsync was called to get the user ID
+        expect(SecureStore.getItemAsync).toHaveBeenCalledWith('user_id');
     });
 
     it('should display correct type in edit mode', async () => {
@@ -464,15 +532,22 @@ describe('Dashboard', () => {
         // Mock the date
         const mockDate = new Date('2024-12-17T07:19:09.984Z');
         jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
-
+    
         const apiMock = require('../api/api').default;
-
+        
+        // Mock SecureStore if not already done in the test file setup
+        jest.mock('expo-secure-store', () => ({
+            getItemAsync: jest.fn(() => Promise.resolve('test-user-id')),
+        }));
+        
+        const SecureStore = require('expo-secure-store');
+    
         const mockSpace = {
             id: 1,
             name: 'Space to Delete',
             type: '1'
         };
-
+    
         apiMock
             .mockImplementationOnce(() => Promise.resolve({
                 success: true,
@@ -486,29 +561,30 @@ describe('Dashboard', () => {
                 success: true,
                 data: []
             }));
-
+    
         const { getByTestId, queryByText, getByText } = render(
             <NavigationContainer>
                 <Dashboard />
             </NavigationContainer>
         );
-
+    
         await waitFor(() => {
             expect(getByText('Space to Delete')).toBeTruthy();
         });
-
+    
         fireEvent.press(getByTestId('delete-space-button'));
         expect(getByText('Delete Space?')).toBeTruthy();
         fireEvent.press(getByTestId('delete-space-confirm-button'));
-
+    
         await waitFor(() => {
             expect(apiMock).toHaveBeenNthCalledWith(2, '/space/1', 'PUT', {
                 name: 'Space to Delete',
                 type: '1',
                 isDeleted: true,
-                deletedOn: mockDate.toISOString()
+                deletedOn: mockDate.toISOString(),
+                deletedBy: 'test-user-id'  // Added user ID for deletion tracking
             });
-
+    
             expect(queryByText('Space to Delete')).toBeNull();
             expect(getByText('No Spaces Yet')).toBeTruthy();
             expect(ToastNotification.show).toHaveBeenCalledWith(
@@ -517,9 +593,12 @@ describe('Dashboard', () => {
                 'Space Deleted Successfully'
             );
         });
-
+    
         expect(apiMock).toHaveBeenCalledTimes(3);
-
+    
+        // Check that SecureStore.getItemAsync was called
+        expect(SecureStore.getItemAsync).toHaveBeenCalledWith('user_id');
+    
         // Clean up
         jest.restoreAllMocks();
     });
@@ -840,4 +919,120 @@ describe('Dashboard', () => {
             );
         });
     });
+
+    it('should handle errors when creating user-space association', async () => {
+  const apiMock = require('../api/api').default;
+  const SecureStore = require('expo-secure-store');
+  
+  // Set up the mock to return a specific user ID
+  SecureStore.getItemAsync.mockResolvedValue('test-user-id');
+
+  apiMock
+    .mockImplementationOnce(() => Promise.resolve({
+      success: true,
+      data: []
+    }))
+    // Space creation succeeds
+    .mockImplementationOnce(() => Promise.resolve({
+      success: true,
+      data: { id: 3, name: 'Mr. Robot', type: '2', description: 'Hacker series' }
+    }))
+    // But userSpace creation fails
+    .mockImplementationOnce(() => Promise.resolve({
+      success: false,
+      error: 'Failed to set permissions'
+    }));
+
+  const { getByTestId } = render(
+    <NavigationContainer>
+      <Dashboard />
+    </NavigationContainer>
+  );
+
+  await waitFor(() => {
+    fireEvent.press(getByTestId('add-space-button'));
+  });
+
+  await waitFor(() => {
+    const nameInput = getByTestId('space-name-text-input');
+    const descriptionInput = getByTestId('space-description-text-input');
+    fireEvent.changeText(nameInput, 'Mr. Robot');
+    fireEvent.changeText(descriptionInput, 'Hacker series');
+
+    const typeDropdown = getByTestId('space-type-select-dropdown');
+    fireEvent.press(typeDropdown);
+    const seriesOption = getByTestId('space-type-select-item-2');
+    fireEvent.press(seriesOption);
+  });
+
+  fireEvent.press(getByTestId('add-space-submit-button'));
+
+  await waitFor(() => {
+    expect(ToastNotification.show).toHaveBeenCalledWith(
+      'error',
+      'Error',
+      'Space created but failed to set permissions: Failed to set permissions'
+    );
+  });
+});
+
+it('should handle SecureStore.getItemAsync failure gracefully', async () => {
+  const apiMock = require('../api/api').default;
+  const SecureStore = require('expo-secure-store');
+  
+  // Set up the mock to simulate a failure
+  SecureStore.getItemAsync.mockRejectedValue(new Error('SecureStore error'));
+
+  apiMock
+    .mockImplementationOnce(() => Promise.resolve({
+      success: true,
+      data: []
+    }))
+    .mockImplementationOnce(() => Promise.resolve({
+      success: true,
+      data: { id: 3, name: 'Mr. Robot', type: '2', description: 'Hacker series' }
+    }));
+
+  // Spy on console.error
+  const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+  const { getByTestId } = render(
+    <NavigationContainer>
+      <Dashboard />
+    </NavigationContainer>
+  );
+
+  await waitFor(() => {
+    fireEvent.press(getByTestId('add-space-button'));
+  });
+
+  await waitFor(() => {
+    const nameInput = getByTestId('space-name-text-input');
+    fireEvent.changeText(nameInput, 'Mr. Robot');
+
+    const typeDropdown = getByTestId('space-type-select-dropdown');
+    fireEvent.press(typeDropdown);
+    const seriesOption = getByTestId('space-type-select-item-2');
+    fireEvent.press(seriesOption);
+  });
+
+  fireEvent.press(getByTestId('add-space-submit-button'));
+
+  await waitFor(() => {
+    // Should log the error
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error retrieving user ID:', expect.any(Error));
+
+    // POST should still be called, but with null for createdBy
+    expect(apiMock).toHaveBeenCalledWith('/space/', 'POST', {
+      name: 'Mr. Robot',
+      type: '2',
+      description: '',
+      createdOn: expect.any(String),
+      createdBy: null
+    });
+  });
+
+  // Clean up
+  consoleErrorSpy.mockRestore();
+});
 })
