@@ -3,6 +3,7 @@ import { StyleSheet, Text, Pressable, TextInput, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import handleHttpRequest from '../api/api';
 import ToastNotification from '../utils/ToastNotification';
+import * as SecureStore from 'expo-secure-store';
 
 const Home = () => {
     const navigation = useNavigation();
@@ -51,8 +52,13 @@ const Home = () => {
             };
     
             const { success, data } = await handleHttpRequest(url, method, body);
-    
+
             if (success) {
+                const userId = data.id;
+                
+                await SecureStore.setItemAsync('user_id', userId.toString());
+                await SecureStore.setItemAsync('auth_token', data.token);
+                
                 navigation.navigate('Dashboard');
             } else {
                 try {
