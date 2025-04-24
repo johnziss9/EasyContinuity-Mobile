@@ -6,6 +6,7 @@ import { SelectList } from 'react-native-dropdown-select-list'
 import { useNavigation } from '@react-navigation/native';
 import handleHttpRequest from '../api/api';
 import ToastNotification from '../utils/ToastNotification';
+import * as SecureStore from 'expo-secure-store';
 
 const Dashboard = () => {
     const navigation = useNavigation();
@@ -66,8 +67,8 @@ const Dashboard = () => {
                 name: space.name,
                 type: space.type,
                 isDeleted: true,
-                deletedOn: new Date().toISOString()
-                // TODO Include deletedBy
+                deletedOn: new Date().toISOString(),
+                deletedBy: await getUserId()
             };
 
             const response = await handleHttpRequest(url, method, body);
@@ -97,8 +98,8 @@ const Dashboard = () => {
                     name: spaceNameField,
                     type: spaceType,
                     description: spaceDescription,
-                    lastUpdatedOn: new Date().toISOString()
-                    // TODO Include lastUpdatedBy
+                    lastUpdatedOn: new Date().toISOString(),
+                    lastUpdatedBy: await getUserId()
                 };
 
                 const response = await handleHttpRequest(url, method, body);
@@ -125,17 +126,37 @@ const Dashboard = () => {
                     name: spaceNameField,
                     type: spaceType,
                     description: spaceDescription,
-                    createdOn: new Date().toISOString()
-                    // TODO Include AddedBy
+                    createdOn: new Date().toISOString(),
+                    createdBy: await getUserId()
                 };
 
-                const response = await handleHttpRequest(url, method, body);
+                const spaceResponse = await handleHttpRequest(url, method, body);
 
-                if (response.success) {
-                    handleGetAllSpaces();
-                    ToastNotification.show('success', 'Success', 'Space Added Successfully');
+                if (spaceResponse.success) {
+                    const newSpaceId = spaceResponse.data.id;
+                    const userId = await getUserId();
+
+                    const userSpaceUrl = '/userSpace';
+                    const userSpaceMethod = 'POST';
+                    const userSpaceBody = {
+                        spaceId: newSpaceId,
+                        userId: userId,
+                        addedOn: new Date().toISOString(),
+                        role: 0, // 0 = Owner
+                        addedBy: userId,
+                        invitationStatus: 1 // 1 = Accepted
+                    };
+
+                    const userSpaceResponse = await handleHttpRequest(userSpaceUrl, userSpaceMethod, userSpaceBody);
+
+                    if (userSpaceResponse.success) {
+                        handleGetAllSpaces();
+                        ToastNotification.show('success', 'Success', 'Space Added Successfully');
+                    } else {
+                        ToastNotification.show('error', 'Error', 'Space created but failed to set permissions: ' + userSpaceResponse.error);
+                    }
                 } else {
-                    ToastNotification.show('error', 'Error', response.error);
+                    ToastNotification.show('error', 'Error', spaceResponse.error);
                 }
             } catch (error) {
                 ToastNotification.show('error', 'Error', 'Failed to add space');
@@ -176,6 +197,15 @@ const Dashboard = () => {
         color: '#3F4F5F',
         fontWeight: value ? 400 : 'normal'
     });
+
+    const getUserId = async () => {
+        try {
+            return await SecureStore.getItemAsync('user_id');
+        } catch (error) {
+            console.error('Error retrieving user ID:', error);
+            return null;
+        }
+    }
 
     return (
         <View style={styles.container}>
