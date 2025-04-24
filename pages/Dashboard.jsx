@@ -149,8 +149,6 @@ const Dashboard = () => {
 
                     const userSpaceResponse = await handleHttpRequest(userSpaceUrl, userSpaceMethod, userSpaceBody);
 
-                    console.log(userSpaceResponse);
-
                     if (userSpaceResponse.success) {
                         handleGetAllSpaces();
                         ToastNotification.show('success', 'Success', 'Space Added Successfully');
