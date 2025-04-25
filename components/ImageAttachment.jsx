@@ -160,7 +160,7 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                     });
                     return newFiles;
                 });
-    
+
                 setShowEditImageModal(false);
                 return;
             }
@@ -205,11 +205,11 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
         setSelectedImage(item);
         setAttachmentId(item.isPreview ? null : item.id);
         setShowEditImageModal(true);
-        
+
         const lastDotIndex = item.name.lastIndexOf('.');
         const nameWithoutExtension = item.name.substring(0, lastDotIndex);
         const extension = item.name.substring(lastDotIndex); // Get the extension including the dot
-        
+
         setImageName(nameWithoutExtension);
         setImageExtension(extension);
     }
@@ -219,17 +219,22 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
         setImageName('');
     }
 
+    const handleDeleteImagePress = (image) => {
+        setSelectedImage(image);
+        setShowDeleteImageConfirmationModal(true);
+    }
+
     const handleDeleteImage = async (item) => {
         if (item.isPreview) {
             // Handle preview image deletion
             setSelectedFiles(prevFiles => {
                 const newFiles = prevFiles.filter(file => file.id !== item.id);
-                
+
                 // If no more preview files, clear everything
                 if (newFiles.length === 0) {
                     clearFiles();
                 }
-                
+
                 return newFiles;
             });
         } else {
@@ -240,11 +245,12 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                     isDeleted: true,
                     deletedOn: new Date().toISOString()
                 };
-    
+
                 const response = await handleHttpRequest(url, method, body);
-    
+
                 if (response.success) {
-                    setShowDeleteImageConfirmationModal(true);
+                    fetchAttachments();
+                    ToastNotification.show('success', 'Success', 'Image Deleted Successfully');
                 } else {
                     ToastNotification.show('error', 'Error', response.error);
                 }
@@ -296,7 +302,7 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={[styles.deleteButton, (!item.isPreview && hasPreviewImages) && styles.uploadedButton]}
-                    onPress={() => handleDeleteImage(item)}
+                    onPress={() => handleDeleteImagePress(item)}
                     testID="delete-image-button"
                 >
                     <Ionicons
@@ -311,7 +317,7 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
 
     return (
         <View style={styles.container}>
-            {/* Deleted Image Name Confirmation Modal */}
+            {/* Delete Image confirmation modal */}
             <Modal
                 transparent={true}
                 animationType="fade"
@@ -320,14 +326,17 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalText}>Image Deleted Successfully</Text>
+                        <Text style={styles.modalText}>Delete Image?</Text>
                         <View style={styles.modalButtonsContainer}>
+                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonLeft]} testID='delete-image-cancel-button' onPress={() => setShowDeleteImageConfirmationModal(false)}>
+                                <Text style={[styles.modalButtonText, styles.modalButtonTextLeft]}>Cancel</Text>
+                            </TouchableOpacity>
                             <TouchableOpacity
                                 style={[styles.modalButton, styles.modalButtonRight]}
-                                testID='deleted-image-name-confirm-button'
+                                testID='delete-image-confirm-button'
                                 onPress={() => {
                                     setShowDeleteImageConfirmationModal(false);
-                                    fetchAttachments();
+                                    handleDeleteImage(selectedImage);
                                 }}
                             >
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>OK</Text>
@@ -336,7 +345,7 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                     </View>
                 </View>
             </Modal>
-            
+
             {/* Edited Image Name Confirmation Modal */}
             <Modal
                 transparent={true}
@@ -393,7 +402,7 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                     </View>
                 </View>
             </Modal>
-            
+
             {/* Image View Modal */}
             <Modal
                 transparent={true}
@@ -624,6 +633,7 @@ const styles = StyleSheet.create({
     },
     modalButton: {
         marginTop: 10,
+        padding: 10,
         borderRadius: 5,
         width: 150,
         height: 50,
