@@ -29,7 +29,7 @@ const Dashboard = () => {
     ];
 
     useEffect(() => {
-        handleGetAllSpaces();
+        handleGetUserSpaces();
     }, []);
 
     const handleSpacePress = (spaceId, spaceName) => {
@@ -74,7 +74,7 @@ const Dashboard = () => {
             const response = await handleHttpRequest(url, method, body);
 
             if (response.success) {
-                handleGetAllSpaces();
+                handleGetUserSpaces();
                 ToastNotification.show('success', 'Success', 'Space Deleted Successfully');
             } else {
                 ToastNotification.show('error', 'Error', response.error);
@@ -105,7 +105,7 @@ const Dashboard = () => {
                 const response = await handleHttpRequest(url, method, body);
 
                 if (response.success) {
-                    handleGetAllSpaces();
+                    handleGetUserSpaces();
                     ToastNotification.show('success', 'Success', 'Space Updated Successfully');
                 } else {
                     ToastNotification.show('error', 'Error', response.error);
@@ -150,7 +150,7 @@ const Dashboard = () => {
                     const userSpaceResponse = await handleHttpRequest(userSpaceUrl, userSpaceMethod, userSpaceBody);
 
                     if (userSpaceResponse.success) {
-                        handleGetAllSpaces();
+                        handleGetUserSpaces();
                         ToastNotification.show('success', 'Success', 'Space Added Successfully');
                     } else {
                         ToastNotification.show('error', 'Error', 'Space created but failed to set permissions: ' + userSpaceResponse.error);
@@ -167,11 +167,12 @@ const Dashboard = () => {
         }
     }
 
-    const handleGetAllSpaces = async () => {
+    const handleGetUserSpaces = async () => {
         try {
             setIsLoading(true);
 
-            const url = '/space';
+            const userId = await getUserId();
+            const url = `/space/user/${userId}`;
             const method = 'GET';
 
             const response = await handleHttpRequest(url, method);
