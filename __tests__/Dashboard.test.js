@@ -197,7 +197,7 @@ describe('Dashboard', () => {
         );
 
         await waitFor(() => {
-            // Verify API was called with correct parameters - now with user ID
+            // Verify API was called with correct parameters now with user ID
             expect(apiMock).toHaveBeenCalledWith('/space/user/test-user-id', 'GET');
             expect(apiMock).toHaveBeenCalledTimes(1);
 
@@ -305,7 +305,7 @@ describe('Dashboard', () => {
                 invitationStatus: 1 // Accepted
             });
 
-            // This is the updated endpoint check - use the user-specific endpoint
+            // This is the updated endpoint check
             expect(apiMock).toHaveBeenCalledWith('/space/user/test-user-id', 'GET');
             expect(getByText('Mr. Robot')).toBeTruthy();
 
