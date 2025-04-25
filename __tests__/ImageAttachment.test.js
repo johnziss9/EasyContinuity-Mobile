@@ -60,7 +60,7 @@ describe('ImageAttachment', () => {
 
         await waitFor(() => {
             expect(rendered.getByText('No Images. Tap + to add.')).toBeTruthy();
-        }, { timeout: 2000 });
+        });
 
         expect(rendered.getByTestId('add-image-button')).toBeTruthy();
     });
@@ -592,7 +592,7 @@ describe('ImageAttachment', () => {
         expect(rendered.queryByText('Image Name Updated Successfully')).toBeNull();
     });
 
-    it('should remove a preview image when delete button is pressed', async () => {
+    it('should remove a preview image when delete button is pressed and confirmed', async () => {
         // Mock multiple files
         mockBrowseFiles.mockResolvedValueOnce([
             { ...mockFile, name: 'preview1.jpg' },
@@ -613,6 +613,15 @@ describe('ImageAttachment', () => {
         const deleteButtons = rendered.getAllByTestId('delete-image-button');
         fireEvent.press(deleteButtons[0]);
 
+        await waitFor(() => {
+            expect(rendered.getByText('Delete Image?')).toBeTruthy();
+        });
+
+        // Confirm deletion
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('delete-image-confirm-button'));
+        });
+
         expect(rendered.queryByText('preview1')).toBeNull();
         expect(rendered.getByText('preview2')).toBeTruthy();
     });
@@ -629,7 +638,14 @@ describe('ImageAttachment', () => {
         expect(rendered.getByText('test-image')).toBeTruthy();
         expect(rendered.getByText('Upload Selected Files')).toBeTruthy();
 
-        fireEvent.press(rendered.getByTestId('delete-image-button'));
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('delete-image-button'));
+        });
+
+        // Confirm deletion
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('delete-image-confirm-button'));
+        });
 
         expect(rendered.queryByText('test-image')).toBeNull();
         expect(rendered.queryByText('Upload Selected Files')).toBeNull();
@@ -664,6 +680,11 @@ describe('ImageAttachment', () => {
         const deleteButtons = rendered.getAllByTestId('delete-image-button');
         fireEvent.press(deleteButtons[0]);
 
+        // Confirm deletion
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('delete-image-confirm-button'));
+        });
+
         expect(rendered.queryByTestId('uploaded-overlay')).toBeNull();
     });
 
@@ -687,9 +708,20 @@ describe('ImageAttachment', () => {
         const deleteButtons = rendered.getAllByTestId('delete-image-button');
         fireEvent.press(deleteButtons[0]);
 
+        // Confirm deletion
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('delete-image-confirm-button'));
+        });
+
         expect(rendered.getByText('Upload Selected Files')).toBeTruthy();
 
-        fireEvent.press(deleteButtons[1]);
+        const remainingDeleteButton = rendered.getByTestId('delete-image-button');
+        fireEvent.press(remainingDeleteButton);
+
+        // Confirm deletion
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('delete-image-confirm-button'));
+        });
 
         expect(rendered.queryByText('Upload Selected Files')).toBeNull();
     });
@@ -720,6 +752,13 @@ describe('ImageAttachment', () => {
             fireEvent.press(rendered.getByTestId('delete-image-button'));
         });
 
+        expect(rendered.getByText('Delete Image?')).toBeTruthy();
+
+        // Confirm deletion
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('delete-image-confirm-button'));
+        });
+
         // Verify API call was made with correct parameters
         expect(handleHttpRequest).toHaveBeenCalledWith(
             '/attachment/123',
@@ -730,13 +769,11 @@ describe('ImageAttachment', () => {
             }
         );
 
-        await waitFor(() => {
-            expect(rendered.getByText('Image Deleted Successfully')).toBeTruthy();
-        });
-
-        await act(async () => {
-            fireEvent.press(rendered.getByTestId('deleted-image-name-confirm-button'));
-        });
+        expect(ToastNotification.show).toHaveBeenCalledWith(
+            'success',
+            'Success',
+            'Image Deleted Successfully'
+        );
 
         await waitFor(() => {
             expect(rendered.queryByText('test-image')).toBeNull();
@@ -917,9 +954,11 @@ describe('ImageAttachment', () => {
             mimeType: 'image/jpeg'
         };
 
+        handleHttpRequest.mockReset();
+
         handleHttpRequest
-            .mockResolvedValueOnce({ success: true, data: [mockAttachment] })
-            .mockResolvedValueOnce({
+            .mockResolvedValueOnce({ success: true, data: [mockAttachment] }) // Initial fetch
+            .mockResolvedValueOnce({ // Delete response - unsuccessful
                 success: false,
                 error: 'Deletion Error'
             });
@@ -932,6 +971,17 @@ describe('ImageAttachment', () => {
 
         await act(async () => {
             fireEvent.press(rendered.getByTestId('delete-image-button'));
+        });
+
+        await waitFor(() => {
+            expect(rendered.getByText('Delete Image?')).toBeTruthy();
+        });
+
+        ToastNotification.show.mockClear();
+
+        // Confirm deletion
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('delete-image-confirm-button'));
         });
 
         expect(ToastNotification.show).toHaveBeenCalledWith(
@@ -952,6 +1002,8 @@ describe('ImageAttachment', () => {
             mimeType: 'image/jpeg'
         };
 
+        handleHttpRequest.mockReset();
+
         handleHttpRequest
             .mockResolvedValueOnce({ success: true, data: [mockAttachment] })  // Initial fetch
             .mockRejectedValueOnce(new Error('Delete failed'));  // Delete request fails
@@ -966,6 +1018,17 @@ describe('ImageAttachment', () => {
             fireEvent.press(rendered.getByTestId('delete-image-button'));
         });
 
+        await waitFor(() => {
+            expect(rendered.getByText('Delete Image?')).toBeTruthy();
+        });
+
+        ToastNotification.show.mockClear();
+
+        // Confirm deletion
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('delete-image-confirm-button'));
+        });
+
         expect(ToastNotification.show).toHaveBeenCalledWith(
             'error',
             'Error',
@@ -973,6 +1036,80 @@ describe('ImageAttachment', () => {
         );
 
         expect(rendered.getByText('test-image')).toBeTruthy();
+    });
+
+    it('should cancel the deletion when cancel button is pressed', async () => {
+        const mockAttachment = {
+            id: '123',
+            name: 'test-image.jpg',
+            source: { uri: 'file://test-image.jpg' },
+            url: 'file://test-image.jpg',
+            isPreview: false,
+            mimeType: 'image/jpeg'
+        };
+
+        handleHttpRequest.mockResolvedValueOnce({ success: true, data: [mockAttachment] });
+
+        const rendered = render(<ImageAttachment spaceId="123" />);
+
+        await waitFor(() => {
+            expect(rendered.getByText('test-image')).toBeTruthy();
+        });
+
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('delete-image-button'));
+        });
+
+        expect(rendered.getByText('Delete Image?')).toBeTruthy();
+
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('delete-image-cancel-button'));
+        });
+
+        expect(rendered.queryByText('Delete Image?')).toBeNull();
+
+        expect(rendered.getByText('test-image')).toBeTruthy();
+
+        expect(handleHttpRequest).not.toHaveBeenCalledWith(
+            '/attachment/123',
+            'PUT',
+            expect.objectContaining({
+                isDeleted: true
+            })
+        );
+    });
+
+    it('should show deletion confirmation dialog when delete button is pressed', async () => {
+        const mockAttachment = {
+            id: '123',
+            name: 'test-image.jpg',
+            source: { uri: 'file://test-image.jpg' },
+            url: 'file://test-image.jpg',
+            isPreview: false,
+            mimeType: 'image/jpeg'
+        };
+
+        handleHttpRequest.mockReset();
+        handleHttpRequest.mockResolvedValue({
+            success: true,
+            data: [mockAttachment]
+        });
+
+        const rendered = render(<ImageAttachment spaceId="123" />);
+
+        await waitFor(() => {
+            expect(rendered.getByText('test-image')).toBeTruthy();
+        });
+
+        expect(rendered.queryByText('Delete Image?')).toBeNull();
+
+        await act(async () => {
+            fireEvent.press(rendered.getByTestId('delete-image-button'));
+        });
+
+        expect(rendered.getByText('Delete Image?')).toBeTruthy();
+        expect(rendered.getByTestId('delete-image-cancel-button')).toBeTruthy();
+        expect(rendered.getByTestId('delete-image-confirm-button')).toBeTruthy();
     });
 });
 
@@ -1014,6 +1151,20 @@ describe('Image View Modal', () => {
     });
 
     it('should close modal when close button is pressed', async () => {
+        const mockAttachment = {
+            id: '123',
+            name: 'test-image.jpg',
+            source: { uri: 'file://test-image.jpg' },
+            url: 'file://test-image.jpg',
+            mimeType: 'image/jpeg'
+        };
+
+        handleHttpRequest.mockReset();
+        handleHttpRequest.mockResolvedValue({
+            success: true,
+            data: [mockAttachment]
+        });
+
         const rendered = render(<ImageAttachment spaceId="123" />);
 
         // Wait for the attachment to load
@@ -1023,9 +1174,11 @@ describe('Image View Modal', () => {
 
         fireEvent.press(rendered.getByTestId('view-image-button'));
 
-        const modalImage = rendered.getByTestId('modal-image');
-        expect(modalImage).toBeTruthy();
-        expect(modalImage.props.source).toEqual({ uri: 'file://test-image.jpg' });
+        await waitFor(() => {
+            const modalImage = rendered.getByTestId('modal-image');
+            expect(modalImage).toBeTruthy();
+            expect(modalImage.props.source).toEqual({ uri: 'file://test-image.jpg' });
+        });
 
         fireEvent.press(rendered.getByTestId('modal-close-button'));
 
