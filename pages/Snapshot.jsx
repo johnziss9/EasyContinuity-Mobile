@@ -35,6 +35,18 @@ const Snapshot = () => {
         );
     }
 
+    // Check if the makeup section is empty and return true or false
+    const isMakeupEmpty = () => {
+        return !snapshot.skin && !snapshot.brows && !snapshot.eyes && 
+               !snapshot.lips && !snapshot.effects && !snapshot.makeupNotes;
+    };
+    
+    // Check if the hair section is empty and return true or false
+    const isHairEmpty = () => {
+        return !snapshot.prep && !snapshot.method && !snapshot.stylingTools && 
+               !snapshot.products && !snapshot.hairNotes;
+    };
+
     const renderSection = (title, fields, onPress, sectionId) => {
         return (
             <View
@@ -53,6 +65,28 @@ const Snapshot = () => {
                     </TouchableOpacity>
                 </View>
                 {fields.map(([label, value], index) => renderField(label, value, index, sectionId))}
+            </View>
+        );
+    };
+
+    const renderCollapsibleSection = (title, fields, onPress, sectionId, isEmpty) => {
+        return (
+            <View
+                key={`section-${sectionId}`}
+                style={styles.section}
+                testID={`section-${sectionId}`}
+            >
+                <View style={styles.sectionTitleAndIcon}>
+                    <Text style={styles.sectionHeader}>{title}</Text>
+                    <TouchableOpacity
+                        style={styles.editSection}
+                        onPress={onPress}
+                        testID={`edit-${sectionId}-button`}
+                    >
+                        <Ionicons name={isEmpty ? "add-outline" : "create-outline"} size={30} color="#3F4F5F" />
+                    </TouchableOpacity>
+                </View>
+                {!isEmpty && fields.map(([label, value], index) => renderField(label, value, index, sectionId))}
             </View>
         );
     };
@@ -289,22 +323,22 @@ const Snapshot = () => {
                     ["Notes:", snapshot.notes]
                 ], handleEditGeneralPress, 'edit-general-button')}
 
-                {renderSection("Makeup", [
+                {renderCollapsibleSection("Makeup", [
                     ["Skin:", snapshot.skin],
                     ["Brows:", snapshot.brows],
                     ["Eyes:", snapshot.eyes],
                     ["Lips:", snapshot.lips],
                     ["Effects:", snapshot.effects],
                     ["Makeup Notes:", snapshot.makeupNotes]
-                ], handleEditMakeupPress, 'edit-makeup-button')}
+                ], handleEditMakeupPress, 'edit-makeup-button', isMakeupEmpty())}
 
-                {renderSection("Hair", [
+                {renderCollapsibleSection("Hair", [
                     ["Prep:", snapshot.prep],
                     ["Method:", snapshot.method],
                     ["Styling Tools:", snapshot.stylingTools],
                     ["Products:", snapshot.products],
                     ["Hair Notes:", snapshot.hairNotes]
-                ], handleEditHairPress, 'edit-hair-button')}
+                ], handleEditHairPress, 'edit-hair-button', isHairEmpty())}
 
                 <View>
                     <TouchableOpacity style={styles.deleteSnapshotButton} onPress={() => setShowDeleteSnapshotModal()} testID='delete-snapshot-button'>

@@ -136,7 +136,7 @@ describe('Snapshot', () => {
         const hairFields = getAllByTestId(/^edit-hair-button-field-/);
         expect(hairFields[0]).toHaveTextContent('Prep:Test prep');
 
-        // Verify buttons
+        // Verify buttons - these sections are not empty so they should have edit icons
         expect(getByTestId('edit-edit-general-button-button')).toBeTruthy();
         expect(getByTestId('edit-edit-makeup-button-button')).toBeTruthy();
         expect(getByTestId('edit-edit-hair-button-button')).toBeTruthy();
@@ -475,26 +475,35 @@ describe('Snapshot', () => {
                 data: []
             }));
 
-        const { getAllByTestId } = render(
+        const { getAllByTestId, getByText, queryAllByTestId } = render(
             <NavigationContainer>
                 <Snapshot />
             </NavigationContainer>
         );
 
-        // Wait for fields to load
+        // Wait for sections to load
         await waitFor(() => {
             const generalFields = getAllByTestId(/^edit-general-button-field-/);
             expect(generalFields[0]).toBeTruthy();
+            expect(getByText('Makeup')).toBeTruthy();
+            expect(getByText('Hair')).toBeTruthy();
         });
 
-        // Check that empty fields are rendered without crashing
+        // Check that general section's empty fields are rendered
         const generalFields = getAllByTestId(/^edit-general-button-field-/);
-        const makeupFields = getAllByTestId(/^edit-makeup-button-field-/);
-        const hairFields = getAllByTestId(/^edit-hair-button-field-/);
-
         expect(generalFields.length).toBeGreaterThan(0);
-        expect(makeupFields.length).toBeGreaterThan(0);
-        expect(hairFields.length).toBeGreaterThan(0);
+
+        // Makeup and hair sections shouldn't have fields when empty
+        const makeupFields = queryAllByTestId(/^edit-makeup-button-field-/);
+        const hairFields = queryAllByTestId(/^edit-hair-button-field-/);
+
+        // Verify that no makeup or hair fields are rendered (they should be collapsed)
+        expect(makeupFields.length).toBe(0);
+        expect(hairFields.length).toBe(0);
+
+        // Verify the section headers still exist
+        expect(getByText('Makeup')).toBeTruthy();
+        expect(getByText('Hair')).toBeTruthy();
     });
 
     // Test for space type API error
@@ -884,5 +893,287 @@ describe('Snapshot', () => {
                 spaceName: 'Test Space'
             });
         });
+    });
+
+    it('should show add icon for empty makeup and hair sections', async () => {
+        // Mock with empty makeup and hair data
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, type: 2 }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: {
+                    id: 1,
+                    name: 'Test Snapshot',
+                    episode: '1',
+                    scene: '1',
+                    storyDay: '1',
+                    character: 1,
+                    notes: 'Test notes',
+                    // Empty makeup fields
+                    skin: '',
+                    brows: '',
+                    eyes: '',
+                    lips: '',
+                    effects: '',
+                    makeupNotes: '',
+                    // Empty hair fields
+                    prep: '',
+                    method: '',
+                    stylingTools: '',
+                    products: '',
+                    hairNotes: ''
+                }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Test Character' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+
+        const { getByText, getByTestId, queryAllByTestId } = render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+
+        // Wait for sections to load
+        await waitFor(() => {
+            expect(getByText('Makeup')).toBeTruthy();
+            expect(getByText('Hair')).toBeTruthy();
+        }, { timeout: 3000 });
+
+        // Verify icon for makeup section is add-outline
+        const makeupButton = getByTestId('edit-edit-makeup-button-button');
+        expect(makeupButton).toBeTruthy();
+
+        // Verify makeup fields are not rendered
+        const makeupFields = queryAllByTestId(/^edit-makeup-button-field-/);
+        expect(makeupFields.length).toBe(0);
+
+        // Verify icon for hair section is add-outline
+        const hairButton = getByTestId('edit-edit-hair-button-button');
+        expect(hairButton).toBeTruthy();
+
+        // Verify hair fields are not rendered
+        const hairFields = queryAllByTestId(/^edit-hair-button-field-/);
+        expect(hairFields.length).toBe(0);
+    });
+
+    it('should properly handle mixed sections (makeup filled, hair empty)', async () => {
+        // Mock with filled makeup but empty hair data
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, type: 2 }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: {
+                    id: 1,
+                    name: 'Test Snapshot',
+                    episode: '1',
+                    scene: '1',
+                    storyDay: '1',
+                    character: 1,
+                    notes: 'Test notes',
+                    // Filled makeup fields
+                    skin: 'Test skin',
+                    brows: 'Test brows',
+                    eyes: 'Test eyes',
+                    lips: 'Test lips',
+                    effects: 'Test effects',
+                    makeupNotes: 'Test makeup notes',
+                    // Empty hair fields
+                    prep: '',
+                    method: '',
+                    stylingTools: '',
+                    products: '',
+                    hairNotes: ''
+                }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Test Character' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+
+        const { getByText, getAllByTestId, queryAllByTestId } = render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+
+        // Wait for sections to load
+        await waitFor(() => {
+            expect(getByText('Makeup')).toBeTruthy();
+            expect(getByText('Hair')).toBeTruthy();
+        }, { timeout: 3000 });
+
+        // Verify makeup fields are rendered (since makeup is not empty)
+        const makeupFields = getAllByTestId(/^edit-makeup-button-field-/);
+        expect(makeupFields.length).toBeGreaterThan(0);
+        expect(makeupFields[0]).toHaveTextContent('Skin:Test skin');
+
+        // Verify hair fields are not rendered (since hair is empty)
+        const hairFields = queryAllByTestId(/^edit-hair-button-field-/);
+        expect(hairFields.length).toBe(0);
+    });
+
+    it('should navigate to correct screens when empty section buttons are pressed', async () => {
+        const mockNavigate = jest.fn();
+
+        // Mock the route with the correct parameters
+        jest.spyOn(require('@react-navigation/native'), 'useRoute')
+            .mockReturnValue({
+                params: {
+                    spaceId: 1,
+                    spaceName: 'Test Space',
+                    folderId: 1,
+                    folderName: 'Test Folder',
+                    snapshotId: 1,
+                    snapshotName: 'Test Snapshot'
+                }
+            });
+
+        jest.spyOn(require('@react-navigation/native'), 'useNavigation')
+            .mockReturnValue({ navigate: mockNavigate });
+
+        // Mock with empty makeup and hair data
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, type: 2 }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: {
+                    id: 1,
+                    name: 'Test Snapshot',
+                    episode: '1',
+                    scene: '1',
+                    storyDay: '1',
+                    character: 1,
+                    notes: 'Test notes',
+                    // Empty makeup and hair fields
+                    skin: '',
+                    brows: '',
+                    eyes: '',
+                    lips: '',
+                    effects: '',
+                    makeupNotes: '',
+                    prep: '',
+                    method: '',
+                    stylingTools: '',
+                    products: '',
+                    hairNotes: ''
+                }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'Test Character' }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+
+        const { getByTestId } = render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+
+        // Wait for all sections to load
+        await waitFor(() => {
+            expect(getByTestId('edit-edit-makeup-button-button')).toBeTruthy();
+            expect(getByTestId('edit-edit-hair-button-button')).toBeTruthy();
+        }, { timeout: 3000 });
+
+        // Test navigation for empty makeup section
+        fireEvent.press(getByTestId('edit-edit-makeup-button-button'));
+        expect(mockNavigate).toHaveBeenCalledWith('SnapshotMakeupInfo', {
+            spaceId: 1,
+            spaceName: 'Test Space',
+            folderId: 1,
+            folderName: 'Test Folder',
+            snapshotId: 1,
+            snapshotName: 'Test Snapshot'
+        });
+
+        mockNavigate.mockClear();
+
+        // Test navigation for empty hair section
+        fireEvent.press(getByTestId('edit-edit-hair-button-button'));
+        expect(mockNavigate).toHaveBeenCalledWith('SnapshotHairInfo', {
+            spaceId: 1,
+            spaceName: 'Test Space',
+            folderId: 1,
+            folderName: 'Test Folder',
+            snapshotId: 1,
+            snapshotName: 'Test Snapshot'
+        });
+    });
+
+    it('should always show fields for General section regardless of content', async () => {
+        // Mock with empty general data
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, type: 2 }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: {
+                    id: 1,
+                    name: 'Test Snapshot',
+                    // Empty general fields
+                    episode: '',
+                    scene: '',
+                    storyDay: '',
+                    character: null,
+                    notes: '',
+                    // Makeup Section
+                    skin: '',
+                    brows: '',
+                    eyes: '',
+                    lips: '',
+                    effects: '',
+                    makeupNotes: '',
+                    // Hair Section
+                    prep: '',
+                    method: '',
+                    stylingTools: '',
+                    products: '',
+                    hairNotes: ''
+                }
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: []
+            }));
+
+        const { getByText, getAllByTestId } = render(
+            <NavigationContainer>
+                <Snapshot />
+            </NavigationContainer>
+        );
+
+        // Wait for General section to load
+        await waitFor(() => {
+            expect(getByText('General')).toBeTruthy();
+        }, { timeout: 3000 });
+
+        // Verify general fields are always rendered, even when empty
+        const generalFields = getAllByTestId(/^edit-general-button-field-/);
+        expect(generalFields.length).toBeGreaterThan(0);
     });
 });
