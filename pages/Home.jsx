@@ -35,6 +35,10 @@ const Home = () => {
         setPasswordConfirmation('');
     }
 
+    const getTextInputStyle = (value) => ({
+        fontStyle: value ? 'normal' : 'italic',
+    });
+
     const handleLogin = async () => {
         try {
             if (!email || !password) {
@@ -133,18 +137,20 @@ const Home = () => {
             {showLoginForm ?
                 <>
                     <TextInput
-                        style={styles.textbox}
+                        style={[styles.textbox, getTextInputStyle(email)]} 
                         onChangeText={setEmail}
                         value={email}
                         placeholder='Email Address'
+                        placeholderTextColor="rgba(63, 79, 95, 0.55)"
                         cursorColor={'#3F4F5F'}
                         autoCapitalize="none"
                     />
                     <TextInput
-                        style={styles.textbox}
+                        style={[styles.textbox, getTextInputStyle(password)]} 
                         onChangeText={setPassword}
                         value={password}
                         placeholder='Password'
+                        placeholderTextColor="rgba(63, 79, 95, 0.55)"
                         cursorColor={'#3F4F5F'}
                         secureTextEntry
                     />
@@ -158,40 +164,45 @@ const Home = () => {
                 </> : showCreateForm ?
                     <>
                         <TextInput
-                            style={styles.textbox}
+                            style={[styles.textbox, getTextInputStyle(firstName)]} 
                             onChangeText={setFirstName}
                             value={firstName}
                             placeholder='First Name'
+                            placeholderTextColor="rgba(63, 79, 95, 0.55)"
                             cursorColor={'#3F4F5F'}
                         />
                         <TextInput
-                            style={styles.textbox}
+                            style={[styles.textbox, getTextInputStyle(lastName)]} 
                             onChangeText={setLastName}
                             value={lastName}
                             placeholder='Last Name'
+                            placeholderTextColor="rgba(63, 79, 95, 0.55)"
                             cursorColor={'#3F4F5F'}
                         />
                         <TextInput
-                            style={styles.textbox}
+                            style={[styles.textbox, getTextInputStyle(email)]} 
                             onChangeText={setEmail}
                             value={email}
                             placeholder='Email Address'
+                            placeholderTextColor="rgba(63, 79, 95, 0.55)"
                             cursorColor={'#3F4F5F'}
                             autoCapitalize="none"
                         />
                         <TextInput
-                            style={styles.textbox}
+                            style={[styles.textbox, getTextInputStyle(password)]} 
                             onChangeText={setPassword}
                             value={password}
                             placeholder='Password'
+                            placeholderTextColor="rgba(63, 79, 95, 0.55)"
                             cursorColor={'#3F4F5F'}
                             secureTextEntry
                         />
                         <TextInput
-                            style={styles.textbox}
+                            style={[styles.textbox, getTextInputStyle(passwordConfirmation)]} 
                             onChangeText={setPasswordConfirmation}
                             value={passwordConfirmation}
                             placeholder='Confirm Password'
+                            placeholderTextColor="rgba(63, 79, 95, 0.55)"
                             cursorColor={'#3F4F5F'}
                             secureTextEntry
                         />
@@ -257,7 +268,8 @@ const styles = StyleSheet.create({
         margin: 10,
         backgroundColor: 'rgba(205, 167, 175, 0.2)',
         outlineStyle: 'none',
-        color: '#3F4F5F'
+        color: '#3F4F5F',
+        fontSize: 18
     }
 });
 

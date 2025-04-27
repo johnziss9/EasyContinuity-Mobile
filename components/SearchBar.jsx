@@ -11,10 +11,21 @@ const SearchBar = ({
     width 
 }) => {
     const containerWidth = width < 420 ? 300 : width > 600 ? 500 : 350;
+
+    const getTextInputStyle = (value) => ({
+        fontStyle: value ? 'normal' : 'italic',
+    });
     
     return (
         <View testID="search-container" style={[styles.searchContainer, {width: containerWidth}]}>
-            <TextInput style={styles.searchInput} placeholder={placeholder} value={value} onChangeText={onChangeText} testID="search-input" selectionColor="#CDA7AF" />
+            <TextInput 
+                style={[styles.searchInput, getTextInputStyle(value)]} 
+                placeholder={placeholder}
+                placeholderTextColor="rgba(63, 79, 95, 0.55)"
+                value={value} 
+                onChangeText={onChangeText} 
+                testID="search-input" 
+                selectionColor="#CDA7AF" />
             {value !== '' && (
                 <Pressable style={styles.clearButton} testID='clear-search-button' onPress={onClear}>
                     <Ionicons name="close" size={20} color="#3F4F5F" />

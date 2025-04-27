@@ -35,6 +35,10 @@ const SnapshotMakeupInfo = () => {
         }
     }, [snapshot]);
 
+    const getTextInputStyle = (value) => ({
+        fontStyle: value ? 'normal' : 'italic',
+    });
+
     const handleFetchSnapshot = async () => {
         try {
             const url = `/snapshot/${snapshotId}`;
@@ -102,10 +106,11 @@ const SnapshotMakeupInfo = () => {
                 <Text style={styles.header}>{isNewSnapshot ? "Add Makeup Details" : "Edit Makeup Details"}</Text>
                 <Text style={styles.label} accessibilityLabel="Skin:">Skin:</Text>
                 <TextInput
-                    style={styles.multilineTextbox}
+                    style={[styles.multilineTextbox, getTextInputStyle(skin)]}
                     onChangeText={setSkin}
                     value={skin}
                     placeholder='Skin'
+                    placeholderTextColor="rgba(63, 79, 95, 0.55)"
                     multiline
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}
@@ -113,10 +118,11 @@ const SnapshotMakeupInfo = () => {
                 />
                 <Text style={styles.label} accessibilityLabel="Brows:">Brows:</Text>
                 <TextInput
-                    style={styles.multilineTextbox}
+                    style={[styles.multilineTextbox, getTextInputStyle(brows)]}
                     onChangeText={setBrows}
                     value={brows}
                     placeholder='Brows'
+                    placeholderTextColor="rgba(63, 79, 95, 0.55)"
                     multiline
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}
@@ -124,10 +130,11 @@ const SnapshotMakeupInfo = () => {
                 />
                 <Text style={styles.label} accessibilityLabel="Eyes:">Eyes:</Text>
                 <TextInput
-                    style={styles.multilineTextbox}
+                    style={[styles.multilineTextbox, getTextInputStyle(eyes)]}
                     onChangeText={setEyes}
                     value={eyes}
                     placeholder='Eyes'
+                    placeholderTextColor="rgba(63, 79, 95, 0.55)"
                     multiline
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}
@@ -135,10 +142,11 @@ const SnapshotMakeupInfo = () => {
                 />
                 <Text style={styles.label} accessibilityLabel="Lips:">Lips:</Text>
                 <TextInput
-                    style={styles.multilineTextbox}
+                    style={[styles.multilineTextbox, getTextInputStyle(lips)]}
                     onChangeText={setLips}
                     value={lips}
                     placeholder='Lips'
+                    placeholderTextColor="rgba(63, 79, 95, 0.55)"
                     multiline
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}
@@ -146,10 +154,11 @@ const SnapshotMakeupInfo = () => {
                 />
                 <Text style={styles.label} accessibilityLabel="Effects:">Effects:</Text>
                 <TextInput
-                    style={styles.multilineTextbox}
+                    style={[styles.multilineTextbox, getTextInputStyle(effects)]}
                     onChangeText={setEffects}
                     value={effects}
                     placeholder='Effects'
+                    placeholderTextColor="rgba(63, 79, 95, 0.55)"
                     multiline
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}
@@ -157,10 +166,11 @@ const SnapshotMakeupInfo = () => {
                 />
                 <Text style={styles.label} accessibilityLabel="Notes:">Notes:</Text>
                 <TextInput
-                    style={styles.multilineTextbox}
+                    style={[styles.multilineTextbox, getTextInputStyle(notes)]}
                     onChangeText={setNotes}
                     value={notes}
                     placeholder='Makeup Notes'
+                    placeholderTextColor="rgba(63, 79, 95, 0.55)"
                     multiline
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}
