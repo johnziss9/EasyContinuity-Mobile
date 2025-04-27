@@ -38,6 +38,10 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
         }
     }, []);
 
+    const getTextInputStyle = (value) => ({
+        fontStyle: value ? 'normal' : 'italic',
+    });
+
     const fetchAttachments = async () => {
         try {
             setIsLoading(true);
@@ -384,10 +388,11 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalText} accessibilityLabel="Enter Image Name:">Enter Image Name:</Text>
                         <TextInput
-                            style={styles.modalTextbox}
+                            style={[styles.modalTextbox, getTextInputStyle(imageName)]}
                             onChangeText={setImageName}
                             value={imageName}
                             placeholder='Image Name'
+                            placeholderTextColor="rgba(63, 79, 95, 0.55)"
                             cursorColor={'#3F4F5F'}
                             testID='image-name-text-input'
                         />

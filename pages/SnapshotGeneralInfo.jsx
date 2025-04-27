@@ -65,6 +65,16 @@ const SnapshotGeneralInfo = () => {
         }
     }, [confirmationModal]);
 
+    const getTextInputStyle = (value) => ({
+        fontStyle: value ? 'normal' : 'italic',
+    });
+
+    const getSelectListStyle = (value) => ({
+        color: value === '' ? 'rgba(63, 79, 95, 0.55)' : '#3F4F5F',
+        fontSize: 18,
+        fontStyle: value === '' ? 'italic' : 'normal'
+    });
+
     const handleConfirmationModalOkPress = () => {
         if (confirmationModal === 'Snapshot') {
             handleNavigationOnConfirmOrCancel();
@@ -506,10 +516,11 @@ const SnapshotGeneralInfo = () => {
                 <Text style={styles.header}>{isNewSnapshot ? "Add New Snapshot" : "Edit Snapshot"}</Text>
                 <Text style={styles.label} accessibilityLabel="Name:">Name:</Text>
                 <TextInput
-                    style={styles.textbox}
+                    style={[styles.textbox, getTextInputStyle(name)]}
                     onChangeText={setName}
                     value={name}
                     placeholder='Snapshot Name'
+                    placeholderTextColor="rgba(63, 79, 95, 0.55)"
                     cursorColor={'#3F4F5F'}
                     testID='snapshot-name-text-input'
                 />
@@ -517,10 +528,11 @@ const SnapshotGeneralInfo = () => {
                     <>
                         <Text style={styles.label} accessibilityLabel="Episode Number:">Episode Number:</Text>
                         <TextInput
-                            style={styles.textbox}
+                            style={[styles.textbox, getTextInputStyle(episodeNumber)]}
                             onChangeText={setEpisodeNumber}
                             value={episodeNumber}
                             placeholder='Episode Number'
+                            placeholderTextColor="rgba(63, 79, 95, 0.55)"
                             cursorColor={'#3F4F5F'}
                             testID='episode-number-text-input'
                         />
@@ -528,19 +540,21 @@ const SnapshotGeneralInfo = () => {
                     : null}
                 <Text style={styles.label} accessibilityLabel="Scene Number:">Scene Number:</Text>
                 <TextInput
-                    style={styles.textbox}
+                    style={[styles.textbox, getTextInputStyle(sceneNumber)]}
                     onChangeText={setSceneNumber}
                     value={sceneNumber}
                     placeholder='Scene Number'
+                    placeholderTextColor="rgba(63, 79, 95, 0.55)"
                     cursorColor={'#3F4F5F'}
                     testID='scene-number-text-input'
                 />
                 <Text style={styles.label} accessibilityLabel="Story Day:">Story Day:</Text>
                 <TextInput
-                    style={styles.textbox}
+                    style={[styles.textbox, getTextInputStyle(storyDay)]}
                     onChangeText={setStoryDay}
                     value={storyDay}
                     placeholder='Story Day'
+                    placeholderTextColor="rgba(63, 79, 95, 0.55)"
                     cursorColor={'#3F4F5F'}
                     testID='story-day-text-input'
                 />
@@ -576,7 +590,7 @@ const SnapshotGeneralInfo = () => {
                     placeholder="Character"
                     searchPlaceholder="Search..."
                     boxStyles={styles.dropdownBox}
-                    inputStyles={styles.dropdownInput}
+                    inputStyles={[styles.dropdownInput, getSelectListStyle(selectedValue)]}
                     dropdownStyles={styles.dropdownList}
                     dropdownItemStyles={styles.dropdownListItem}
                     dropdownTextStyles={styles.dropdownListText}
@@ -585,10 +599,11 @@ const SnapshotGeneralInfo = () => {
                 />
                 <Text style={styles.label} accessibilityLabel="Notes:">Notes:</Text>
                 <TextInput
-                    style={styles.multilineTextbox}
+                    style={[styles.multilineTextbox, getTextInputStyle(notes)]}
                     onChangeText={setNotes}
                     value={notes}
                     placeholder='Snapshot Notes'
+                    placeholderTextColor="rgba(63, 79, 95, 0.55)"
                     multiline
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}
