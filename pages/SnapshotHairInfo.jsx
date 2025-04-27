@@ -33,6 +33,10 @@ const SnapshotHairInfo = () => {
         }
     }, [snapshot]);
 
+    const getTextInputStyle = (value) => ({
+        fontStyle: value ? 'normal' : 'italic',
+    });
+
     const handleFetchSnapshot = async () => {
         try {
             const url = `/snapshot/${snapshotId}`;
@@ -99,10 +103,11 @@ const SnapshotHairInfo = () => {
                 <Text style={styles.header}>{isNewSnapshot ? "Add Hair Details" : "Edit Hair Details"}</Text>
                 <Text style={styles.label} accessibilityLabel="Prep:">Prep:</Text>
                 <TextInput
-                    style={styles.multilineTextbox}
+                    style={[styles.multilineTextbox, getTextInputStyle(prep)]}
                     onChangeText={setPrep}
                     value={prep}
                     placeholder='Prep'
+                    placeholderTextColor="rgba(63, 79, 95, 0.55)"
                     multiline
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}
@@ -110,10 +115,11 @@ const SnapshotHairInfo = () => {
                 />
                 <Text style={styles.label} accessibilityLabel="Method:">Method:</Text>
                 <TextInput
-                    style={styles.multilineTextbox}
+                    style={[styles.multilineTextbox, getTextInputStyle(hairMethod)]}
                     onChangeText={setHairMethod}
                     value={hairMethod}
                     placeholder='Method'
+                    placeholderTextColor="rgba(63, 79, 95, 0.55)"
                     multiline
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}
@@ -121,10 +127,11 @@ const SnapshotHairInfo = () => {
                 />
                 <Text style={styles.label} accessibilityLabel="Styling Tools:">Styling Tools:</Text>
                 <TextInput
-                    style={styles.multilineTextbox}
+                    style={[styles.multilineTextbox, getTextInputStyle(stylingTools)]}
                     onChangeText={setStylingTools}
                     value={stylingTools}
                     placeholder='Styling Tools'
+                    placeholderTextColor="rgba(63, 79, 95, 0.55)"
                     multiline
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}
@@ -132,10 +139,11 @@ const SnapshotHairInfo = () => {
                 />
                 <Text style={styles.label} accessibilityLabel="Products:">Products:</Text>
                 <TextInput
-                    style={styles.multilineTextbox}
+                    style={[styles.multilineTextbox, getTextInputStyle(products)]}
                     onChangeText={setProducts}
                     value={products}
                     placeholder='Products'
+                    placeholderTextColor="rgba(63, 79, 95, 0.55)"
                     multiline
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}
@@ -143,10 +151,11 @@ const SnapshotHairInfo = () => {
                 />
                 <Text style={styles.label} accessibilityLabel="Notes:">Notes:</Text>
                 <TextInput
-                    style={styles.multilineTextbox}
+                    style={[styles.multilineTextbox, getTextInputStyle(notes)]}
                     onChangeText={setNotes}
                     value={notes}
                     placeholder='Hair Notes'
+                    placeholderTextColor="rgba(63, 79, 95, 0.55)"
                     multiline
                     numberOfLines={4}
                     cursorColor={'#3F4F5F'}

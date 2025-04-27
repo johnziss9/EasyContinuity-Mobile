@@ -47,6 +47,10 @@ const Space = () => {
         }, [spaceId])
     );
 
+    const getTextInputStyle = (value) => ({
+        fontStyle: value ? 'normal' : 'italic',
+    });
+
     const handleFolderPress = (folderId, folderName) => {
         navigation.navigate('Folder', {
             spaceId,
@@ -418,10 +422,11 @@ const Space = () => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalText} accessibilityLabel="Enter Folder Name:">Enter Folder Name:</Text>
                         <TextInput
-                            style={styles.modalTextbox}
+                            style={[styles.modalTextbox, getTextInputStyle(folderName)]}
                             onChangeText={setFolderName}
                             value={folderName}
                             placeholder='Folder Name'
+                            placeholderTextColor="rgba(63, 79, 95, 0.55)"
                             cursorColor={'#3F4F5F'}
                             testID='folder-name-text-input'
                         />

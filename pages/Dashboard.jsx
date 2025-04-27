@@ -42,6 +42,7 @@ const Dashboard = () => {
     const handleModalCancelPress = () => {
         setSpaceNameField('');
         setSpaceDescription('');
+        setSpaceType('');
         setIsEditing(false);
         setShowAddNewSpaceModal(false);
     };
@@ -190,13 +191,13 @@ const Dashboard = () => {
     }
 
     const getTextInputStyle = (value) => ({
-        fontWeight: value ? 400 : 'normal'
+        fontStyle: value ? 'normal' : 'italic',
     });
 
     const getSelectListStyle = (value) => ({
+        color: value === '' ? 'rgba(63, 79, 95, 0.55)' : '#3F4F5F',
         fontSize: 18,
-        color: '#3F4F5F',
-        fontWeight: value ? 400 : 'normal'
+        fontStyle: value === '' ? 'italic' : 'normal'
     });
 
     const getUserId = async () => {
@@ -270,13 +271,12 @@ const Dashboard = () => {
                                 <SelectList
                                     setSelected={handleSpaceTypeSelect}
                                     data={spaceTypes}
-                                    placeholder="Type"
                                     defaultOption={spaceTypes.find(type => type.key === spaceType)}
                                     save="key"
                                     style={styles.selectList}
                                     boxStyles={{
                                         ...styles.dropdownBox,
-                                        backgroundColor: 'rgba(153, 153, 153, 0.3)'
+                                        backgroundColor: 'rgba(213, 213, 213, 0.3)'
                                     }}
                                     inputStyles={getSelectListStyle(spaceType)}
                                     dropdownStyles={styles.dropdownList}
@@ -293,6 +293,7 @@ const Dashboard = () => {
                             onChangeText={setSpaceNameField}
                             value={spaceNameField}
                             placeholder='Name'
+                            placeholderTextColor="rgba(63, 79, 95, 0.55)"
                             cursorColor={'#3F4F5F'}
                             testID='space-name-text-input'
                         />
@@ -301,6 +302,7 @@ const Dashboard = () => {
                             onChangeText={setSpaceDescription}
                             value={spaceDescription}
                             placeholder='Description'
+                            placeholderTextColor="rgba(63, 79, 95, 0.55)"
                             cursorColor={'#3F4F5F'}
                             multiline
                             numberOfLines={4}

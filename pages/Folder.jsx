@@ -67,6 +67,10 @@ const Folder = () => {
         }, [folderId, parentFolderId, parentFolderName, spaceId, spaceName])
     );
 
+    const getTextInputStyle = (value) => ({
+        fontStyle: value ? 'normal' : 'italic',
+    });
+
     const handleSort = (option) => {
         setCurrentSort(option);
         setShowSortByModal(false);
@@ -418,10 +422,11 @@ const Folder = () => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalText} accessibilityLabel="Enter Folder Name:">Enter Folder Name:</Text>
                         <TextInput
-                            style={styles.modalTextbox}
+                            style={[styles.modalTextbox, getTextInputStyle(folderNameField)]}
                             onChangeText={setFolderNameField}
                             value={folderNameField}
                             placeholder='Folder Name'
+                            placeholderTextColor="rgba(63, 79, 95, 0.55)"
                             cursorColor={'#3F4F5F'}
                             testID='folder-name-text-input'
                         />
