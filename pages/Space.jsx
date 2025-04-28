@@ -31,6 +31,7 @@ const Space = () => {
     const [currentSort, setCurrentSort] = useState({ id: 1, label: 'Date: Newest First' });
     const [folderToDelete, setFolderToDelete] = useState(null);
     const [snapshotToDelete, setSnapshotToDelete] = useState(null);
+    const [hideTools, setHideTools] = useState(false);
 
     const sortOptions = [
         { id: 1, label: 'Date: Newest First' },
@@ -317,6 +318,12 @@ const Space = () => {
             const sortedFolders = rootFolders.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
             const sortedSnapshots = rootSnapshots.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
 
+            if (sortedFolders.length === 0 && sortedSnapshots.length === 0) {
+                setHideTools(true);
+            } else {
+                setHideTools(false);
+            }
+
             setFolders(sortedFolders);
             setSnapshots(sortedSnapshots);
         } catch (error) {
@@ -477,25 +484,29 @@ const Space = () => {
                 </View>
             </Modal>
 
-            <SearchBar
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                onSearch={handleSearch}
-                onClear={handleClearSearchBar}
-                width={width}
-            />
-
-            <View style={styles.sortFilterContainer}>
-                <Pressable style={styles.sortFilterButton} testID='sort-button' onPress={() => setShowSortByModal(true)}>
-                    <Ionicons name="funnel-outline" size={14} color="#CDA7AF" />
-                    <Text style={styles.sortFilterText}>Sort</Text>
-                </Pressable>
-
-                <Pressable style={styles.sortFilterButton} testID='filter-button'>
-                    <Ionicons name="filter-outline" size={14} color="#CDA7AF" />
-                    <Text style={styles.sortFilterText}>Filter</Text>
-                </Pressable>
-            </View>
+            {!hideTools && (
+                <>
+                    <SearchBar
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        onSearch={handleSearch}
+                        onClear={handleClearSearchBar}
+                        width={width}
+                    />
+        
+                    <View style={styles.sortFilterContainer}>
+                        <Pressable style={styles.sortFilterButton} testID='sort-button' onPress={() => setShowSortByModal(true)}>
+                            <Ionicons name="funnel-outline" size={14} color="#CDA7AF" />
+                            <Text style={styles.sortFilterText}>Sort</Text>
+                        </Pressable>
+        
+                        <Pressable style={styles.sortFilterButton} testID='filter-button'>
+                            <Ionicons name="filter-outline" size={14} color="#CDA7AF" />
+                            <Text style={styles.sortFilterText}>Filter</Text>
+                        </Pressable>
+                    </View>
+                </>
+            )}
 
             <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollViewContent}>
                 {isLoading ? (
