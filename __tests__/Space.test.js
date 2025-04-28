@@ -721,9 +721,10 @@ describe('Space Component', () => {
             </NavigationContainer>
         );
 
-        // Wait for initial load
+        // Wait for initial load and ensure search bar is visible
         await waitFor(() => {
             expect(getByText('Root Folder')).toBeTruthy();
+            expect(getByTestId('search-input')).toBeTruthy();
         });
 
         // Perform search
@@ -857,6 +858,11 @@ describe('Space Component', () => {
                 <Space />
             </NavigationContainer>
         );
+
+        // Wait for data to load and ensure search bar is visible
+        await waitFor(() => {
+            expect(getByTestId('search-input')).toBeTruthy();
+        });
 
         fireEvent.changeText(getByTestId('search-input'), '   ');  // Only spaces
         fireEvent.press(getByTestId('search-button'));
@@ -1011,8 +1017,9 @@ describe('Space Component', () => {
             </NavigationContainer>
         );
 
-        // Wait for initial render (newest first by default)
+        // Wait for initial render (newest first by default) and ensure sort button is visible
         await waitFor(() => {
+            expect(getByTestId('sort-button')).toBeTruthy();
             const items = getAllByText(/^(Alpha|Beta|Charlie|Delta)/);
             expect(items[0]).toHaveTextContent('Alpha Folder');
             expect(items[1]).toHaveTextContent('Beta Folder');
@@ -1567,7 +1574,6 @@ describe('Space Component', () => {
         });
     });
 
-    // Edge cases
     it('should handle empty data arrays gracefully', async () => {
         apiMock
             .mockImplementationOnce(() => Promise.resolve({
@@ -1579,7 +1585,7 @@ describe('Space Component', () => {
                 data: []
             }));
 
-        const { getByText } = render(
+        const { getByText, queryByTestId } = render(
             <NavigationContainer>
                 <Space />
             </NavigationContainer>
@@ -1588,6 +1594,11 @@ describe('Space Component', () => {
         await waitFor(() => {
             expect(getByText('No Items Yet')).toBeTruthy();
             expect(getByText('Get started by pressing the + button below to add your first item.')).toBeTruthy();
+
+            // Also verify tools are hidden when no items
+            expect(queryByTestId('search-input')).toBeNull();
+            expect(queryByTestId('sort-button')).toBeNull();
+            expect(queryByTestId('filter-button')).toBeNull();
         });
     });
 
@@ -1610,6 +1621,102 @@ describe('Space Component', () => {
 
         await waitFor(() => {
             expect(getByText('No Items Yet')).toBeTruthy();
+        });
+    });
+
+    it('should hide tools when there are no items', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [] // Empty folders
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [] // Empty snapshots
+            }));
+
+        const { queryByTestId } = render(
+            <NavigationContainer>
+                <Space />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(queryByTestId('search-input')).toBeNull();
+            expect(queryByTestId('sort-button')).toBeNull();
+            expect(queryByTestId('filter-button')).toBeNull();
+        });
+    });
+
+    it('should show tools when there are items', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 1, name: 'Test Folder', parentId: null }] // Has folders
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [] // Empty snapshots
+            }));
+
+        const { getByTestId } = render(
+            <NavigationContainer>
+                <Space />
+            </NavigationContainer>
+        );
+
+        await waitFor(() => {
+            expect(getByTestId('search-input')).toBeTruthy();
+            expect(getByTestId('sort-button')).toBeTruthy();
+            expect(getByTestId('filter-button')).toBeTruthy();
+        });
+    });
+
+    it('should show tools when transitioning from empty to having items', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [] // Empty folders initially
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [] // Empty snapshots initially
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: { id: 1, name: 'New Folder' } // Create folder response
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [{ id: 1, name: 'New Folder', parentId: null }] // Updated folders
+            }))
+            .mockImplementationOnce(() => Promise.resolve({
+                success: true,
+                data: [] // Still empty snapshots
+            }));
+
+        const { queryByTestId, getByTestId } = render(
+            <NavigationContainer>
+                <Space />
+            </NavigationContainer>
+        );
+
+        // Initially no tools are shown
+        await waitFor(() => {
+            expect(queryByTestId('search-input')).toBeNull();
+        });
+
+        fireEvent.press(getByTestId('add-item-button'));
+        fireEvent.press(getByTestId('add-new-folder-button'));
+        fireEvent.changeText(getByTestId('folder-name-text-input'), 'New Folder');
+        fireEvent.press(getByTestId('add-folder-submit-button'));
+
+        await waitFor(() => {
+            expect(getByTestId('search-input')).toBeTruthy();
+            expect(getByTestId('sort-button')).toBeTruthy();
         });
     });
 });
