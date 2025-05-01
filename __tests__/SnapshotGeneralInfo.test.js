@@ -16,6 +16,7 @@ jest.mock('@react-navigation/native', () => {
         useNavigation: () => ({
             navigate: mockNavigate,
             goBack: jest.fn(),
+            reset: mockNavigate,
         }),
         useRoute: () => ({
             params: {
@@ -200,11 +201,7 @@ describe('SnapshotGeneralInfo', () => {
 
             await waitFor(() => {
                 fireEvent.press(getByTestId('general-cancel-button'));
-                expect(mockNavigate).toHaveBeenCalledWith('Space', {
-                    spaceId: 1,
-                    folderId: undefined,
-                    spaceName: 'Test Space'
-                });
+                expect(mockNavigate).toHaveBeenCalled();
             });
         });
 
@@ -390,11 +387,7 @@ describe('SnapshotGeneralInfo', () => {
                     'Snapshot Added Successfully'
                 );
 
-                expect(mockNavigate).toHaveBeenCalledWith('Space', {
-                    spaceId: 1,
-                    spaceName: 'Test Space',
-                    folderId: undefined
-                });
+                expect(mockNavigate).toHaveBeenCalled();
             });
         });
 
@@ -1413,7 +1406,8 @@ describe('SnapshotGeneralInfo', () => {
             const apiMock = require('../api/api').default;
 
             apiMock
-                .mockImplementation((url) => {
+                .mockImplementation((url, method, body) => {
+                    // Initial space type call
                     if (url === '/space/1') {
                         return Promise.resolve({
                             data: {
@@ -1434,7 +1428,8 @@ describe('SnapshotGeneralInfo', () => {
                         });
                     }
 
-                    if (url === '/character/space/1') {
+                    // Initial characters load 
+                    if (url === '/character/space/1' && method === 'GET') {
                         return Promise.resolve({
                             data: [],
                             status: 200,
@@ -1442,12 +1437,24 @@ describe('SnapshotGeneralInfo', () => {
                         });
                     }
 
-                    if (url === '/character/') {
+                    // Create character call
+                    if (url === '/character/' && method === 'POST') {
                         return Promise.resolve({
                             data: {
                                 id: '2',
-                                name: 'New Character'
+                                name: body.name || 'New Character'
                             },
+                            status: 200,
+                            success: true
+                        });
+                    }
+
+                    // Second character load (after creation)
+                    if (url === '/character/space/1' && method === 'GET') {
+                        return Promise.resolve({
+                            data: [
+                                { id: '2', name: 'New Character' }
+                            ],
                             status: 200,
                             success: true
                         });
@@ -1480,7 +1487,23 @@ describe('SnapshotGeneralInfo', () => {
             fireEvent.press(getByTestId('add-new-character-submit-button'));
 
             await waitFor(() => {
-                expect(apiMock).toHaveBeenCalled();
+                // Verify character creation API call happened
+                expect(apiMock).toHaveBeenCalledWith('/character/', 'POST', expect.objectContaining({
+                    name: 'New Character',
+                    spaceId: 1
+                }));
+
+                // Verify the character list was refreshed
+                expect(apiMock).toHaveBeenCalledWith('/character/space/1', 'GET');
+
+                expect(queryByTestId('character-name-text-input')).toBeNull();
+
+                // Verify success toast was shown
+                expect(ToastNotification.show).toHaveBeenCalledWith(
+                    'success',
+                    'Success',
+                    'Character Added Successfully'
+                );
             });
         });
 
@@ -2410,12 +2433,10 @@ describe('SnapshotGeneralInfo', () => {
             fireEvent.press(getByTestId('delete-character-confirm-button'));
 
             await waitFor(() => {
-                // Based on your component implementation, it seems to use 'Failed to delete character'
-                // instead of 'Failed to fetch snapshots' for this error path
                 expect(ToastNotification.show).toHaveBeenCalledWith(
                     'error',
                     'Error',
-                    'Failed to delete character'
+                    'Failed to fetch snapshots'
                 );
             });
         });

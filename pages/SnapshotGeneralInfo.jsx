@@ -8,37 +8,44 @@ import CharacterCard from '../components/CharacterCard';
 import ToastNotification from '../utils/ToastNotification';
 
 const SnapshotGeneralInfo = () => {
-
     const route = useRoute();
     const { isNewSnapshot, spaceId, spaceName, folderId, folderName, snapshotId } = route.params;
 
     const navigation = useNavigation();
     const { width } = useWindowDimensions();
 
+    // Form states
     const [name, setName] = useState("");
     const [episodeNumber, setEpisodeNumber] = useState('');
     const [sceneNumber, setSceneNumber] = useState('')
     const [storyDay, setStoryDay] = useState('');
     const [notes, setNotes] = useState('');
+    
+    // Character selection states
     const [selectedCharacterId, setSelectedCharacterId] = useState(null);
     const [selectListKey, setSelectListKey] = useState(0);
     const [selectedValue, setSelectedValue] = useState('');
     const [characterName, setCharacterName] = useState("");
     const [characters, setCharacters] = useState([]);
     const [characterId, setCharacterId] = useState(null);
-    const [snapshot, setSnapshot] = useState([]);
-    const [spaceType, setSpaceType] = useState(0);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isEditing, setIsEditing] = useState(false);
     const [characterToDelete, setCharacterToDelete] = useState(null);
     const [characterAdded, setCharacterAdded] = useState(null);
+    
+    // Data states
+    const [snapshot, setSnapshot] = useState([]);
+    const [spaceType, setSpaceType] = useState(0);
+    
+    // UI states
+    const [isLoading, setIsLoading] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [isCharacterNew, setIsCharacterNew] = useState(false);
-    const [confirmationModal, setConfirmationModal] = useState('');
-
+    
+    // Modal states
     const [showAddCharacterModal, setShowAddCharacterModal] = useState(false);
     const [showManageCharactersModal, setShowManageCharactersModal] = useState(false);
     const [showDeleteCharacterModal, setShowDeleteCharacterModal] = useState(false);
 
+    // Initial data loading
     useEffect(() => {
         handleGetSpaceType();
         handleGetAllCharacters();
@@ -48,6 +55,7 @@ const SnapshotGeneralInfo = () => {
         }
     }, []);
 
+    // Update form fields when snapshot data loads
     useEffect(() => {
         if (!isNewSnapshot && snapshot) {
             setName(snapshot.name || '');
@@ -59,12 +67,7 @@ const SnapshotGeneralInfo = () => {
         }
     }, [snapshot, isNewSnapshot]);
 
-    useEffect(() => {
-        if (confirmationModal) {
-            handleConfirmationModalOkPress();
-        }
-    }, [confirmationModal]);
-
+    // Styling helpers
     const getTextInputStyle = (value) => ({
         fontStyle: value ? 'normal' : 'italic',
     });
@@ -75,28 +78,39 @@ const SnapshotGeneralInfo = () => {
         fontStyle: value === '' ? 'italic' : 'normal'
     });
 
-    const handleConfirmationModalOkPress = () => {
-        if (confirmationModal === 'Snapshot') {
-            handleNavigationOnConfirmOrCancel();
-        } else if (confirmationModal === 'Character') {
-            handleCharacterConfirmation();
-        }
-    }
-
-    const handleCharacterConfirmation = async () => {
-        if (isCharacterNew) {
-            await handleGetAllCharacters();
-
-            // Setting these two so the new added character is selected on the SelectList
-            setSelectedCharacterId(characterAdded);
-            setSelectListKey(prev => prev + 1);
+    // Navigation function
+    const handleNavigate = (newSnapshotId = null) => {
+        const idToUse = newSnapshotId || snapshotId;
+        
+        if (isNewSnapshot) {
+            // For new snapshots, reset the navigation stack with proper history
+            navigation.reset({
+                index: 1,
+                routes: [
+                    {
+                        name: !folderId ? 'Space' : 'Folder',
+                        params: !folderId
+                            ? { spaceId, spaceName }
+                            : { spaceId, spaceName, folderId, folderName }
+                    },
+                    { 
+                        name: 'Snapshot', 
+                        params: { spaceId, spaceName, snapshotId: idToUse, snapshotName: name } 
+                    }
+                ],
+            });
         } else {
-            await handleGetAllCharacters();
-            setShowManageCharactersModal(true);
-            setCharacterName('');
+            // For existing snapshots, just navigate back
+            navigation.navigate('Snapshot', { 
+                spaceId, 
+                spaceName, 
+                snapshotId: idToUse, 
+                snapshotName: name 
+            });
         }
     };
 
+    // Character handling functions
     const handleClear = () => {
         setSelectedCharacterId(null);
         setSelectedValue('');
@@ -114,17 +128,6 @@ const SnapshotGeneralInfo = () => {
         // TODO Add validation if user selected first value and then cancels the snapshot shouldn't save
     };
 
-    const handleNavigationOnConfirmOrCancel = () => {
-        if (isNewSnapshot && !folderId) {
-            navigation.navigate('Space', { spaceId: spaceId, spaceName: spaceName });
-        } else if (isNewSnapshot) {
-            // If it's a new snapshot and we have a folderId, go back to the folder view
-            navigation.navigate('Folder', { spaceId: spaceId, spaceName: spaceName, folderId: folderId, folderName: folderName });
-        } else {
-            navigation.navigate('Snapshot', { spaceId: spaceId, spaceName: spaceName, snapshotId, snapshotName: name });
-        }
-    }
-
     const handleCloseManageCharacters = () => {
         setShowManageCharactersModal(false);
         handleClear();
@@ -138,88 +141,22 @@ const SnapshotGeneralInfo = () => {
         setCharacterName(character.value);
     };
 
-    const handleConfirmDeleteCharacterPress = async (character) => {
-        try {
-            const deleteUrl = `/character/${character.key}`;
-            const deleteMethod = 'PUT';
-            const deleteBody = {
-                name: character.value,
-                isDeleted: true,
-                deletedOn: new Date().toISOString()
-                // TODO Include deletedBy
-            };
+    const handleCancelAddOrEditCharacter = () => {
+        handleClear();
+        setShowAddCharacterModal(false);
+        setCharacterName('');
 
-            const deleteResponse = await handleHttpRequest(deleteUrl, deleteMethod, deleteBody);
-            
-            if (deleteResponse.success) {
-                ToastNotification.show('success', 'Success', 'Character Deleted Successfully');
-
-                // API Call 1 - Get all snapshots
-                const snapshotsUrl = `/snapshot/space/${spaceId}`;
-                const snapshotsMethod = 'GET';
-
-                const snapshotsResponse = await handleHttpRequest(snapshotsUrl, snapshotsMethod);
-                
-                if (snapshotsResponse.success) {
-                    const snapshotsWithDeletedCharacter = snapshotsResponse.data.filter(snapshot => snapshot.character === parseInt(character.key));
-
-                    // API Call 2 - Update filtered snapshots character field to null
-                    for (const snapshot of snapshotsWithDeletedCharacter) {
-                        const updateUrl = `/snapshot/${snapshot.id}`;
-                        const updateMethod = 'PUT';
-                        const updateBody = {
-                            character: null,
-                            forceNullCharacter: true,
-                            lastUpdatedOn: new Date().toISOString()
-                            // TODO Include updatedBy
-                        };
-
-                        const updateResponse = await handleHttpRequest(updateUrl, updateMethod, updateBody);
-
-                        if (!updateResponse) {
-                            ToastNotification.show('error', 'Error', updateResponse.error);
-                        }
-
-                    }
-                } else {
-                    ToastNotification.show('error', 'Error', deleteResponse.error);
-                }
-
-                // API Call 3 - Update character list in the UI
-                // Making a call to the API this way as if I call handleGetAllCharacters won't update straight away due to ti being async
-                const getResponse = await handleHttpRequest(`/character/space/${spaceId}`, 'GET');
-
-                // Running this again just like in handleGetAllCharacters to update the state
-                const formattedCharacters = [
-                    { key: '1', value: 'Add New Character' },
-                    ...getResponse.data.map(character => ({
-                        key: character.id,
-                        value: character.name
-                    }))
-                ];
-                setCharacters(formattedCharacters);
-
-                // This closes the Manage Characters modal if there are no more characters to manage.
-                if (getResponse.data.length === 0) {
-                    handleCloseManageCharacters();
-                }
-            } else {
-                ToastNotification.show('error', 'Error', response.error);
-            }
-        } catch (error) {
-            ToastNotification.show('error', 'Error', 'Failed to delete character');
+        if (isEditing) {
+            setShowManageCharactersModal(true);
         }
     }
 
-    const dynamicStyles = {
-        container: {
-            paddingLeft: width > 600 ? 15 : 5,
-            flex: 1,
-            backgroundColor: '#E2CFC8',
-            paddingTop: 30
-        }
-    };
+    const handleDeleteCharacterPress = (character) => {
+        setCharacterToDelete(character);
+        setShowDeleteCharacterModal(true);
+    }
 
+    // API calls
     const handleGetSpaceType = async () => {
         try {
             const url = `/space/${spaceId}`;
@@ -254,36 +191,20 @@ const SnapshotGeneralInfo = () => {
         }
     }
 
-    const handleCancelAddOrEditCharacter = () => {
-        handleClear();
-
-        setShowAddCharacterModal(false);
-        setCharacterName('');
-
-        if (isEditing) {
-            setShowManageCharactersModal(true);
-        }
-    }
-
-    const handleDeleteCharacterPress = (character) => {
-        setCharacterToDelete(character);
-        setShowDeleteCharacterModal(true);
-    }
-
     const handleCreateOrEditSnapshot = async () => {
         if (isNewSnapshot) {
             try {
                 const url = '/snapshot/';
                 const method = 'POST';
                 const body = {
-                    name: name,
-                    spaceId: spaceId,
-                    folderId: folderId,
+                    name,
+                    spaceId,
+                    folderId,
                     episode: episodeNumber,
                     scene: sceneNumber ? parseInt(sceneNumber) : null,
                     storyDay: storyDay ? parseInt(storyDay) : null,
                     character: selectedCharacterId,
-                    notes: notes,
+                    notes,
                     createdOn: new Date().toISOString()
                     // TODO Include AddedBy
                 };
@@ -292,28 +213,28 @@ const SnapshotGeneralInfo = () => {
 
                 if (response.success) {
                     ToastNotification.show('success', 'Success', 'Snapshot Added Successfully');
-                    setConfirmationModal('Snapshot');
+                    // Navigate with the new snapshot ID
+                    handleNavigate(response.data.id);
                 } else {
                     ToastNotification.show('error', 'Error', response.error);
                 }
             } catch (error) {
                 ToastNotification.show('error', 'Error', 'Failed to create snapshot');
             }
-        }
-        else {
+        } else {
             try {
                 const url = `/snapshot/${snapshotId}`;
                 const method = 'PUT';
                 const body = {
-                    name: name,
-                    spaceId: spaceId,
-                    folderId: folderId,
+                    name,
+                    spaceId,
+                    folderId,
                     episode: episodeNumber,
                     scene: sceneNumber ? parseInt(sceneNumber) : null,
                     storyDay: storyDay ? parseInt(storyDay) : null,
                     character: selectedCharacterId,
                     forceNullCharacter: selectedCharacterId === null,
-                    notes: notes,
+                    notes,
                     lastUpdatedOn: new Date().toISOString()
                     // TODO Include AddedBy
                 };
@@ -322,7 +243,7 @@ const SnapshotGeneralInfo = () => {
 
                 if (response.success) {
                     ToastNotification.show('success', 'Success', 'Snapshot General Details Updated Successfully');
-                    setConfirmationModal('Snapshot');
+                    handleNavigate();
                 } else {
                     ToastNotification.show('error', 'Error', response.error);
                 }
@@ -335,56 +256,129 @@ const SnapshotGeneralInfo = () => {
     const handleCreateOrEditCharacter = async () => {
         if (!isEditing) {            
             try {
-                const url = '/character/';
-                const method = 'POST';
                 const body = {
                     name: characterName,
-                    spaceId: spaceId,
+                    spaceId,
                     createdOn: new Date().toISOString()
-                    // TODO Include AddedBy
                 };
-
-                const response = await handleHttpRequest(url, method, body);
-
+    
+                const response = await handleHttpRequest('/character/', 'POST', body);
+    
                 if (response.success) {
                     ToastNotification.show('success', 'Success', 'Character Added Successfully');
-                    setConfirmationModal('Character');
-                    setIsCharacterNew(true);
-                    setCharacterAdded(response.data.id); // This is used to select the new character on the SelectList
+                    
+                    setShowAddCharacterModal(false);
+                    
+                    await handleGetAllCharacters();
+                    
+                    // Select the newly created character in the dropdown
+                    setSelectedCharacterId(response.data.id);
+                    setSelectedValue(characterName); // Set the display value to match
+                    setSelectListKey(prev => prev + 1); // Force refresh the select list
                 } else {
                     ToastNotification.show('error', 'Error', response.error);
                 }
             } catch (error) {
                 ToastNotification.show('error', 'Error', 'Failed to create character');
             } finally {
-                setShowAddCharacterModal(false);
                 setCharacterName('');
             }
         } else {
             try {
-                const url = `/character/${characterId}`;
-                const method = 'PUT';
                 const body = {
                     name: characterName,
                     lastUpdatedOn: new Date().toISOString()
-                    // TODO Include updated by
                 };
-
-                const response = await handleHttpRequest(url, method, body);
-
+    
+                const response = await handleHttpRequest(`/character/${characterId}`, 'PUT', body);
+    
                 if (response.success) {
                     ToastNotification.show('success', 'Success', 'Character Updated Successfully');
-                    setConfirmationModal('Character');
-                    setIsCharacterNew(false);
+                    
+                    setShowAddCharacterModal(false);
+                    setIsEditing(false);
+                    
+                    await handleGetAllCharacters();
+                    setShowManageCharactersModal(true);
                 } else {
                     ToastNotification.show('error', 'Error', response.error);
                 }
             } catch (error) {
                 ToastNotification.show('error', 'Error', 'Failed to update character');
             } finally {
-                setShowAddCharacterModal(false);
-                setIsEditing(false);
+                setCharacterName('');
             }
+        }
+    }
+
+    const handleConfirmDeleteCharacterPress = async (character) => {
+        try {
+            const url = `/character/${character.key}`;
+            const method = 'PUT';
+            const deleteBody = {
+                name: character.value,
+                isDeleted: true,
+                deletedOn: new Date().toISOString()
+            };
+    
+            const deleteResponse = await handleHttpRequest(url, method, deleteBody);
+            
+            if (deleteResponse.success) {
+                ToastNotification.show('success', 'Success', 'Character Deleted Successfully');
+    
+                // Get all snapshots to find which ones use this character
+                const snapshotsResponse = await handleHttpRequest(`/snapshot/space/${spaceId}`, 'GET');
+                
+                if (snapshotsResponse.success) {
+                    // Find snapshots with the deleted character
+                    const snapshotsWithDeletedCharacter = snapshotsResponse.data.filter(
+                        snapshot => snapshot.character === parseInt(character.key)
+                    );
+    
+                    // Update those snapshots to remove the character reference
+                    for (const snapshot of snapshotsWithDeletedCharacter) {
+                        const updateBody = {
+                            character: null,
+                            forceNullCharacter: true,
+                            lastUpdatedOn: new Date().toISOString()
+                        };
+    
+                        const updateResponse = await handleHttpRequest(`/snapshot/${snapshot.id}`, 'PUT', updateBody);
+    
+                        if (!updateResponse.success) {  // Added .success check
+                            ToastNotification.show('error', 'Error', updateResponse.error);
+                        }
+                    }
+                } else {
+                    ToastNotification.show('error', 'Error', snapshotsResponse.error);
+                }
+    
+                // Update character list in the UI
+                const getResponse = await handleHttpRequest(`/character/space/${spaceId}`, 'GET');
+    
+                if (getResponse.success) {
+                    // Format characters for the dropdown
+                    const formattedCharacters = [
+                        { key: '1', value: 'Add New Character' },
+                        ...getResponse.data.map(character => ({
+                            key: character.id,
+                            value: character.name
+                        }))
+                    ];
+                    setCharacters(formattedCharacters);
+    
+                    // Close modal if no characters left
+                    if (getResponse.data.length === 0) {
+                        handleCloseManageCharacters();
+                    }
+                } else {
+                    ToastNotification.show('error', 'Error', getResponse.error);
+                }
+            } else {
+                ToastNotification.show('error', 'Error', deleteResponse.error);
+            }
+        } catch (error) {
+            ToastNotification.show('error', 'Error', 'Failed to delete character');
         }
     }
 
@@ -416,9 +410,17 @@ const SnapshotGeneralInfo = () => {
         }
     }
 
+    const dynamicStyles = {
+        container: {
+            paddingLeft: width > 600 ? 15 : 5,
+            flex: 1,
+            backgroundColor: '#E2CFC8',
+            paddingTop: 30
+        }
+    };
+
     return (
         <View style={dynamicStyles.container} testID='snapshot-general-container'>
-
             {/* Delete confirmation modal */}
             <Modal
                 transparent={true}
@@ -430,7 +432,11 @@ const SnapshotGeneralInfo = () => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalText}>Delete Character?</Text>
                         <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonLeft]} testID='delete-character-cancel-button' onPress={() => setShowDeleteCharacterModal(false)}>
+                            <TouchableOpacity 
+                                style={[styles.modalButton, styles.modalButtonLeft]} 
+                                testID='delete-character-cancel-button' 
+                                onPress={() => setShowDeleteCharacterModal(false)}
+                            >
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextLeft]}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
@@ -458,7 +464,9 @@ const SnapshotGeneralInfo = () => {
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTextManageCharacters} accessibilityLabel={`Manage Characters - ${characters.length - 1}:`}>Manage Characters ({characters.length - 1}):</Text>
+                        <Text style={styles.modalTextManageCharacters} accessibilityLabel={`Manage Characters - ${characters.length - 1}:`}>
+                            Manage Characters ({characters.length - 1}):
+                        </Text>
                         {isLoading ? (
                             <ActivityIndicator size="large" color="#3F4F5F" />
                         ) : (
@@ -474,7 +482,11 @@ const SnapshotGeneralInfo = () => {
                             </>
                         )}
                         <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonRight]} testID='manage-characters-close-button' onPress={handleCloseManageCharacters}>
+                            <TouchableOpacity 
+                                style={[styles.modalButton, styles.modalButtonRight]} 
+                                testID='manage-characters-close-button' 
+                                onPress={handleCloseManageCharacters}
+                            >
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>Close</Text>
                             </TouchableOpacity>
                         </View>
@@ -487,11 +499,13 @@ const SnapshotGeneralInfo = () => {
                 transparent={true}
                 animationType="fade"
                 visible={showAddCharacterModal}
-                onRequestClose={() => setShowAddCharacterModal(false)} // Android back button handling
+                onRequestClose={() => setShowAddCharacterModal(false)}
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalText} accessibilityLabel={!isEditing ? 'Add New Character:' : 'Update Character:'}>{!isEditing ? 'Add New Character:' : 'Update Character:'}</Text>
+                        <Text style={styles.modalText} accessibilityLabel={!isEditing ? 'Add New Character:' : 'Update Character:'}>
+                            {!isEditing ? 'Add New Character:' : 'Update Character:'}
+                        </Text>
                         <TextInput
                             style={styles.modalTextbox}
                             onChangeText={setCharacterName}
@@ -501,10 +515,18 @@ const SnapshotGeneralInfo = () => {
                             testID='character-name-text-input'
                         />
                         <View style={styles.modalButtonsContainer}>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonLeft]} testID='add-new-character-cancel-button' onPress={handleCancelAddOrEditCharacter}>
+                            <TouchableOpacity 
+                                style={[styles.modalButton, styles.modalButtonLeft]} 
+                                testID='add-new-character-cancel-button' 
+                                onPress={handleCancelAddOrEditCharacter}
+                            >
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextLeft]}>Cancel</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalButton, styles.modalButtonRight]} testID='add-new-character-submit-button' onPress={handleCreateOrEditCharacter}>
+                            <TouchableOpacity 
+                                style={[styles.modalButton, styles.modalButtonRight]} 
+                                testID='add-new-character-submit-button' 
+                                onPress={handleCreateOrEditCharacter}
+                            >
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>Submit</Text>
                             </TouchableOpacity>
                         </View>
@@ -524,7 +546,7 @@ const SnapshotGeneralInfo = () => {
                     cursorColor={'#3F4F5F'}
                     testID='snapshot-name-text-input'
                 />
-                {spaceType == 2 ?
+                {spaceType == 2 && (
                     <>
                         <Text style={styles.label} accessibilityLabel="Episode Number:">Episode Number:</Text>
                         <TextInput
@@ -537,7 +559,7 @@ const SnapshotGeneralInfo = () => {
                             testID='episode-number-text-input'
                         />
                     </>
-                    : null}
+                )}
                 <Text style={styles.label} accessibilityLabel="Scene Number:">Scene Number:</Text>
                 <TextInput
                     style={[styles.textbox, getTextInputStyle(sceneNumber)]}
@@ -610,10 +632,18 @@ const SnapshotGeneralInfo = () => {
                     testID='snapshot-notes-text-input'
                 />
                 <View style={styles.formButtonsContainer}>
-                    <TouchableOpacity style={[styles.formButton, styles.modalButtonLeft]} onPress={handleNavigationOnConfirmOrCancel} testID='general-cancel-button'>
+                    <TouchableOpacity 
+                        style={[styles.formButton, styles.modalButtonLeft]} 
+                        onPress={() => handleNavigate()} 
+                        testID='general-cancel-button'
+                    >
                         <Text style={[styles.modalButtonText, styles.modalButtonTextLeft]}>Cancel</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.formButton, styles.modalButtonRight]} onPress={handleCreateOrEditSnapshot} testID='general-submit-button'>
+                    <TouchableOpacity 
+                        style={[styles.formButton, styles.modalButtonRight]} 
+                        onPress={handleCreateOrEditSnapshot} 
+                        testID='general-submit-button'
+                    >
                         <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>Submit</Text>
                     </TouchableOpacity>
                 </View>
