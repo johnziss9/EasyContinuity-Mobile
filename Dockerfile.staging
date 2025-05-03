@@ -1,11 +1,6 @@
 # Use Node 20.15.0 as the base image
 FROM node:20.15.0
 
-# # Install dependencies
-# RUN apt-get update && apt-get install -y \
-#     android-tools-adb \
-#     android-tools-fastboot
-
 # Set up working directory
 WORKDIR /app
 
@@ -30,5 +25,5 @@ EXPOSE 19000
 # Expose port 19002 for Expo DevTools
 EXPOSE 19002
 
-# Start the app
-CMD ["npx", "expo", "start", "--web", "--no-dev"]
+# Start the app - This can be overridden by docker-compose
+CMD ["npx", "expo", "start", "--web"]
