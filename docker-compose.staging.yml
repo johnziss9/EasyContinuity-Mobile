@@ -3,7 +3,7 @@ services:
   easy-continuity-staging:
     build: 
       context: .
-      dockerfile: Dockerfile.staging
+      dockerfile: Dockerfile
     ports:
       - "8081:8081"
       - "19000:19000"
@@ -12,5 +12,5 @@ services:
       - NODE_ENV=staging
       - REACT_NATIVE_PACKAGER_HOSTNAME=${LINODE_IP}
       - ENDPOINT_URL=http://${LINODE_IP}:5003
-    command: npx expo start --web --lan --port 19000
+    command: npx expo start --web --lan --port 19000 --no-dev
     network_mode: "host"
