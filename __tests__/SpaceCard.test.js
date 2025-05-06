@@ -2,13 +2,6 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import SpaceCard from '../components/SpaceCard';
 
-jest.mock('react-native/Libraries/LayoutAnimation/LayoutAnimation', () => ({
-    configureNext: jest.fn(),
-    Presets: {
-        easeInEaseOut: {}
-    }
-}));
-
 describe('SpaceCard', () => {
     const mockProps = {
         spaceName: 'Test Folder',
