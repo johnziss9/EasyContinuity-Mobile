@@ -1,6 +1,6 @@
 version: '3.9'
 services:
-  easy-continuity-uat:
+  easy-continuity-test:
     build:
       context: .
       dockerfile: Dockerfile
@@ -9,8 +9,8 @@ services:
       - "19001:19000"
       - "19003:19002"
     environment:
-      - NODE_ENV=uat
+      - NODE_ENV=test
       - REACT_NATIVE_PACKAGER_HOSTNAME=${LINODE_IP}
       - ENDPOINT_URL=http://${LINODE_IP}:5004
-    command: npx expo start --web --lan --port 19001 --no-dev
+    command: npx expo start --web --lan --port 19001
     network_mode: "host"

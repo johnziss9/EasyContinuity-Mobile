@@ -1,0 +1,85 @@
+name: Merge PR to Dev and Deploy to Test
+
+on:
+  push:
+    branches: [ dev ]
+
+jobs:
+  deploy_to_test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetches the entire history of the repository
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.15.0'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run tests
+      run: npm test
+      continue-on-error: false
+      
+    - name: Create test branch if it doesn't exist
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git checkout dev
+        git pull origin dev
+        
+        # Check if test branch exists locally
+        if ! git show-ref --quiet refs/heads/test; then
+          # Check if test branch exists remotely
+          if git ls-remote --exit-code --heads origin test; then
+            # If it exists remotely but not locally, check it out
+            git checkout -b test origin/test
+          else
+            # If it doesn't exist remotely, create it from uat
+            git checkout uat
+            git pull origin uat
+            git checkout -b test
+            git push -u origin test
+          fi
+        else
+          # If it exists locally, just check it out
+          git checkout test
+          git pull origin test
+        fi
+      
+    - name: Merge dev to test
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git checkout dev
+        git pull origin dev
+        git checkout test
+        git pull origin test
+        git merge --no-ff dev -m "Merge dev into test [skip ci]"
+        git push origin test
+
+    - name: Deploy to Test Environment
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.LINODE_HOST }}
+        username: ${{ secrets.LINODE_USER }}
+        key: ${{ secrets.LINODE_SSH_PRIVATE_KEY }}
+        port: ${{ secrets.SSH_PORT }}
+        script: |
+          # Stop all related containers
+          docker ps | grep "easycontinuity" | awk '{print $1}' | xargs docker stop || true
+          
+          # Start API containers
+          cd EasyContinuity-API_Test
+          docker compose -f docker-compose.test.yml up -d --build
+          
+          # Update and deploy Mobile for Test
+          cd ../EasyContinuity-Mobile
+          git fetch --all
+          git checkout test
+          git pull origin test
+          docker compose -f docker-compose.test.yml up -d --build
