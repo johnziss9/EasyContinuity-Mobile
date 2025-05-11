@@ -44,7 +44,8 @@ const Folder = () => {
             if (folderId) {
                 handleFetchAllFolderData();
             }
-
+    
+            let backHandler;
             if (Platform.OS === 'android') {
                 const onBackPress = () => {
                     if (parentFolderId && parentFolderName) {
@@ -60,10 +61,15 @@ const Folder = () => {
                         return true;
                     }
                 };
-
-                BackHandler.addEventListener('hardwareBackPress', onBackPress);
-                return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    
+                backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
             }
+            
+            return () => {
+                if (backHandler) {
+                    backHandler.remove();
+                }
+            };
         }, [folderId, parentFolderId, parentFolderName, spaceId, spaceName])
     );
 
