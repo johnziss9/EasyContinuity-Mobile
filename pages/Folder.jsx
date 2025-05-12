@@ -46,7 +46,8 @@ const Folder = () => {
             }
     
             let backHandler;
-            if (Platform.OS === 'android') {
+
+            if (Platform.OS === 'android' && BackHandler) {
                 const onBackPress = () => {
                     if (parentFolderId && parentFolderName) {
                         navigation.navigate('Folder', {
@@ -66,7 +67,7 @@ const Folder = () => {
             }
             
             return () => {
-                if (backHandler) {
+                if (backHandler?.remove) {
                     backHandler.remove();
                 }
             };
