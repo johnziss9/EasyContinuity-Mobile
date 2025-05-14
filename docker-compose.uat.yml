@@ -12,5 +12,5 @@ services:
       - NODE_ENV=uat
       - REACT_NATIVE_PACKAGER_HOSTNAME=${LINODE_IP}
       - ENDPOINT_URL=http://${LINODE_IP}:5003
-    command: npx expo start --web --lan --port 19000 --no-dev
+    command: npx expo start --web --lan --port 19000 --minify
     network_mode: "host"
