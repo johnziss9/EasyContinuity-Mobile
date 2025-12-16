@@ -2646,4 +2646,38 @@ describe('SnapshotGeneralInfo', () => {
             expect(getByTestId('snapshot-general-container').props.style.paddingLeft).toBe(5);
         });
     });
+
+    it('should display characters sorted alphabetically', async () => {
+        apiMock
+        .mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: { id: 1, type: 2 }
+        }))
+        .mockImplementationOnce(() => Promise.resolve({
+            success: true,
+            data: [
+            { id: 2, name: 'Zack' },
+            { id: 3, name: 'Alice' },
+            { id: 4, name: 'Bob' }
+            ]
+        }));
+
+        const { getByTestId, getAllByTestId } = render(
+        <NavigationContainer>
+            <SnapshotGeneralInfo />
+        </NavigationContainer>
+        );
+
+        await waitFor(() => {
+        fireEvent.press(getByTestId('manage-characters-button'));
+        });
+
+        await waitFor(() => {
+        const characterComponents = getAllByTestId('character-component');
+        // Verify characters are sorted: Alice, Bob, Zack
+        expect(characterComponents[0]).toHaveTextContent('Alice');
+        expect(characterComponents[1]).toHaveTextContent('Bob');
+        expect(characterComponents[2]).toHaveTextContent('Zack');
+        });
+    });
 });
