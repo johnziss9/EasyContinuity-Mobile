@@ -1209,4 +1209,24 @@ describe('Image View Modal', () => {
             expect(rendered.queryByTestId('modal-image')).toBeNull();
         });
     });
+
+    it('should sort attachments alphabetically by name', async () => {
+        handleHttpRequest.mockResolvedValue({
+        success: true,
+        data: [
+            { id: '1', name: 'zebra.jpg', url: 'file://zebra.jpg' },
+            { id: '2', name: 'alpha.jpg', url: 'file://alpha.jpg' },
+            { id: '3', name: 'beta.jpg', url: 'file://beta.jpg' }
+        ]
+        });
+
+        const rendered = render(<ImageAttachment spaceId="123" />);
+
+        await waitFor(() => {
+        const items = rendered.getAllByText(/^(alpha|beta|zebra)/);
+        expect(items[0]).toHaveTextContent('alpha');
+        expect(items[1]).toHaveTextContent('beta');
+        expect(items[2]).toHaveTextContent('zebra');
+        });
+    });
 });

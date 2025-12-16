@@ -1124,4 +1124,27 @@ describe('Dashboard', () => {
         // Clean up
         consoleErrorSpy.mockRestore();
     });
+
+    it('should sort spaces by date newest first', async () => {
+        const apiMock = require('../api/api').default;
+        apiMock.mockResolvedValueOnce({
+        success: true,
+        data: [
+            { id: 1, name: 'Older Space', createdOn: '2024-01-01T00:00:00Z' },
+            { id: 2, name: 'Newer Space', createdOn: '2024-01-03T00:00:00Z' }
+        ]
+        });
+
+        const { getAllByText } = render(
+        <NavigationContainer>
+            <Dashboard />
+        </NavigationContainer>
+        );
+
+        await waitFor(() => {
+        const items = getAllByText(/Space/);
+        expect(items[0]).toHaveTextContent('Newer Space');
+        expect(items[1]).toHaveTextContent('Older Space');
+        });
+    });
 })
