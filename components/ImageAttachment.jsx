@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { StyleSheet, Image, View, Text, TouchableOpacity, TextInput, FlatList, Pressable, Modal } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useFileBrowser from '../hooks/useFileBrowser';
@@ -41,6 +41,11 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
     const getTextInputStyle = (value) => ({
         fontStyle: value ? 'normal' : 'italic',
     });
+
+    const sortedAttachments = useMemo(() => {
+        // Only sort the uploaded images, not the preview ones
+        return [...attachments].sort((a, b) => a.name.localeCompare(b.name));
+    }, [attachments]);
 
     const fetchAttachments = async () => {
         try {
@@ -436,7 +441,7 @@ const ImageAttachment = ({ spaceId, folderId, snapshotId }) => {
             </Modal>
 
             <FlatList
-                data={[...selectedFiles, ...attachments]}
+                data={[...selectedFiles, ...sortedAttachments]}
                 renderItem={renderItem}
                 keyExtractor={(item) => item.id}
                 ListEmptyComponent={
