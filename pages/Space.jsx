@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, useWindowDimensions, ActivityIndicator, ScrollView } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -47,6 +47,56 @@ const Space = () => {
             }
         }, [spaceId])
     );
+
+    const sortedSearchResults = useMemo(() => {
+        if (!searchResults || searchResults.length === 0) return [];
+        return [...searchResults].sort((a, b) => {
+            switch (currentSort.id) {
+                case 1: // Date: Newest First
+                    return new Date(b.createdOn) - new Date(a.createdOn);
+                case 2: // Date: Oldest First
+                    return new Date(a.createdOn) - new Date(b.createdOn);
+                case 3: // Name: A to Z
+                    return a.name.localeCompare(b.name);
+                case 4: // Name: Z to A
+                    return b.name.localeCompare(a.name);
+                default:
+                    return 0;
+            }
+        });
+    }, [searchResults, currentSort.id]);
+
+    const sortedFoldersAndSnapshots = useMemo(() => {
+        if (!Array.isArray(folders) || !Array.isArray(snapshots)) {
+            return { sortedFolders: [], sortedSnapshots: [] };
+        }
+        
+        // Create copies to avoid mutating original arrays
+        let sortedFolders = [...folders];
+        let sortedSnapshots = [...snapshots];
+        
+        // Apply sorting based on current sort option
+        switch (currentSort.id) {
+            case 1: // Date: Newest First
+                sortedFolders.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
+                sortedSnapshots.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
+                break;
+            case 2: // Date: Oldest First
+                sortedFolders.sort((a, b) => new Date(a.createdOn) - new Date(b.createdOn));
+                sortedSnapshots.sort((a, b) => new Date(a.createdOn) - new Date(b.createdOn));
+                break;
+            case 3: // Name: A to Z
+                sortedFolders.sort((a, b) => a.name.localeCompare(b.name));
+                sortedSnapshots.sort((a, b) => a.name.localeCompare(b.name));
+                break;
+            case 4: // Name: Z to A
+                sortedFolders.sort((a, b) => b.name.localeCompare(a.name));
+                sortedSnapshots.sort((a, b) => b.name.localeCompare(a.name));
+                break;
+        }
+        
+        return { sortedFolders, sortedSnapshots };
+    }, [folders, snapshots, currentSort.id]);
 
     const getTextInputStyle = (value) => ({
         fontStyle: value ? 'normal' : 'italic',
@@ -109,33 +159,6 @@ const Space = () => {
     const handleSort = (option) => {
         setCurrentSort(option);
         setShowSortByModal(false);
-
-        let sortedFolders = [...folders];
-        let sortedSnapshots = [...snapshots];
-
-        switch (option.id) {
-            case 1: // Date: Newest First
-                sortedFolders.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
-                sortedSnapshots.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
-                break;
-            case 2: // Date: Oldest First
-                sortedFolders.sort((a, b) => new Date(a.createdOn) - new Date(b.createdOn));
-                sortedSnapshots.sort((a, b) => new Date(a.createdOn) - new Date(b.createdOn));
-                break;
-            case 3: // Name: A to Z
-                sortedFolders.sort((a, b) => a.name.localeCompare(b.name));
-                sortedSnapshots.sort((a, b) => a.name.localeCompare(b.name));
-                break;
-            case 4: // Name: Z to A
-                sortedFolders.sort((a, b) => b.name.localeCompare(a.name));
-                sortedSnapshots.sort((a, b) => b.name.localeCompare(a.name));
-                break;
-            default:
-                break;
-        }
-
-        setFolders(sortedFolders);
-        setSnapshots(sortedSnapshots);
     };
 
     const handleConfirmDeleteSnapshotPress = async (snapshot) => {
@@ -210,21 +233,6 @@ const Space = () => {
                     ? 'snapshot'
                     : 'folder'
             }));
-
-            switch (currentSort.id) {
-                case 1: // Date: Newest First
-                    resultsWithType.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
-                    break;
-                case 2: // Date: Oldest First
-                    resultsWithType.sort((a, b) => new Date(a.createdOn) - new Date(b.createdOn));
-                    break;
-                case 3: // Name: A to Z
-                    resultsWithType.sort((a, b) => a.name.localeCompare(b.name));
-                    break;
-                case 4: // Name: Z to A
-                    resultsWithType.sort((a, b) => b.name.localeCompare(a.name));
-                    break;
-            }
 
             setSearchResults(resultsWithType);
         } catch (error) {
@@ -515,9 +523,9 @@ const Space = () => {
                     <>
                         {searchResults ? (
                             // Search results view
-                            searchResults.length > 0 ? (
+                            sortedSearchResults.length > 0 ? (
                                 <>
-                                    {searchResults.map((item) => (
+                                    {sortedSearchResults.map((item) => (
                                         item.itemType === 'snapshot' ? (
                                             <SnapshotCard
                                                 key={`snapshot-${item.id}`}
@@ -551,23 +559,25 @@ const Space = () => {
                             Array.isArray(folders) && Array.isArray(snapshots) &&
                                 (folders.length > 0 || snapshots.length > 0) ? (
                                 <>
-                                    {folders.length > 0 && folders.map((folder) => (
-                                        <FolderCard
-                                            key={folder.id}
-                                            folderName={folder.name}
-                                            onEditPress={() => handleEditFolderPress(folder)}
-                                            onDeletePress={() => handleDeleteFolderPress(folder)}
-                                            onPress={() => handleFolderPress(folder.id, folder.name)}
-                                        />
-                                    ))}
-                                    {snapshots.length > 0 && snapshots.map((snapshot) => (
-                                        <SnapshotCard
-                                            key={snapshot.id}
-                                            snapshotName={snapshot.name}
-                                            onDeletePress={() => handleDeleteSnapshotPress(snapshot)}
-                                            onPress={() => handleSnapshotPress(snapshot)}
-                                        />
-                                    ))}
+                                    {sortedFoldersAndSnapshots.sortedFolders.length > 0 && 
+                                        sortedFoldersAndSnapshots.sortedFolders.map((folder) => (
+                                            <FolderCard
+                                                key={folder.id}
+                                                folderName={folder.name}
+                                                onEditPress={() => handleEditFolderPress(folder)}
+                                                onDeletePress={() => handleDeleteFolderPress(folder)}
+                                                onPress={() => handleFolderPress(folder.id, folder.name)}
+                                            />
+                                        ))}
+                                    {sortedFoldersAndSnapshots.sortedSnapshots.length > 0 && 
+                                        sortedFoldersAndSnapshots.sortedSnapshots.map((snapshot) => (
+                                            <SnapshotCard
+                                                key={snapshot.id}
+                                                snapshotName={snapshot.name}
+                                                onDeletePress={() => handleDeleteSnapshotPress(snapshot)}
+                                                onPress={() => handleSnapshotPress(snapshot)}
+                                            />
+                                        ))}
                                 </>
                             ) : (
                                 <View style={styles.noItemsContainer}>

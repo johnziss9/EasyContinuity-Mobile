@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { StyleSheet, Text, ScrollView, TextInput, Modal, View, TouchableOpacity, useWindowDimensions, ActivityIndicator } from 'react-native';
 import { SelectList } from 'react-native-dropdown-select-list'
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -127,6 +127,14 @@ const SnapshotGeneralInfo = () => {
 
         // TODO Add validation if user selected first value and then cancels the snapshot shouldn't save
     };
+
+    const sortedCharacters = useMemo(() => {
+        if (!Array.isArray(characters) || characters.length <= 1) return [];
+        
+        return [...characters.slice(1)].sort((a, b) => 
+            a.value.localeCompare(b.value)
+        );
+    }, [characters]);
 
     const handleCloseManageCharacters = () => {
         setShowManageCharactersModal(false);
@@ -471,7 +479,7 @@ const SnapshotGeneralInfo = () => {
                             <ActivityIndicator size="large" color="#3F4F5F" />
                         ) : (
                             <>
-                                {Array.isArray(characters) ? characters.slice(1).map((character) => (
+                                {Array.isArray(sortedCharacters) ? sortedCharacters.map((character) => (
                                     <CharacterCard
                                         key={character.key}
                                         characterName={character.value}

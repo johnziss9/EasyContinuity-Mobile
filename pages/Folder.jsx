@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useLayoutEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { BackHandler, Platform } from 'react-native';
 import { StyleSheet, Pressable, Modal, View, Text, TouchableOpacity, TextInput, ActivityIndicator, ScrollView } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -44,7 +44,7 @@ const Folder = () => {
             if (folderId) {
                 handleFetchAllFolderData();
             }
-    
+
             let backHandler;
 
             if (Platform.OS === 'android' && BackHandler) {
@@ -62,10 +62,10 @@ const Folder = () => {
                         return true;
                     }
                 };
-    
+
                 backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
             }
-            
+
             return () => {
                 if (backHandler?.remove) {
                     backHandler.remove();
@@ -81,11 +81,17 @@ const Folder = () => {
     const handleSort = (option) => {
         setCurrentSort(option);
         setShowSortByModal(false);
+    };
+
+    const sortedFoldersAndSnapshots = useMemo(() => {
+        if (!Array.isArray(folders) || !Array.isArray(snapshots)) {
+            return { sortedFolders: [], sortedSnapshots: [] };
+        }
 
         let sortedFolders = [...folders];
         let sortedSnapshots = [...snapshots];
 
-        switch (option.id) {
+        switch (currentSort.id) {
             case 1: // Date: Newest First
                 sortedFolders.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
                 sortedSnapshots.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
@@ -102,13 +108,10 @@ const Folder = () => {
                 sortedFolders.sort((a, b) => b.name.localeCompare(a.name));
                 sortedSnapshots.sort((a, b) => b.name.localeCompare(a.name));
                 break;
-            default:
-                break;
         }
 
-        setFolders(sortedFolders);
-        setSnapshots(sortedSnapshots);
-    };
+        return { sortedFolders, sortedSnapshots };
+    }, [folders, snapshots, currentSort.id]);
 
     const handleConfirmDeleteSnapshotPress = async (snapshot) => {
         try {
@@ -176,12 +179,8 @@ const Folder = () => {
 
             const spaceName = spacesResponse.data.name;
 
-            // Applying default sorting when this function is called - Date Created Newest First
-            const sortedFolders = foldersResponse.data.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
-            const sortedSnapshots = snapshotsResponse.data.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
-
-            setFolders(sortedFolders);
-            setSnapshots(sortedSnapshots);
+            setFolders(foldersResponse.data);
+            setSnapshots(snapshotsResponse.data);
 
             if (currentFolderResponse.success &&
                 currentFolderResponse.data.parentId !== null &&
@@ -266,7 +265,7 @@ const Folder = () => {
         setFolderEditing(false);
         setFolderNameField('');
     }
-    
+
     const handleDeleteSnapshotPress = (snapshot) => {
         setSnapshotToDelete(snapshot);
         setShowDeleteSnapshotModal(true);
@@ -287,9 +286,9 @@ const Folder = () => {
                     lastUpdatedOn: new Date().toISOString()
                     // TODO Include lastUpdatedBy
                 };
-    
+
                 const response = await handleHttpRequest(url, method, body);
-    
+
                 if (response.success) {
                     ToastNotification.show('success', 'Success', 'Folder Updated Successfully');
                     handleFetchAllFolderData();
@@ -355,7 +354,7 @@ const Folder = () => {
                                 onPress={() => {
                                     setShowDeleteSnapshotModal(false);
                                     handleConfirmDeleteSnapshotPress(snapshotToDelete);
-                                    setSnapshotToDelete(null); 
+                                    setSnapshotToDelete(null);
                                 }}
                             >
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>Delete</Text>
@@ -385,7 +384,7 @@ const Folder = () => {
                                 onPress={() => {
                                     setShowDeleteFolderModal(false);
                                     handleConfirmDeleteFolderPress(folderToDelete);
-                                    setFolderToDelete(null); 
+                                    setFolderToDelete(null);
                                 }}
                             >
                                 <Text style={[styles.modalButtonText, styles.modalButtonTextRight]}>Delete</Text>
@@ -503,24 +502,25 @@ const Folder = () => {
                     <>
                         {Array.isArray(folders) && Array.isArray(snapshots) && (folders.length > 0 || snapshots.length > 0) ? (
                             <>
-                                {folders.length > 0 && folders.map((folder) => (
-                                    <FolderCard
-                                        key={folder.id}
-                                        folderName={folder.name}
-                                        onEditPress={ () => handleEditFolderPress(folder) }
-                                        onDeletePress={() => handleDeleteFolderPress(folder)}
-                                        onPress={() => handleFolderPress(folder.id, folder.name)}
-                                    />
-                                ))}
-                                {snapshots.length > 0 && snapshots.map((snapshot) => (
-                                    <SnapshotCard
-                                        key={snapshot.id}
-                                        snapshotName={snapshot.name}
-                                        // images={[someImage, someImage2, someImage3, someImage4, someImage, someImage]}
-                                        onDeletePress={() => handleDeleteSnapshotPress(snapshot)}
-                                        onPress={() => handleSnapshotPress(snapshot)}
-                                    />
-                                ))}
+                                {sortedFoldersAndSnapshots.sortedFolders.length > 0 &&
+                                    sortedFoldersAndSnapshots.sortedFolders.map((folder) => (
+                                        <FolderCard
+                                            key={folder.id}
+                                            folderName={folder.name}
+                                            onEditPress={() => handleEditFolderPress(folder)}
+                                            onDeletePress={() => handleDeleteFolderPress(folder)}
+                                            onPress={() => handleFolderPress(folder.id, folder.name)}
+                                        />
+                                    ))}
+                                {sortedFoldersAndSnapshots.sortedSnapshots.length > 0 &&
+                                    sortedFoldersAndSnapshots.sortedSnapshots.map((snapshot) => (
+                                        <SnapshotCard
+                                            key={snapshot.id}
+                                            snapshotName={snapshot.name}
+                                            onDeletePress={() => handleDeleteSnapshotPress(snapshot)}
+                                            onPress={() => handleSnapshotPress(snapshot)}
+                                        />
+                                    ))}
                             </>
                         ) : (
                             <View style={styles.noItemsContainer}>

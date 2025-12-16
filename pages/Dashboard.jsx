@@ -325,7 +325,10 @@ const Dashboard = () => {
                     <ActivityIndicator size="large" color="#3F4F5F" />
                 ) : (
                     <>
-                        {Array.isArray(spaces) && spaces.length > 0 ? spaces.map((space) => (
+                        {Array.isArray(spaces) && spaces.length > 0 ? 
+                            [...spaces]
+                                .sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn))
+                                .map((space) => (
                             <SpaceCard
                                 key={space.id}
                                 spaceName={space.name}
