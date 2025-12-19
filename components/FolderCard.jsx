@@ -29,6 +29,7 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: '#3F4F5F',
         width: '90%',
+        maxWidth: 600,
         paddingHorizontal: 20,
         height: 110,
         marginBottom: 20,
